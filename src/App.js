@@ -4,19 +4,25 @@ import FantamilioniModal from './components/FantamilioniModal';
 import Header from './components/Header';
 import PlayersTab from './components/PlayersTab';
 import RosaAcquistata from './components/RosaAcquistata';
+import MantraGiocatoriTab from './components/MantraGiocatoriTab';
+import SquadreTab from './components/SquadreTab';
 import { normalizePlayerData } from './utils/dataUtils';
 import { canAffordPlayer, getTotalFantamilioni, loadBudget, loadPlayerStatus, saveBudget, savePlayerStatus, updatePlayerStatus } from './utils/storage';
 
 const App = () => {
   // Stati principali
   const [fpediaData, setFpediaData] = useState([]);
-  const [playerStatus, setPlayerStatus] = useState({});
+  const [mantraData, setMantraData] = useState([]);
+  const [rolesData, setRolesData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('giocatori');
 
-  // Stato del budget
-  const [budget, setBudget] = useState(500);
+  // Independent player status and budget for each mode
+  const [normalPlayerStatus, setNormalPlayerStatus] = useState({});
+  const [mantraPlayerStatus, setMantraPlayerStatus] = useState({});
+  const [normalBudget, setNormalBudget] = useState(500);
+  const [mantraBudget, setMantraBudget] = useState(500);
 
   // Flag per evitare salvataggi durante l'inizializzazione
   const [isInitialized, setIsInitialized] = useState(false);
@@ -25,16 +31,30 @@ const App = () => {
   const [showFantamilioniModal, setShowFantamilioniModal] = useState(false);
   const [playerToAcquire, setPlayerToAcquire] = useState(null);
 
+  // Mantra mode state
+  const [isMantraMode, setIsMantraMode] = useState(false);
+
+  // Get current mode's data
+  const currentPlayerStatus = isMantraMode ? mantraPlayerStatus : normalPlayerStatus;
+  const currentBudget = isMantraMode ? mantraBudget : normalBudget;
+
   // Carica status giocatori all'avvio
   useEffect(() => {
-    const status = loadPlayerStatus();
-    const savedBudget = loadBudget();
+    // Load separate data for each mode
+    const normalStatus = loadPlayerStatus('normal');
+    const mantraStatus = loadPlayerStatus('mantra');
+    const normalSavedBudget = loadBudget('normal');
+    const mantraSavedBudget = loadBudget('mantra');
     
-    console.log('Caricamento iniziale - Stato trovato:', Object.keys(status).length, 'giocatori');
-    console.log('Caricamento iniziale - Budget trovato:', savedBudget);
+    console.log('Caricamento iniziale - Stato normale trovato:', Object.keys(normalStatus).length, 'giocatori');
+    console.log('Caricamento iniziale - Stato mantra trovato:', Object.keys(mantraStatus).length, 'giocatori');
+    console.log('Caricamento iniziale - Budget normale trovato:', normalSavedBudget);
+    console.log('Caricamento iniziale - Budget mantra trovato:', mantraSavedBudget);
     
-    setPlayerStatus(status);
-    setBudget(savedBudget);
+    setNormalPlayerStatus(normalStatus);
+    setMantraPlayerStatus(mantraStatus);
+    setNormalBudget(normalSavedBudget);
+    setMantraBudget(mantraSavedBudget);
     
     // Segna come inizializzato DOPO aver caricato i dati
     setIsInitialized(true);
@@ -42,29 +62,53 @@ const App = () => {
     loadDataFromPublic();
   }, []);
 
-  // Salva automaticamente lo status dei giocatori
+  // Salva automaticamente lo status dei giocatori normali
   useEffect(() => {
     // Non salvare durante l'inizializzazione
     if (!isInitialized) {
-      console.log('Salvataggio saltato - app non ancora inizializzata');
+      console.log('Salvataggio stato normale saltato - app non ancora inizializzata');
       return;
     }
     
-    console.log('Salvando stato giocatori:', Object.keys(playerStatus).length, 'giocatori');
-    savePlayerStatus(playerStatus);
-  }, [playerStatus, isInitialized]);
+    console.log('Salvando stato giocatori normali:', Object.keys(normalPlayerStatus).length, 'giocatori');
+    savePlayerStatus(normalPlayerStatus, 'normal');
+  }, [normalPlayerStatus, isInitialized]);
 
-  // Salva automaticamente il budget
+  // Salva automaticamente lo status dei giocatori mantra
   useEffect(() => {
     // Non salvare durante l'inizializzazione
     if (!isInitialized) {
-      console.log('Salvataggio budget saltato - app non ancora inizializzata');
+      console.log('Salvataggio stato mantra saltato - app non ancora inizializzata');
       return;
     }
     
-    console.log('Salvando budget:', budget);
-    saveBudget(budget);
-  }, [budget, isInitialized]);
+    console.log('Salvando stato giocatori mantra:', Object.keys(mantraPlayerStatus).length, 'giocatori');
+    savePlayerStatus(mantraPlayerStatus, 'mantra');
+  }, [mantraPlayerStatus, isInitialized]);
+
+  // Salva automaticamente il budget normale
+  useEffect(() => {
+    // Non salvare durante l'inizializzazione
+    if (!isInitialized) {
+      console.log('Salvataggio budget normale saltato - app non ancora inizializzata');
+      return;
+    }
+    
+    console.log('Salvando budget normale:', normalBudget);
+    saveBudget(normalBudget, 'normal');
+  }, [normalBudget, isInitialized]);
+
+  // Salva automaticamente il budget mantra
+  useEffect(() => {
+    // Non salvare durante l'inizializzazione
+    if (!isInitialized) {
+      console.log('Salvataggio budget mantra saltato - app non ancora inizializzata');
+      return;
+    }
+    
+    console.log('Salvando budget mantra:', mantraBudget);
+    saveBudget(mantraBudget, 'mantra');
+  }, [mantraBudget, isInitialized]);
 
   // Caricamento automatico del file dalla cartella public
   const loadDataFromPublic = async () => {
@@ -73,7 +117,7 @@ const App = () => {
     
     try {
       // Carica solo FPEDIA
-      const fpediaResponse = await fetch('/fpedia_analysis.xlsx');
+      const fpediaResponse = await fetch('/data/fpedia_analysis.xlsx');
       if (fpediaResponse.ok) {
         const fpediaBuffer = await fpediaResponse.arrayBuffer();
         const fpediaWorkbook = XLSX.read(fpediaBuffer);
@@ -81,11 +125,54 @@ const App = () => {
         const fpediaJson = XLSX.utils.sheet_to_json(fpediaSheet);
         setFpediaData(fpediaJson);
       } else {
-        setError('File fpedia_analysis.xlsx non trovato nella cartella public. Usa il caricamento manuale.');
+        setError('File fpedia_analysis.xlsx non trovato nella cartella public/data/. Usa il caricamento manuale.');
       }
     } catch (err) {
       setError('Errore nel caricamento del file. Usa il caricamento manuale.');
       console.error('Errore caricamento automatico:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Caricamento dati Mantra mode
+  const loadMantraData = async () => {
+    setLoading(true);
+    setError(null);
+    
+    try {
+      // Carica final.json
+      const finalResponse = await fetch('/data/final.json');
+      if (finalResponse.ok) {
+        const finalJson = await finalResponse.json();
+        // Use the unique player_id from final.json as the id
+        const mantraDataWithIds = finalJson.map(player => ({
+          ...player,
+          id: player.player_id.toString() // Use the unique player_id from final.json
+        }));
+        setMantraData(mantraDataWithIds);
+      } else {
+        setError('File final.json non trovato nella cartella public/data/.');
+        return;
+      }
+
+      // Carica roles.csv
+      const rolesResponse = await fetch('/data/roles.csv');
+      if (rolesResponse.ok) {
+        const rolesText = await rolesResponse.text();
+        const rolesLines = rolesText.split('\n').filter(line => line.trim());
+        const roles = rolesLines.slice(1).map(line => {
+          const [Role, Ruolo] = line.split(',');
+          return { Role: Role.trim(), Ruolo: Ruolo.trim() };
+        });
+        setRolesData(roles);
+      } else {
+        setError('File roles.csv non trovato nella cartella public/data/.');
+        return;
+      }
+    } catch (err) {
+      setError('Errore nel caricamento dei dati Mantra.');
+      console.error('Errore caricamento Mantra:', err);
     } finally {
       setLoading(false);
     }
@@ -102,9 +189,15 @@ const App = () => {
 
   // Gestione status giocatori
   const handlePlayerStatusChange = (playerId, status, fantamilioni = null) => {
-    console.log('Cambiamento stato giocatore:', playerId, status, fantamilioni);
-    const newStatus = updatePlayerStatus(playerStatus, playerId, status, fantamilioni);
-    setPlayerStatus(newStatus);
+    console.log('Cambiamento stato giocatore:', playerId, status, fantamilioni, 'mode:', isMantraMode ? 'mantra' : 'normal');
+    
+    if (isMantraMode) {
+      const newStatus = updatePlayerStatus(mantraPlayerStatus, playerId, status, fantamilioni);
+      setMantraPlayerStatus(newStatus);
+    } else {
+      const newStatus = updatePlayerStatus(normalPlayerStatus, playerId, status, fantamilioni);
+      setNormalPlayerStatus(newStatus);
+    }
   };
 
   // Gestione acquisto giocatore con fantamilioni
@@ -116,8 +209,8 @@ const App = () => {
   const handleFantamilioniConfirm = (fantamilioni) => {
     if (playerToAcquire) {
       // Controllo budget
-      if (!canAffordPlayer(fantamilioni, budget, playerStatus)) {
-        alert(`Non hai abbastanza fantamilioni! Budget rimanente: ${budget - getTotalFantamilioni(playerStatus)} FM`);
+      if (!canAffordPlayer(fantamilioni, currentBudget, currentPlayerStatus)) {
+        alert(`Non hai abbastanza fantamilioni! Budget rimanente: ${currentBudget - getTotalFantamilioni(currentPlayerStatus)} FM`);
         return;
       }
       
@@ -127,23 +220,57 @@ const App = () => {
     }
   };
 
+  // Gestione cambio budget
+  const handleBudgetChange = (newBudget) => {
+    if (isMantraMode) {
+      setMantraBudget(newBudget);
+    } else {
+      setNormalBudget(newBudget);
+    }
+  };
+
   const handleFantamilioniCancel = () => {
     setShowFantamilioniModal(false);
     setPlayerToAcquire(null);
   };
 
+  // Gestione Mantra mode
+  const handleMantraModeChange = (enabled) => {
+    setIsMantraMode(enabled);
+    if (enabled) {
+      loadMantraData();
+      setActiveTab('giocatori'); // Reset to first tab
+    } else {
+      setActiveTab('giocatori'); // Reset to first tab
+    }
+  };
+
   // Tab configuration
-  const tabs = [
+  const tabs = isMantraMode ? [
     { 
       id: 'giocatori', 
       label: 'Giocatori', 
-      emoji: '👤',
       description: 'Cerca e visualizza tutti i giocatori con statistiche e classifiche'
     },
     { 
       id: 'rosa', 
       label: 'La Mia Rosa', 
-      emoji: '⭐',
+      description: 'Visualizza i giocatori che hai acquistato e gestisci il budget'
+    },
+    { 
+      id: 'squadre', 
+      label: 'Squadre', 
+      description: 'Gestisci e visualizza le informazioni delle squadre'
+    }
+  ] : [
+    { 
+      id: 'giocatori', 
+      label: 'Giocatori', 
+      description: 'Cerca e visualizza tutti i giocatori con statistiche e classifiche'
+    },
+    { 
+      id: 'rosa', 
+      label: 'La Mia Rosa', 
       description: 'Visualizza i giocatori che hai acquistato e gestisci il budget'
     }
   ];
@@ -193,14 +320,16 @@ const App = () => {
     <div style={containerStyle}>
       {/* Header con Budget integrato */}
       <Header 
-        dataCount={normalizedData.length}
-        playerStatus={playerStatus}
-        budget={budget}
-        onBudgetChange={setBudget}
+        dataCount={isMantraMode ? mantraData.length : normalizedData.length}
+        playerStatus={currentPlayerStatus}
+        budget={currentBudget}
+        onBudgetChange={handleBudgetChange}
+        isMantraMode={isMantraMode}
+        onMantraModeChange={handleMantraModeChange}
       />
 
       {/* Navigation Tabs - solo se ci sono dati */}
-      {normalizedData.length > 0 && (
+      {((isMantraMode && mantraData.length > 0) || (!isMantraMode && normalizedData.length > 0)) && (
         <div style={tabsContainerStyle}>
           {tabs.map(tab => (
             <button
@@ -260,14 +389,14 @@ const App = () => {
           </div>
         )}
 
-        {!loading && !error && normalizedData.length === 0 && (
+        {!loading && !error && ((isMantraMode && mantraData.length === 0) || (!isMantraMode && normalizedData.length === 0)) && (
           <div style={{
             padding: '3rem',
             textAlign: 'center',
             fontSize: '1.125rem',
             color: '#64748b'
           }}>
-            <div style={{ marginBottom: '1rem', fontSize: '3rem' }}>📊</div>
+            <div style={{ marginBottom: '1rem', fontSize: '3rem' }}>⚽</div>
             <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>
               Benvenuto in Fantavibe!
             </div>
@@ -275,25 +404,44 @@ const App = () => {
           </div>
         )}
 
-        {normalizedData.length > 0 && (
+        {((isMantraMode && mantraData.length > 0) || (!isMantraMode && normalizedData.length > 0)) && (
           <>
-            {activeTab === 'giocatori' && (
+            {activeTab === 'giocatori' && !isMantraMode && (
               <PlayersTab
                 players={normalizedData}
-                playerStatus={playerStatus}
+                playerStatus={currentPlayerStatus}
                 onPlayerStatusChange={handlePlayerStatusChange}
                 onPlayerAcquire={handlePlayerAcquire}
                 searchIndex={searchIndex}
               />
             )}
 
+            {activeTab === 'giocatori' && isMantraMode && (
+              <MantraGiocatoriTab
+                players={mantraData}
+                playerStatus={currentPlayerStatus}
+                onPlayerStatusChange={handlePlayerStatusChange}
+                onPlayerAcquire={handlePlayerAcquire}
+                roles={rolesData}
+              />
+            )}
+
             {activeTab === 'rosa' && (
               <RosaAcquistata
-                players={normalizedData}
-                playerStatus={playerStatus}
+                players={isMantraMode ? mantraData : normalizedData}
+                playerStatus={currentPlayerStatus}
                 onPlayerStatusChange={handlePlayerStatusChange}
-                budget={budget}
+                budget={currentBudget}
+                isMantraMode={isMantraMode}
+                roleMapping={rolesData.reduce((acc, role) => {
+                  acc[role.Role] = role.Ruolo;
+                  return acc;
+                }, {})}
               />
+            )}
+
+            {activeTab === 'squadre' && isMantraMode && (
+              <SquadreTab />
             )}
           </>
         )}
@@ -305,7 +453,7 @@ const App = () => {
           player={playerToAcquire}
           onConfirm={handleFantamilioniConfirm}
           onCancel={handleFantamilioniCancel}
-          maxFantamilioni={budget - getTotalFantamilioni(playerStatus)}
+          maxFantamilioni={currentBudget - getTotalFantamilioni(currentPlayerStatus)}
         />
       )}
     </div>

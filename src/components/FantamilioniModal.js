@@ -190,7 +190,7 @@ const FantamilioniModal = ({
         {/* Header */}
         <div style={headerStyle}>
           <h3 style={titleStyle}>
-            💰 Acquista {player.Nome}
+            Acquista {player.Nome}
           </h3>
           <p style={subtitleStyle}>
             {player.Squadra} • {player.Ruolo}

@@ -1,12 +1,23 @@
 // src/components/RosaAcquistata.js
-import React, { useMemo } from 'react';
-import { getAcquiredPlayers, getPlayerStatsByRole, getTotalFantamilioni } from '../utils/storage';
+import React, { useMemo, useCallback } from 'react';
+import { getAcquiredPlayers } from '../utils/storage';
 
 const RosaAcquistata = ({ 
   players = [],
   playerStatus = {},
-  onPlayerStatusChange 
+  onPlayerStatusChange,
+  isMantraMode = false,
+  roleMapping = {}
 }) => {
+  // Helper function to get player role (handles both normal and Mantra modes)
+  const getPlayerRole = useCallback((player) => {
+    if (isMantraMode && player['Ruolo Mantra']) {
+      // In Mantra mode, use the first role from the array and map it
+      const mantraRole = player['Ruolo Mantra'][0];
+      return roleMapping[mantraRole] || mantraRole;
+    }
+    return player.Ruolo;
+  }, [isMantraMode, roleMapping]);
   // Ottieni giocatori acquistati
   const acquiredPlayerIds = useMemo(() => {
     return getAcquiredPlayers(playerStatus);
@@ -36,7 +47,7 @@ const RosaAcquistata = ({
     };
 
     acquiredPlayersDetails.forEach(player => {
-      const role = player.Ruolo;
+      const role = getPlayerRole(player);
       if (grouped[role]) {
         grouped[role].players.push(player);
         grouped[role].count++;
@@ -50,10 +61,9 @@ const RosaAcquistata = ({
     });
 
     return grouped;
-  }, [acquiredPlayersDetails]);
+  }, [acquiredPlayersDetails, getPlayerRole]);
 
   // Statistiche totali
-  const totalFantamilioni = getTotalFantamilioni(playerStatus);
   const totalPlayers = acquiredPlayersDetails.length;
 
   // Gestori eventi
@@ -183,12 +193,12 @@ const RosaAcquistata = ({
     fontStyle: 'italic'
   };
 
-  // Mappatura ruoli con emoji e nomi
+  // Mappatura ruoli con nomi
   const roleInfo = {
-    POR: { emoji: '🥅', name: 'Portieri' },
-    DIF: { emoji: '🛡️', name: 'Difensori' },
-    CEN: { emoji: '🎯', name: 'Centrocampisti' },
-    ATT: { emoji: '⚽', name: 'Attaccanti' }
+    POR: { name: 'Portieri' },
+    DIF: { name: 'Difensori' },
+    CEN: { name: 'Centrocampisti' },
+    ATT: { name: 'Attaccanti' }
   };
 
   if (totalPlayers === 0) {
@@ -241,7 +251,6 @@ const RosaAcquistata = ({
               {/* Header ruolo */}
               <div style={roleHeaderStyle}>
                 <div style={roleTitleStyle}>
-                  <span>{roleData.emoji}</span>
                   {roleData.name}
                 </div>
                 <div style={roleStatsStyle}>

@@ -6,7 +6,7 @@ import {
   getTotalFantamilioni
 } from '../utils/storage';
 
-const Header = ({ dataCount = 0, playerStatus = {}, budget = 500, onBudgetChange }) => {
+const Header = ({ dataCount = 0, playerStatus = {}, budget = 500, onBudgetChange, isMantraMode = false, onMantraModeChange }) => {
   const totalFantamilioni = getTotalFantamilioni(playerStatus);
   const acquiredPlayers = getAcquiredPlayers(playerStatus);
   const totalAcquired = acquiredPlayers.length;
@@ -36,7 +36,7 @@ const Header = ({ dataCount = 0, playerStatus = {}, budget = 500, onBudgetChange
 
   const handleClearAll = () => {
     if (window.confirm('Sei sicuro di voler cancellare tutti i dati? Questa operazione non può essere annullata.')) {
-      clearPlayerStatus();
+      clearPlayerStatus(isMantraMode ? 'mantra' : 'normal');
       window.location.reload();
     }
   };
@@ -172,6 +172,50 @@ const Header = ({ dataCount = 0, playerStatus = {}, budget = 500, onBudgetChange
     borderColor: '#dc2626'
   };
 
+  const mantraSwitchStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    marginTop: '0.5rem'
+  };
+
+  const switchStyle = {
+    position: 'relative',
+    display: 'inline-block',
+    width: '50px',
+    height: '24px'
+  };
+
+  const switchInputStyle = {
+    opacity: 0,
+    width: 0,
+    height: 0
+  };
+
+  const sliderStyle = {
+    position: 'absolute',
+    cursor: 'pointer',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: isMantraMode ? '#3b82f6' : '#ccc',
+    transition: '0.4s',
+    borderRadius: '24px'
+  };
+
+  const sliderBeforeStyle = {
+    position: 'absolute',
+    content: '""',
+    height: '18px',
+    width: '18px',
+    left: isMantraMode ? '26px' : '3px',
+    bottom: '3px',
+    backgroundColor: 'white',
+    transition: '0.4s',
+    borderRadius: '50%'
+  };
+
   return (
     <header style={headerStyle}>
       <div style={containerStyle}>
@@ -193,6 +237,24 @@ const Header = ({ dataCount = 0, playerStatus = {}, budget = 500, onBudgetChange
             )}
           </h1>
           
+          {/* Mantra Switch */}
+          <div style={mantraSwitchStyle}>
+            <label style={{ color: '#64748b', fontWeight: '500', fontSize: '0.875rem' }}>
+              Mantra Mode:
+            </label>
+            <label style={switchStyle}>
+              <input
+                type="checkbox"
+                checked={isMantraMode}
+                onChange={(e) => onMantraModeChange && onMantraModeChange(e.target.checked)}
+                style={switchInputStyle}
+              />
+              <span style={sliderStyle}>
+                <span style={sliderBeforeStyle}></span>
+              </span>
+            </label>
+          </div>
+
           {/* Gestione Budget integrata */}
           {dataCount > 0 && (
             <div style={budgetSectionStyle}>

@@ -140,7 +140,7 @@ export const normalizePlayerData = (fpediaData) => {
   
   console.timeEnd('🚀 Data normalization with rankings');
   console.log(`✅ Created index for ${playersWithRanking.length} players with ${searchIndex.size} search terms`);
-  console.log('📊 Original rankings calculated for all roles');
+  console.log('Original rankings calculated for all roles');
   
   return { players: playersWithRanking, searchIndex };
 };
@@ -212,7 +212,7 @@ const searchPlayersOptimized = (players, searchIndex, searchTerm) => {
     });
   
   const endTime = performance.now();
-  console.log(`🔍 Search "${searchTerm}" took ${Math.round(endTime - startTime)}ms - found ${results.length} results`);
+  console.log(`Search "${searchTerm}" took ${Math.round(endTime - startTime)}ms - found ${results.length} results`);
   
   return results;
 };

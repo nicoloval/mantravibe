@@ -17,10 +17,10 @@ const PlayersTab = ({
 
   // Ruoli disponibili
   const roles = [
-    { key: 'POR', label: 'Portieri', emoji: '🥅' },
-    { key: 'DIF', label: 'Difensori', emoji: '🛡️' },
-    { key: 'CEN', label: 'Centrocampisti', emoji: '🎯' },    
-    { key: 'ATT', label: 'Attaccanti', emoji: '⚽' }
+    { key: 'POR', label: 'Portieri' },
+    { key: 'DIF', label: 'Difensori' },
+    { key: 'CEN', label: 'Centrocampisti' },    
+    { key: 'ATT', label: 'Attaccanti' }
   ];
 
   // Risultati in base al contesto (ricerca vs classifiche)
@@ -296,7 +296,7 @@ const PlayersTab = ({
       {/* Header */}
       <div style={headerStyle}>
         <h2 style={titleStyle}>
-          {isSearchMode ? '🔍 Ricerca Giocatori' : '🏆 Classifica per Ruolo'}
+          {isSearchMode ? 'Ricerca Giocatori' : 'Classifica per Ruolo'}
         </h2>
         
         {/* Search Input */}
@@ -350,7 +350,6 @@ const PlayersTab = ({
                 }
               }}
             >
-              <span>{role.emoji}</span>
               {role.label}
             </button>
           ))}
@@ -395,7 +394,7 @@ const PlayersTab = ({
                 color: '#1e40af',
                 fontWeight: '500'
               }}>
-                🔍 "{searchTerm}"
+                "{searchTerm}"
               </div>
             )}
           </div>
@@ -417,7 +416,6 @@ const PlayersTab = ({
                 }
               }}
             >
-              {showDetailedMode ? '📊' : '📈'}
               {showDetailedMode ? 'Nascondi Dettagli' : 'Mostra Dettagli'}
             </button>
 
@@ -513,7 +511,7 @@ const PlayersTab = ({
           boxShadow: '0 4px 12px rgba(0,0,0,0.15)',
           zIndex: 100
         }}>
-          {roles.find(r => r.key === selectedRole)?.emoji} {selectedRole}
+          {selectedRole}
           {isSearchMode && ` • ${displayedPlayers.length} risultati`}
           {!isSearchMode && ` • ${roleStats.total} totali`}
           {displayedPlayers.length > 0 && displayedPlayers[0].originalRank && (
@@ -536,7 +534,7 @@ const PlayersTab = ({
           fontWeight: '500',
           zIndex: 100
         }}>
-          {showDetailedMode ? '📊 Dettagli ON' : '📈 Dettagli OFF'}
+          {showDetailedMode ? 'Dettagli ON' : 'Dettagli OFF'}
         </div>
       )}
     </div>

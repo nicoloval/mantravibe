@@ -1,7 +1,9 @@
 // src/utils/storage.js - Versione completa con tutte le funzioni
 
-const STORAGE_KEY = 'fantacalcio_player_status';
-const BUDGET_STORAGE_KEY = 'fantacalcio_budget'; // AGGIUNTO
+const STORAGE_KEY_NORMAL = 'fantacalcio_player_status_normal';
+const STORAGE_KEY_MANTRA = 'fantacalcio_player_status_mantra';
+const BUDGET_STORAGE_KEY_NORMAL = 'fantacalcio_budget_normal';
+const BUDGET_STORAGE_KEY_MANTRA = 'fantacalcio_budget_mantra';
 
 /**
  * Struttura dei dati salvati:
@@ -16,11 +18,13 @@ const BUDGET_STORAGE_KEY = 'fantacalcio_budget'; // AGGIUNTO
 
 /**
  * Carica lo stato dei giocatori dal localStorage
+ * @param {string} mode - 'normal' o 'mantra'
  * @returns {Object} Oggetto con gli stati dei giocatori
  */
-export const loadPlayerStatus = () => {
+export const loadPlayerStatus = (mode = 'normal') => {
   try {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const storageKey = mode === 'mantra' ? STORAGE_KEY_MANTRA : STORAGE_KEY_NORMAL;
+    const saved = localStorage.getItem(storageKey);
     if (!saved) return {};
     
     const parsed = JSON.parse(saved);
@@ -40,7 +44,7 @@ export const loadPlayerStatus = () => {
       }
     }
     
-    console.log('Stati giocatori caricati:', Object.keys(migrated).length, 'giocatori tracciati');
+    console.log(`Stati giocatori ${mode} caricati:`, Object.keys(migrated).length, 'giocatori tracciati');
     return migrated;
   } catch (error) {
     console.warn('Errore nel caricamento dei dati dal localStorage:', error);
@@ -51,13 +55,15 @@ export const loadPlayerStatus = () => {
 /**
  * Salva lo stato dei giocatori nel localStorage
  * @param {Object} playerStatus - Oggetto con gli stati dei giocatori
+ * @param {string} mode - 'normal' o 'mantra'
  */
-export const savePlayerStatus = (playerStatus) => {
+export const savePlayerStatus = (playerStatus, mode = 'normal') => {
   try {
     // Gestione sicura dell'oggetto undefined
     const statusToSave = playerStatus || {};
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(statusToSave));
-    console.log('Stati giocatori salvati:', Object.keys(statusToSave).length, 'giocatori tracciati');
+    const storageKey = mode === 'mantra' ? STORAGE_KEY_MANTRA : STORAGE_KEY_NORMAL;
+    localStorage.setItem(storageKey, JSON.stringify(statusToSave));
+    console.log(`Stati giocatori ${mode} salvati:`, Object.keys(statusToSave).length, 'giocatori tracciati');
   } catch (error) {
     console.error('Errore nel salvataggio dei dati:', error);
   }
@@ -166,9 +172,10 @@ export const getPlayerStatsByRole = (playerStatus, playersData) => {
  * Carica il budget dal localStorage
  * @returns {number} Budget salvato o 500 di default
  */
-export const loadBudget = () => {
+export const loadBudget = (mode = 'normal') => {
   try {
-    const saved = localStorage.getItem(BUDGET_STORAGE_KEY);
+    const storageKey = mode === 'mantra' ? BUDGET_STORAGE_KEY_MANTRA : BUDGET_STORAGE_KEY_NORMAL;
+    const saved = localStorage.getItem(storageKey);
     return saved ? parseInt(saved) : 500;
   } catch (error) {
     console.warn('Errore nel caricamento del budget:', error);
@@ -180,10 +187,11 @@ export const loadBudget = () => {
  * Salva il budget nel localStorage
  * @param {number} budget - Budget da salvare
  */
-export const saveBudget = (budget) => {
+export const saveBudget = (budget, mode = 'normal') => {
   try {
-    localStorage.setItem(BUDGET_STORAGE_KEY, budget.toString());
-    console.log('Budget salvato:', budget);
+    const storageKey = mode === 'mantra' ? BUDGET_STORAGE_KEY_MANTRA : BUDGET_STORAGE_KEY_NORMAL;
+    localStorage.setItem(storageKey, budget.toString());
+    console.log(`Budget ${mode} salvato:`, budget);
   } catch (error) {
     console.error('Errore nel salvataggio del budget:', error);
   }
@@ -238,11 +246,13 @@ export const getBudgetStats = (totalBudget, playerStatus) => {
 /**
  * Cancella tutti i dati salvati
  */
-export const clearPlayerStatus = () => {
+export const clearPlayerStatus = (mode = 'normal') => {
   try {
-    localStorage.removeItem(STORAGE_KEY);
-    localStorage.removeItem(BUDGET_STORAGE_KEY); // AGGIUNTO
-    console.log('Tutti i dati sono stati cancellati');
+    const storageKey = mode === 'mantra' ? STORAGE_KEY_MANTRA : STORAGE_KEY_NORMAL;
+    const budgetKey = mode === 'mantra' ? BUDGET_STORAGE_KEY_MANTRA : BUDGET_STORAGE_KEY_NORMAL;
+    localStorage.removeItem(storageKey);
+    localStorage.removeItem(budgetKey);
+    console.log(`Tutti i dati ${mode} sono stati cancellati`);
   } catch (error) {
     console.error('Errore nella cancellazione dei dati:', error);
   }

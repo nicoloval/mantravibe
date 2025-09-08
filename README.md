@@ -72,7 +72,7 @@ npm start
 
 ### Utilizzo
 
-1. **Carica i dati**: L'app cerca automaticamente `fpedia_analysis.xlsx` nella cartella `public/`
+1. **Carica i dati**: L'app cerca automaticamente `fpedia_analysis.xlsx` nella cartella `public/data/`
 2. **Imposta budget**: Modifica il budget iniziale (default 500 FM)
 3. **Esplora giocatori**: Usa la ricerca per trovare i giocatori desiderati
 4. **Costruisci la rosa**: Acquista giocatori specificando i fantamilioni
@@ -85,7 +85,7 @@ npm start
 Posiziona il file Excel con i dati dei giocatori in:
 
 ```
-public/fpedia_analysis.xlsx
+public/data/fpedia_analysis.xlsx
 ```
 
 Il file deve contenere colonne:
