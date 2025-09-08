@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
 import * as XLSX from 'xlsx';
 import FantamilioniModal from './components/FantamilioniModal';
 import Header from './components/Header';
@@ -34,6 +34,14 @@ const App = () => {
   // Mantra mode state
   const [isMantraMode, setIsMantraMode] = useState(false);
 
+  // Teams state for Squadre tab
+  const [teams, setTeams] = useState([]);
+
+  // Handle teams changes from SquadreTab
+  const handleTeamsChange = useCallback((newTeams) => {
+    setTeams(newTeams);
+  }, []);
+
   // Get current mode's data
   const currentPlayerStatus = isMantraMode ? mantraPlayerStatus : normalPlayerStatus;
   const currentBudget = isMantraMode ? mantraBudget : normalBudget;
@@ -55,6 +63,16 @@ const App = () => {
     setMantraPlayerStatus(mantraStatus);
     setNormalBudget(normalSavedBudget);
     setMantraBudget(mantraSavedBudget);
+    
+    // Load teams from localStorage
+    try {
+      const savedTeams = localStorage.getItem('fantacalcio_teams');
+      const teamsData = savedTeams ? JSON.parse(savedTeams) : [];
+      setTeams(Array.isArray(teamsData) ? teamsData : []);
+    } catch (error) {
+      console.error('Error loading teams from localStorage:', error);
+      setTeams([]);
+    }
     
     // Segna come inizializzato DOPO aver caricato i dati
     setIsInitialized(true);
@@ -206,7 +224,7 @@ const App = () => {
     setShowFantamilioniModal(true);
   };
 
-  const handleFantamilioniConfirm = (fantamilioni) => {
+  const handleFantamilioniConfirm = (fantamilioni, teamId) => {
     if (playerToAcquire) {
       // Controllo budget
       if (!canAffordPlayer(fantamilioni, currentBudget, currentPlayerStatus)) {
@@ -215,6 +233,36 @@ const App = () => {
       }
       
       handlePlayerStatusChange(playerToAcquire.id, 'acquired', fantamilioni);
+      
+      // Add player to the selected team
+      if (teamId) {
+        const teamIdInt = parseInt(teamId);
+        console.log('Adding player to team:', teamIdInt, playerToAcquire.Nome, fantamilioni);
+        
+        // Update teams state directly
+        setTeams(prevTeams => {
+          const updatedTeams = prevTeams.map(team =>
+            team.id === teamIdInt
+              ? {
+                  ...team,
+                  players: [...(team.players || []), { ...playerToAcquire, price: fantamilioni }]
+                }
+              : team
+          );
+          
+          // Save to localStorage
+          localStorage.setItem('fantacalcio_teams', JSON.stringify(updatedTeams));
+          console.log('Updated teams:', updatedTeams);
+          
+          return updatedTeams;
+        });
+        
+        // Also try the window method as backup
+        if (window.addPlayerToTeam) {
+          window.addPlayerToTeam(teamIdInt, playerToAcquire, fantamilioni);
+        }
+      }
+      
       setShowFantamilioniModal(false);
       setPlayerToAcquire(null);
     }
@@ -326,6 +374,7 @@ const App = () => {
         onBudgetChange={handleBudgetChange}
         isMantraMode={isMantraMode}
         onMantraModeChange={handleMantraModeChange}
+        teams={teams}
       />
 
       {/* Navigation Tabs - solo se ci sono dati */}
@@ -437,11 +486,12 @@ const App = () => {
                   acc[role.Role] = role.Ruolo;
                   return acc;
                 }, {})}
+                teams={teams}
               />
             )}
 
             {activeTab === 'squadre' && isMantraMode && (
-              <SquadreTab />
+              <SquadreTab budget={currentBudget} onTeamsChange={handleTeamsChange} />
             )}
           </>
         )}
@@ -454,6 +504,7 @@ const App = () => {
           onConfirm={handleFantamilioniConfirm}
           onCancel={handleFantamilioniCancel}
           maxFantamilioni={currentBudget - getTotalFantamilioni(currentPlayerStatus)}
+          teams={teams || []}
         />
       )}
     </div>

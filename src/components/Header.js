@@ -6,11 +6,20 @@ import {
   getTotalFantamilioni
 } from '../utils/storage';
 
-const Header = ({ dataCount = 0, playerStatus = {}, budget = 500, onBudgetChange, isMantraMode = false, onMantraModeChange }) => {
+const Header = ({ dataCount = 0, playerStatus = {}, budget = 500, onBudgetChange, isMantraMode = false, onMantraModeChange, teams = [] }) => {
   const totalFantamilioni = getTotalFantamilioni(playerStatus);
   const acquiredPlayers = getAcquiredPlayers(playerStatus);
   const totalAcquired = acquiredPlayers.length;
-  const budgetRimanente = budget - totalFantamilioni;
+  
+  // Get first team data
+  const firstTeam = teams && teams.length > 0 ? teams[0] : null;
+  const firstTeamBudget = firstTeam ? firstTeam.budget : budget;
+  const firstTeamName = firstTeam ? firstTeam.name : 'Squadra';
+  
+  // Calculate remaining budget for first team
+  const firstTeamSpent = firstTeam && firstTeam.players ? 
+    firstTeam.players.reduce((sum, player) => sum + (player.price || 0), 0) : 0;
+  const budgetRimanente = firstTeamBudget - firstTeamSpent;
 
   // Calcola giocatori per status
   const unavailablePlayers = Object.values(playerStatus).filter(
@@ -275,7 +284,10 @@ const Header = ({ dataCount = 0, playerStatus = {}, budget = 500, onBudgetChange
                   {budgetRimanente}FM disponibili
                 </span>
                 <span style={{ color: '#9ca3af' }}>
-                  ({totalFantamilioni}/{budget} FM)
+                  ({firstTeamSpent}/{firstTeamBudget} FM)
+                </span>
+                <span style={{ color: '#64748b', fontWeight: '500', marginLeft: '0.5rem' }}>
+                  - {firstTeamName}
                 </span>
               </div>
             </div>

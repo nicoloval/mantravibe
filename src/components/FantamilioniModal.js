@@ -4,14 +4,17 @@ const FantamilioniModal = ({
   player, 
   onConfirm, 
   onCancel,
-  maxFantamilioni
+  maxFantamilioni,
+  teams = []
 }) => {
   const [fantamilioni, setFantamilioni] = useState('');
+  const [selectedTeamId, setSelectedTeamId] = useState('');
   const [error, setError] = useState('');
 
   // Reset quando cambia il giocatore
   useEffect(() => {
     setFantamilioni('');
+    setSelectedTeamId('');
     setError('');
   }, [player]);
 
@@ -28,7 +31,12 @@ const FantamilioniModal = ({
       return;
     }
     
-    onConfirm(value);
+    if (!selectedTeamId) {
+      setError('Seleziona una squadra');
+      return;
+    }
+    
+    onConfirm(value, selectedTeamId);
   };
 
   const handleKeyPress = (e) => {
@@ -255,8 +263,26 @@ const FantamilioniModal = ({
             autoFocus
             disabled={maxFantamilioni <= 0}
           />
-          {error && <div style={errorStyle}>{error}</div>}
         </div>
+
+        {/* Team Selection */}
+        <div style={inputContainerStyle}>
+          <select
+            value={selectedTeamId}
+            onChange={(e) => setSelectedTeamId(e.target.value)}
+            style={inputStyle}
+            disabled={maxFantamilioni <= 0}
+          >
+            <option value="">Seleziona una squadra</option>
+            {teams.map(team => (
+              <option key={team.id} value={team.id}>
+                {team.name}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        {error && <div style={errorStyle}>{error}</div>}
 
         {/* Action Buttons */}
         <div style={actionButtonsStyle}>
@@ -268,7 +294,7 @@ const FantamilioniModal = ({
           </button>
           <button
             onClick={handleConfirm}
-            disabled={!fantamilioni || parseInt(fantamilioni) <= 0 || parseInt(fantamilioni) > maxFantamilioni || maxFantamilioni <= 0}
+            disabled={!fantamilioni || parseInt(fantamilioni) <= 0 || parseInt(fantamilioni) > maxFantamilioni || maxFantamilioni <= 0 || !selectedTeamId}
             style={confirmButtonStyle}
           >
             ✅ Conferma
