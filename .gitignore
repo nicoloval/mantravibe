@@ -24,4 +24,4 @@ yarn-error.log*
 
 
 # data
-./public/data/
+public/data/
