@@ -8,7 +8,8 @@ const RosaAcquistata = ({
   onPlayerStatusChange,
   isMantraMode = false,
   roleMapping = {},
-  teams = []
+  teams = [],
+  appetibilitaData = {}
 }) => {
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [formations, setFormations] = useState({});
@@ -438,19 +439,11 @@ const RosaAcquistata = ({
 
   // Organize players by their roles for the formation display
   const getPlayersByFormationRoles = useMemo(() => {
-    if (!selectedTeam || !selectedTeam.players) return {};
-    
-    // Debug: Log formations data
-    if (formations && Object.keys(formations).length > 0) {
-      console.log('Available formations:', Object.keys(formations));
-      if (selectedFormation && formations[selectedFormation]) {
-        console.log(`Selected formation ${selectedFormation}:`, formations[selectedFormation]);
-      }
-    }
+    if (!selectedTeam || !selectedTeam.players || !formations[selectedFormation]) return {};
     
     const playersByRole = {};
-    const playerPositionCount = {}; // Track how many positions each player occupies in this formation
-    const playerAddedToRole = {}; // Track which players have been added to which roles to avoid duplicates
+    const positionAssignments = {}; // Track which player is assigned to each position
+    const unassignedPlayers = []; // Players that couldn't be assigned to any position
     
     // Initialize all formation roles
     getFormationRoles.forEach(role => {
@@ -460,203 +453,66 @@ const RosaAcquistata = ({
     // Add unused roles box
     playersByRole['UNUSED'] = [];
     
-    selectedTeam.players.forEach(teamPlayer => {
+    // Helper function to get appetibilita ranking for a role
+    const getRoleRanking = (role) => {
+      return appetibilitaData[role] || 999; // Default high value for unknown roles
+    };
+    
+    // Create position slots from formation
+    const formationPositions = formations[selectedFormation].positions.map((positionGroup, index) => ({
+      positionIndex: index,
+      roles: positionGroup, // Array of roles that can fill this position
+      assignedPlayer: null,
+      assignedPlayerId: null
+    }));
+    
+    console.log('Formation positions:', formationPositions);
+    
+    // Get all team players with their possible roles
+    const teamPlayers = selectedTeam.players.map(teamPlayer => {
       const playerDetail = players.find(p => p.id === teamPlayer.id);
-      if (!playerDetail) return;
+      if (!playerDetail) return null;
       
-      // Initialize tracking for this player
-      if (!playerPositionCount[teamPlayer.id]) {
-        playerPositionCount[teamPlayer.id] = 0;
-        playerAddedToRole[teamPlayer.id] = new Set();
-      }
+      let possibleRoles = [];
+      let unusedRoles = [];
       
       if (isMantraMode && playerDetail['Ruolo Mantra']) {
         try {
           const roles = JSON.parse(playerDetail['Ruolo Mantra'].replace(/'/g, '"'));
           const mappedRoles = roles.map(role => roleMapping[role] || role);
           
-          // Debug logging for Tramoni
-          if (playerDetail.Nome && playerDetail.Nome.toLowerCase().includes('tramoni')) {
-            console.log('Tramoni debug:', {
-              originalRoles: roles,
-              mappedRoles: mappedRoles,
-              roleMapping: roleMapping,
-              formation: selectedFormation
-            });
-          }
-          
-          // Debug logging for Dc/Pc players
-          if (playerDetail.Nome && (mappedRoles.includes('Dc') || mappedRoles.includes('Pc'))) {
-            console.log('Dc/Pc player debug:', {
-              playerName: playerDetail.Nome,
-              originalRoles: roles,
-              mappedRoles: mappedRoles,
-              formation: selectedFormation,
-              allFormationPositions: formations[selectedFormation] ? formations[selectedFormation].positions : 'No formation data'
-            });
-            
-            // Detailed formation positions
-            if (formations[selectedFormation] && formations[selectedFormation].positions) {
-              console.log('Detailed formation positions:');
-              formations[selectedFormation].positions.forEach((positionGroup, index) => {
-                console.log(`Position ${index}:`, positionGroup);
-              });
-            }
-          }
-          
-          // Track which formation roles this player can fill
-          const playerFormationRoles = new Set();
-          
           // Check each player role against each formation position
-          if (formations[selectedFormation] && formations[selectedFormation].positions) {
-            mappedRoles.forEach(mappedRole => {
-              formations[selectedFormation].positions.forEach(positionGroup => {
-                // Case-insensitive matching
-                const roleMatch = positionGroup.some(formationRole => 
+          mappedRoles.forEach(mappedRole => {
+            let roleMatched = false;
+            
+            formationPositions.forEach(position => {
+              // Case-insensitive matching
+              const roleMatch = position.roles.some(formationRole => 
+                formationRole.toLowerCase() === mappedRole.toLowerCase()
+              );
+              
+              if (roleMatch) {
+                roleMatched = true;
+                // Normalize role key to match formation data case (uppercase)
+                const normalizedRole = position.roles.find(formationRole => 
                   formationRole.toLowerCase() === mappedRole.toLowerCase()
                 );
                 
-                // Debug logging for Dc/Pc role matching
-                if (playerDetail.Nome && (mappedRole === 'Dc' || mappedRole === 'Pc')) {
-                  console.log('Dc/Pc role matching debug:', {
-                    playerName: playerDetail.Nome,
-                    mappedRole: mappedRole,
-                    positionGroup: positionGroup,
-                    roleMatch: roleMatch,
-                    comparison: positionGroup.map(formationRole => ({
-                      formationRole: formationRole,
-                      mappedRole: mappedRole,
-                      formationLower: formationRole.toLowerCase(),
-                      mappedLower: mappedRole.toLowerCase(),
-                      match: formationRole.toLowerCase() === mappedRole.toLowerCase()
-                    }))
+                if (normalizedRole) {
+                  possibleRoles.push({
+                    role: normalizedRole,
+                    positionIndex: position.positionIndex,
+                    ranking: getRoleRanking(normalizedRole),
+                    originalRole: mappedRole
                   });
                 }
-                
-                if (roleMatch) {
-                  // Normalize role key to match formation data case (uppercase)
-                  const normalizedRole = positionGroup.find(formationRole => 
-                    formationRole.toLowerCase() === mappedRole.toLowerCase()
-                  );
-                  
-                  if (normalizedRole) {
-                    playerFormationRoles.add(normalizedRole);
-                  }
-                  
-                  // Debug logging for Tramoni
-                  if (playerDetail.Nome && playerDetail.Nome.toLowerCase().includes('tramoni')) {
-                    console.log('Tramoni role match:', {
-                      mappedRole: mappedRole,
-                      normalizedRole: normalizedRole,
-                      positionGroup: positionGroup,
-                      matched: true
-                    });
-                  }
-                  
-                  // Debug logging for Dc/Pc players
-                  if (playerDetail.Nome && (mappedRole === 'Dc' || mappedRole === 'Pc')) {
-                    console.log('Dc/Pc role match:', {
-                      playerName: playerDetail.Nome,
-                      mappedRole: mappedRole,
-                      normalizedRole: normalizedRole,
-                      positionGroup: positionGroup,
-                      matched: true
-                    });
-                  }
-                } else {
-                  // Debug logging for Tramoni
-                  if (playerDetail.Nome && playerDetail.Nome.toLowerCase().includes('tramoni')) {
-                    console.log('Tramoni role no match:', {
-                      mappedRole: mappedRole,
-                      positionGroup: positionGroup,
-                      matched: false
-                    });
-                  }
-                  
-                  // Debug logging for Dc/Pc players
-                  if (playerDetail.Nome && (mappedRole === 'Dc' || mappedRole === 'Pc')) {
-                    console.log('Dc/Pc role no match:', {
-                      playerName: playerDetail.Nome,
-                      mappedRole: mappedRole,
-                      positionGroup: positionGroup,
-                      matched: false
-                    });
-                  }
-                }
-              });
+              }
             });
-          } else {
-            // Debug logging for formation issue
-            if (playerDetail.Nome && playerDetail.Nome.toLowerCase().includes('tramoni')) {
-              console.log('Tramoni formation debug:', {
-                selectedFormation: selectedFormation,
-                formations: formations,
-                formationExists: !!formations[selectedFormation],
-                positionsExist: !!(formations[selectedFormation] && formations[selectedFormation].positions)
-              });
-            }
-          }
-          
-          // Add player to each formation role they can fill (only once per role)
-          playerFormationRoles.forEach(formationRole => {
-            if (!playerAddedToRole[teamPlayer.id].has(formationRole)) {
-              playerPositionCount[teamPlayer.id]++;
-              playerAddedToRole[teamPlayer.id].add(formationRole);
-              
-              // Ensure the role array exists
-              if (!playersByRole[formationRole]) {
-                playersByRole[formationRole] = [];
-              }
-              
-              // Debug logging for player storage
-              if (playerDetail.Nome && (formationRole === 'DC' || formationRole === 'PC')) {
-                console.log('Storing player under normalized role:', {
-                  playerName: playerDetail.Nome,
-                  formationRole: formationRole,
-                  playersByRoleKeys: Object.keys(playersByRole)
-                });
-              }
-              
-              playersByRole[formationRole].push({
-                ...playerDetail,
-                price: teamPlayer.price,
-                playerId: teamPlayer.id
-              });
+            
+            if (!roleMatched) {
+              unusedRoles.push(mappedRole);
             }
           });
-          
-          // Add unmatched roles to unused box - but only if player has NO matching roles at all
-          if (playerFormationRoles.size === 0) {
-            // Player has no roles that match the formation, add all their roles to unused
-            mappedRoles.forEach(mappedRole => {
-              // Debug logging for unused roles
-              if (playerDetail.Nome && (mappedRole === 'Dc' || mappedRole === 'Pc' || playerDetail.Nome.toLowerCase().includes('tramoni'))) {
-                console.log('Adding to unused roles (no formation match):', {
-                  playerName: playerDetail.Nome,
-                  mappedRole: mappedRole,
-                  playerFormationRoles: Array.from(playerFormationRoles),
-                  reason: 'Player has no roles that match formation'
-                });
-              }
-              
-              playersByRole['UNUSED'].push({
-                ...playerDetail,
-                price: teamPlayer.price,
-                originalRole: mappedRole,
-                playerId: teamPlayer.id
-              });
-            });
-          } else {
-            // Debug logging for players with formation matches
-            if (playerDetail.Nome && playerDetail.Nome.toLowerCase().includes('tramoni')) {
-              console.log('Player has formation matches, NOT adding to unused:', {
-                playerName: playerDetail.Nome,
-                mappedRoles: mappedRoles,
-                playerFormationRoles: Array.from(playerFormationRoles),
-                reason: 'Player has at least one role that matches formation'
-              });
-            }
-          }
         } catch (error) {
           console.error('Error parsing Ruolo Mantra:', error);
         }
@@ -665,50 +521,131 @@ const RosaAcquistata = ({
         const role = getPlayerRole(playerDetail);
         let roleMatched = false;
         
-        // Check if this role matches any formation position
-        if (formations[selectedFormation] && formations[selectedFormation].positions) {
-          formations[selectedFormation].positions.forEach(positionGroup => {
-            // Case-insensitive matching
-            const roleMatch = positionGroup.some(formationRole => 
-              formationRole.toLowerCase() === role.toLowerCase()
-            );
-            
-            if (roleMatch) {
-              roleMatched = true;
-              if (!playerAddedToRole[teamPlayer.id].has(role)) {
-                playerPositionCount[teamPlayer.id]++;
-                playerAddedToRole[teamPlayer.id].add(role);
-                
-                playersByRole[role].push({
-                  ...playerDetail,
-                  price: teamPlayer.price,
-                  playerId: teamPlayer.id
-                });
-              }
-            }
-          });
-        }
+        formationPositions.forEach(position => {
+          // Case-insensitive matching
+          const roleMatch = position.roles.some(formationRole => 
+            formationRole.toLowerCase() === role.toLowerCase()
+          );
+          
+          if (roleMatch) {
+            roleMatched = true;
+            possibleRoles.push({
+              role: role,
+              positionIndex: position.positionIndex,
+              ranking: getRoleRanking(role),
+              originalRole: role
+            });
+          }
+        });
         
         if (!roleMatched) {
-          playersByRole['UNUSED'].push({
-            ...playerDetail,
-            price: teamPlayer.price,
-            originalRole: role,
-            playerId: teamPlayer.id
-          });
+          unusedRoles.push(role);
         }
+      }
+      
+      return {
+        playerId: teamPlayer.id,
+        player: playerDetail,
+        teamPlayer: teamPlayer,
+        possibleRoles: possibleRoles,
+        unusedRoles: unusedRoles
+      };
+    }).filter(Boolean);
+    
+    console.log('Team players with roles:', teamPlayers);
+    
+    // Sort players by their best possible role ranking (lower is better)
+    teamPlayers.sort((a, b) => {
+      const aBestRanking = Math.min(...a.possibleRoles.map(r => r.ranking));
+      const bBestRanking = Math.min(...b.possibleRoles.map(r => r.ranking));
+      return aBestRanking - bBestRanking;
+    });
+    
+    // Assign players to positions using greedy algorithm
+    teamPlayers.forEach(playerData => {
+      if (playerData.possibleRoles.length === 0) {
+        // Player has no matching roles, add to unused
+        playerData.unusedRoles.forEach(unusedRole => {
+          unassignedPlayers.push({
+            ...playerData.player,
+            price: playerData.teamPlayer.price,
+            originalRole: unusedRole,
+            playerId: playerData.playerId
+          });
+        });
+        return;
+      }
+      
+      // Sort possible roles by ranking (lower is better)
+      playerData.possibleRoles.sort((a, b) => a.ranking - b.ranking);
+      
+      // Try to assign player to their best available position
+      let assigned = false;
+      for (const roleOption of playerData.possibleRoles) {
+        const position = formationPositions[roleOption.positionIndex];
+        
+        // Check if this position is still available
+        if (!position.assignedPlayer) {
+          // Assign player to this position
+          position.assignedPlayer = playerData.player;
+          position.assignedPlayerId = playerData.playerId;
+          positionAssignments[playerData.playerId] = {
+            positionIndex: roleOption.positionIndex,
+            role: roleOption.role,
+            originalRole: roleOption.originalRole
+          };
+          
+          // Add to playersByRole for display
+          if (!playersByRole[roleOption.role]) {
+            playersByRole[roleOption.role] = [];
+          }
+          
+          playersByRole[roleOption.role].push({
+            ...playerData.player,
+            price: playerData.teamPlayer.price,
+            playerId: playerData.playerId,
+            assignedRole: roleOption.role,
+            positionIndex: roleOption.positionIndex,
+            originalRoles: playerData.possibleRoles.map(r => r.originalRole)
+          });
+          
+          assigned = true;
+          
+          // Debug logging
+          if (playerData.player.Nome && playerData.player.Nome.toLowerCase().includes('tramoni')) {
+            console.log('Tramoni assigned to position:', {
+              playerName: playerData.player.Nome,
+              positionIndex: roleOption.positionIndex,
+              role: roleOption.role,
+              ranking: roleOption.ranking
+            });
+          }
+          
+          break;
+        }
+      }
+      
+      if (!assigned) {
+        // Player couldn't be assigned to any position, add to unused
+        playerData.unusedRoles.forEach(unusedRole => {
+          unassignedPlayers.push({
+            ...playerData.player,
+            price: playerData.teamPlayer.price,
+            originalRole: unusedRole,
+            playerId: playerData.playerId
+          });
+        });
       }
     });
     
-    // Now mark players that occupy multiple positions in this formation
-    Object.keys(playersByRole).forEach(role => {
-      playersByRole[role].forEach(player => {
-        player.occupiesMultiplePositions = playerPositionCount[player.playerId] > 1;
-      });
-    });
+    // Add unassigned players to unused box
+    playersByRole['UNUSED'] = unassignedPlayers;
     
-    return { playersByRole, playerPositionCount };
-  }, [selectedTeam, players, getFormationRoles, isMantraMode, roleMapping, getPlayerRole, formations, selectedFormation]);
+    console.log('Final position assignments:', positionAssignments);
+    console.log('Unassigned players:', unassignedPlayers);
+    
+    return { playersByRole, positionAssignments };
+  }, [selectedTeam, players, getFormationRoles, isMantraMode, roleMapping, getPlayerRole, formations, selectedFormation, appetibilitaData]);
 
   if (totalPlayers === 0) {
     return (
@@ -775,7 +712,7 @@ const RosaAcquistata = ({
                     getPlayersByFormationRoles.playersByRole['P'].map((player, playerIndex) => (
                       <div 
                         key={playerIndex} 
-                        style={player.occupiesMultiplePositions ? playerUnderRoleMultipleStyle : playerUnderRoleStyle}
+                        style={playerUnderRoleStyle}
                       >
                         {player.Nome}
                       </div>
@@ -801,7 +738,7 @@ const RosaAcquistata = ({
                       getPlayersByFormationRoles.playersByRole[individualRole].map((player, playerIndex) => (
                         <div 
                           key={`${individualRole}-${playerIndex}`} 
-                          style={player.occupiesMultiplePositions ? playerUnderRoleMultipleStyle : playerUnderRoleStyle}
+                          style={playerUnderRoleStyle}
                         >
                           {player.Nome}
                         </div>
@@ -828,7 +765,7 @@ const RosaAcquistata = ({
                       getPlayersByFormationRoles.playersByRole[individualRole].map((player, playerIndex) => (
                         <div 
                           key={`${individualRole}-${playerIndex}`} 
-                          style={player.occupiesMultiplePositions ? playerUnderRoleMultipleStyle : playerUnderRoleStyle}
+                          style={playerUnderRoleStyle}
                         >
                           {player.Nome}
                         </div>
@@ -855,7 +792,7 @@ const RosaAcquistata = ({
                       getPlayersByFormationRoles.playersByRole[individualRole].map((player, playerIndex) => (
                         <div 
                           key={`${individualRole}-${playerIndex}`} 
-                          style={player.occupiesMultiplePositions ? playerUnderRoleMultipleStyle : playerUnderRoleStyle}
+                          style={playerUnderRoleStyle}
                         >
                           {player.Nome}
                         </div>
@@ -1014,7 +951,7 @@ const RosaAcquistata = ({
                       getPlayersByFormationRoles.playersByRole[individualRole].map((player, playerIndex) => (
                         <div 
                           key={`${individualRole}-${playerIndex}`} 
-                          style={player.occupiesMultiplePositions ? playerUnderRoleMultipleStyle : playerUnderRoleStyle}
+                          style={playerUnderRoleStyle}
                         >
                           {player.Nome}
                         </div>
@@ -1041,7 +978,7 @@ const RosaAcquistata = ({
                     getPlayersByFormationRoles.playersByRole[individualRole].map((player, playerIndex) => (
                       <div 
                         key={`${individualRole}-${playerIndex}`} 
-                        style={player.occupiesMultiplePositions ? playerUnderRoleMultipleStyle : playerUnderRoleStyle}
+                        style={playerUnderRoleStyle}
                       >
                         {player.Nome}
                       </div>
@@ -1068,7 +1005,7 @@ const RosaAcquistata = ({
                     getPlayersByFormationRoles.playersByRole[individualRole].map((player, playerIndex) => (
                       <div 
                         key={`${individualRole}-${playerIndex}`} 
-                        style={player.occupiesMultiplePositions ? playerUnderRoleMultipleStyle : playerUnderRoleStyle}
+                        style={playerUnderRoleStyle}
                       >
                         {player.Nome}
                       </div>

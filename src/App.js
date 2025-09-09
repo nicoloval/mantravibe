@@ -14,6 +14,7 @@ const App = () => {
   const [fpediaData, setFpediaData] = useState([]);
   const [mantraData, setMantraData] = useState([]);
   const [rolesData, setRolesData] = useState([]);
+  const [appetibilitaData, setAppetibilitaData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('giocatori');
@@ -186,6 +187,16 @@ const App = () => {
         setRolesData(roles);
       } else {
         setError('File roles.csv non trovato nella cartella public/data/.');
+        return;
+      }
+
+      // Carica appetibilita.json
+      const appetibilitaResponse = await fetch('/assets/appetibilita.json');
+      if (appetibilitaResponse.ok) {
+        const appetibilitaJson = await appetibilitaResponse.json();
+        setAppetibilitaData(appetibilitaJson);
+      } else {
+        setError('File appetibilita.json non trovato nella cartella public/assets/.');
         return;
       }
     } catch (err) {
@@ -487,6 +498,7 @@ const App = () => {
                   return acc;
                 }, {})}
                 teams={teams}
+                appetibilitaData={appetibilitaData}
               />
             )}
 
