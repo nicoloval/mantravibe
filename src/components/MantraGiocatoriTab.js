@@ -4,6 +4,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRole, setSelectedRole] = useState('');
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
+  const [hideAcquired, setHideAcquired] = useState(false);
   
   // Column visibility state
   const [visibleColumns, setVisibleColumns] = useState(() => {
@@ -27,14 +28,20 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     return mapping;
   }, [roles]);
 
-  // Get all available roles from roles.csv (first column)
+  // Get all available roles from roles.csv (first column) in CSV order
   const availableRoles = useMemo(() => {
-    // Use all roles from the roles.csv file (first column)
-    return roles.map(role => role.Role).sort();
+    // Use all roles from the roles.csv file (first column) in the order they appear in CSV
+    return roles.map(role => role.Role);
   }, [roles]);
 
   // Filter and sort players
   const filteredAndSortedPlayers = useMemo(() => {
+    // Debug logging for playerStatus
+    if (hideAcquired) {
+      console.log('🔍 DEBUG: playerStatus object:', playerStatus);
+      console.log('🔍 DEBUG: hideAcquired is:', hideAcquired);
+    }
+    
     let filtered = players.filter(player => {
       const matchesSearch = !searchTerm || 
         player.Nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -65,7 +72,16 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         return roles.includes(selectedRole);
       })();
       
-      return matchesSearch && matchesRole;
+      // Filter out acquired players if hideAcquired is true
+      const playerStatusValue = playerStatus[player.player_id];
+      const isNotAcquired = !hideAcquired || !playerStatusValue || (playerStatusValue && playerStatusValue.status !== 'acquired');
+      
+      // Debug logging
+      if (hideAcquired) {
+        console.log('🔍 DEBUG: Player:', player.Nome, 'ID:', player.player_id, 'Status:', playerStatusValue, 'Will show:', isNotAcquired);
+      }
+      
+      return matchesSearch && matchesRole && isNotAcquired;
     });
     
 
@@ -98,7 +114,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     }
 
     return filtered;
-  }, [players, searchTerm, selectedRole, sortConfig]);
+  }, [players, searchTerm, selectedRole, sortConfig, hideAcquired, playerStatus]);
 
   const handleSort = (key) => {
     setSortConfig(prevConfig => ({
@@ -530,10 +546,35 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
           <option value="">Tutti i ruoli</option>
           {availableRoles.map(role => (
             <option key={role} value={role}>
-              {roleMapping[role] || role} ({role})
+              {roleMapping[role] || role}
             </option>
           ))}
         </select>
+
+        {/* Toggle for hiding acquired players */}
+        <label style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.5rem',
+          fontSize: '0.875rem',
+          color: '#374151',
+          cursor: 'pointer'
+        }}>
+          <input
+            type="checkbox"
+            checked={hideAcquired}
+            onChange={(e) => {
+              console.log('🔍 DEBUG: Toggle changed to:', e.target.checked);
+              setHideAcquired(e.target.checked);
+            }}
+            style={{
+              width: '1rem',
+              height: '1rem',
+              cursor: 'pointer'
+            }}
+          />
+          Nascondi acquistati
+        </label>
 
         <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
           {filteredAndSortedPlayers.length} giocatori trovati
@@ -683,32 +724,18 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                         <span style={unavailableStatusStyle}>Non Disp.</span>
                       )}
                       {status === 'available' && (
-                        <>
-                          <button
-                            onClick={() => handleAcquire(player)}
-                            style={buyButtonStyle}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = '#2563eb';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.backgroundColor = '#3b82f6';
-                            }}
-                          >
-                            Compra
-                          </button>
-                          <button
-                            onClick={() => handleStatusChange(playerId, 'unavailable')}
-                            style={unavailableButtonStyle}
-                            onMouseEnter={(e) => {
-                              e.target.style.backgroundColor = '#dc2626';
-                            }}
-                            onMouseLeave={(e) => {
-                              e.target.style.backgroundColor = '#ef4444';
-                            }}
-                          >
-                            N/D
-                          </button>
-                        </>
+                        <button
+                          onClick={() => handleAcquire(player)}
+                          style={buyButtonStyle}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#2563eb';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = '#3b82f6';
+                          }}
+                        >
+                          Compra
+                        </button>
                       )}
                       {status !== 'available' && (
                         <button
@@ -763,17 +790,39 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                       
                       return roles.length > 0 ? (
                         <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                          {roles.map((role, idx) => (
-                            <span key={idx} style={{
-                              padding: '0.125rem 0.375rem',
-                              backgroundColor: '#f3f4f6',
-                              borderRadius: '0.25rem',
-                              fontSize: '0.75rem',
-                              color: '#374151'
-                            }}>
-                              {roleMapping[role] || role}
-                            </span>
-                          ))}
+                          {roles.map((role, idx) => {
+                            // Get role color
+                            const getRoleColor = (role) => {
+                              const roleColorMap = {
+                                'G': '#f97316',    // Orange
+                                'CB': '#22c55e',   // Green
+                                'LA': '#22c55e',   // Green
+                                'RB': '#22c55e',   // Green
+                                'LB': '#22c55e',   // Green (updated from Blue)
+                                'E': '#3b82f6',    // Blue
+                                'DM': '#3b82f6',   // Blue
+                                'M': '#3b82f6',    // Blue
+                                'W': '#a855f7',    // Purple
+                                'OM': '#a855f7',   // Purple
+                                'F': '#ef4444',    // Red
+                                'CF': '#ef4444'    // Red
+                              };
+                              return roleColorMap[role] || '#6b7280';
+                            };
+                            
+                            return (
+                              <span key={idx} style={{
+                                padding: '0.125rem 0.375rem',
+                                backgroundColor: getRoleColor(role),
+                                borderRadius: '0.25rem',
+                                fontSize: '0.75rem',
+                                color: 'white',
+                                fontWeight: '600'
+                              }}>
+                                {roleMapping[role] || role}
+                              </span>
+                            );
+                          })}
                         </div>
                       ) : (
                         <span style={{ color: '#9ca3af' }}>-</span>

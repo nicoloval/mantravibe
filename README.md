@@ -1,4 +1,4 @@
-# 🚀 Fantavibe - Fantacalcio Assistant
+# 🚀 Mantravibe - Fantacalcio Assistant
 
 [![Netlify Status](https://api.netlify.com/api/v1/badges/d9c9ea9a-5574-4489-a836-e3476e571d62/deploy-status)](https://app.netlify.com/projects/fantavibe/deploys)
 
@@ -11,9 +11,9 @@ Se volete l'ho tirata su in Netlify qui: https://fantavibe.netlify.app/
 
 Adesso vi lascio ai trip mentali dello zio Claude che chissá cosa si sará fumato prima di scrivere sto README.
 
-## ✨ Cosa fa Fantavibe
+## ✨ Cosa fa Mantravibe
 
-Fantavibe è il tuo assistente personale per il fantacalcio che ti permette di:
+Mantravibe è il tuo assistente personale per il fantacalcio che ti permette di:
 
 ### 🎯 **Gestione Rosa Intelligente**
 
@@ -124,7 +124,7 @@ Il budget iniziale è 500 FM, modificabile dall'interfaccia e salvato automatica
 
 ## 🤝 Contribuire
 
-Fantavibe è un progetto in continua evoluzione. I contributi sono benvenuti, purché rispettino la filosofia di semplicità e intuizione.
+Mantravibe è un progetto in continua evoluzione. I contributi sono benvenuti, purché rispettino la filosofia di semplicità e intuizione.
 
 ### Come Contribuire
 

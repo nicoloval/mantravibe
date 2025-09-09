@@ -5,18 +5,87 @@ const FantamilioniModal = ({
   onConfirm, 
   onCancel,
   maxFantamilioni,
-  teams = []
+  teams = [],
+  maxPlayers = 30,
+  minPlayers = 21
 }) => {
   const [fantamilioni, setFantamilioni] = useState('');
   const [selectedTeamId, setSelectedTeamId] = useState('');
   const [error, setError] = useState('');
+  const [teamBudget, setTeamBudget] = useState(maxFantamilioni);
 
-  // Reset quando cambia il giocatore
+  // Function to calculate available budget for a specific team
+  const calculateTeamBudget = (teamId) => {
+    // Convert teamId to string for comparison since it might be stored as number in localStorage
+    const teamIdStr = String(teamId);
+    const team = teams.find(t => String(t.id) === teamIdStr);
+    if (!team) {
+      console.log('🔍 DEBUG: Team not found for ID:', teamId, 'Available teams:', teams.map(t => ({ id: t.id, name: t.name })));
+      return 0;
+    }
+    
+    const totalSpent = (team.players || []).reduce((sum, player) => sum + (parseFloat(player.price) || 0), 0);
+    const availableBudget = team.budget - totalSpent;
+    console.log('🔍 DEBUG: Team', teamId, 'budget:', team.budget, 'spent:', totalSpent, 'available:', availableBudget);
+    return availableBudget;
+  };
+
+  // Function to calculate maximum amount considering minimum players requirement
+  const calculateMaxAmount = (teamId) => {
+    const team = teams.find(t => String(t.id) === String(teamId));
+    if (!team) return 0;
+    
+    const currentPlayers = (team.players || []).length;
+    const playersNeeded = Math.max(0, minPlayers - currentPlayers);
+    const maxAmount = calculateTeamBudget(teamId) - playersNeeded;
+    
+    console.log(`🔍 DEBUG: Max amount calculation - Team: ${teamId}, Current players: ${currentPlayers}, Min needed: ${minPlayers}, Players still needed: ${playersNeeded}, Max amount: ${maxAmount}`);
+    
+    return Math.max(0, maxAmount);
+  };
+
+  // Update team budget when team selection changes
   useEffect(() => {
-    setFantamilioni('');
-    setSelectedTeamId('');
+    if (selectedTeamId) {
+      const availableBudget = calculateTeamBudget(selectedTeamId);
+      setTeamBudget(availableBudget);
+      console.log('🔍 DEBUG: Team budget updated for team', selectedTeamId, ':', availableBudget);
+    } else {
+      // If no team selected, use the first team's budget as default
+      const firstTeam = teams.length > 0 ? teams[0] : null;
+      if (firstTeam) {
+        const availableBudget = calculateTeamBudget(firstTeam.id);
+        setTeamBudget(availableBudget);
+        console.log('🔍 DEBUG: Using first team budget:', firstTeam.id, ':', availableBudget);
+      } else {
+        setTeamBudget(maxFantamilioni);
+        console.log('🔍 DEBUG: No teams available, using maxFantamilioni:', maxFantamilioni);
+      }
+    }
+  }, [selectedTeamId, teams, maxFantamilioni]);
+
+  // Reset quando cambia il giocatore, ma ricorda l'ultimo prezzo e squadra inseriti
+  useEffect(() => {
+    // Carica l'ultimo prezzo e squadra inseriti da localStorage
+    const lastPrice = localStorage.getItem('lastFantamilioniPrice');
+    const lastTeamId = localStorage.getItem('lastSelectedTeamId');
+    setFantamilioni(lastPrice || '');
+    
+    // Se non c'è una squadra salvata, usa la prima squadra disponibile
+    let teamToSelect = '';
+    if (lastTeamId && teams.length > 0) {
+      // Check if the lastTeamId exists in the teams array
+      const teamExists = teams.find(t => String(t.id) === String(lastTeamId));
+      teamToSelect = teamExists ? lastTeamId : (teams.length > 0 ? String(teams[0].id) : '');
+    } else {
+      teamToSelect = teams.length > 0 ? String(teams[0].id) : '';
+    }
+    
+    setSelectedTeamId(teamToSelect);
     setError('');
-  }, [player]);
+    
+    console.log('🔍 DEBUG: Modal opened with lastPrice:', lastPrice, 'lastTeamId:', lastTeamId, 'teamToSelect:', teamToSelect);
+  }, [player, teams]);
 
   const handleConfirm = () => {
     const value = parseInt(fantamilioni);
@@ -26,8 +95,8 @@ const FantamilioniModal = ({
       return;
     }
     
-    if (value > maxFantamilioni) {
-      setError(`Budget insufficiente! Disponibili: ${maxFantamilioni} FM`);
+    if (value > teamBudget) {
+      setError(`Budget insufficiente! Disponibili: ${teamBudget} FM`);
       return;
     }
     
@@ -35,6 +104,10 @@ const FantamilioniModal = ({
       setError('Seleziona una squadra');
       return;
     }
+    
+    // Salva il prezzo e la squadra inseriti per la prossima volta
+    localStorage.setItem('lastFantamilioniPrice', value.toString());
+    localStorage.setItem('lastSelectedTeamId', selectedTeamId);
     
     onConfirm(value, selectedTeamId);
   };
@@ -58,7 +131,7 @@ const FantamilioniModal = ({
   };
 
   // Suggerimenti rapidi per i fantamilioni
-  const quickAmounts = [1, 5, 10, 20, 50].filter(amount => amount <= maxFantamilioni);
+  const quickAmounts = [1, 5, 10, 20, 50].filter(amount => amount <= teamBudget);
 
   const modalOverlayStyle = {
     position: 'fixed',
@@ -208,13 +281,18 @@ const FantamilioniModal = ({
         {/* Informazioni Budget */}
         <div style={budgetInfoStyle}>
           <p style={budgetTextStyle}>
-            {maxFantamilioni > 0 ? '💚' : '❌'} 
-            Budget disponibile: <strong>{maxFantamilioni} fantamilioni</strong>
+            {teamBudget > 0 ? '💚' : '❌'} 
+            Budget disponibile: <strong>{teamBudget.toLocaleString()} fantamilioni</strong>
+            {selectedTeamId && (
+              <span style={{ fontSize: '0.8rem', color: '#6b7280', display: 'block', marginTop: '0.25rem' }}>
+                (Squadra: {teams.find(t => t.id === selectedTeamId)?.name || 'N/A'})
+              </span>
+            )}
           </p>
         </div>
 
         {/* Quick Amount Buttons */}
-        {quickAmounts.length > 0 && (
+        {quickAmounts.length > 0 && selectedTeamId && teamBudget > 0 && (
           <div style={quickButtonsStyle}>
             <span style={{ fontSize: '14px', color: '#6b7280', alignSelf: 'center', marginRight: '4px' }}>
               Rapido:
@@ -233,14 +311,14 @@ const FantamilioniModal = ({
                 {amount}
               </button>
             ))}
-            {maxFantamilioni >= 100 && (
+            {selectedTeamId && calculateMaxAmount(selectedTeamId) >= 1 && (
               <button
-                onClick={() => setFantamilioni(maxFantamilioni.toString())}
+                onClick={() => setFantamilioni(calculateMaxAmount(selectedTeamId).toString())}
                 style={{
                   ...quickButtonStyle,
-                  backgroundColor: fantamilioni === maxFantamilioni.toString() ? '#3b82f6' : '#f3f4f6',
-                  color: fantamilioni === maxFantamilioni.toString() ? 'white' : '#374151',
-                  borderColor: fantamilioni === maxFantamilioni.toString() ? '#3b82f6' : '#d1d5db'
+                  backgroundColor: fantamilioni === calculateMaxAmount(selectedTeamId).toString() ? '#3b82f6' : '#f3f4f6',
+                  color: fantamilioni === calculateMaxAmount(selectedTeamId).toString() ? 'white' : '#374151',
+                  borderColor: fantamilioni === calculateMaxAmount(selectedTeamId).toString() ? '#3b82f6' : '#d1d5db'
                 }}
               >
                 Max
@@ -251,6 +329,16 @@ const FantamilioniModal = ({
 
         {/* Input Field */}
         <div style={inputContainerStyle}>
+          {fantamilioni && (
+            <div style={{
+              fontSize: '0.75rem',
+              color: '#6b7280',
+              marginBottom: '0.25rem',
+              fontStyle: 'italic'
+            }}>
+              Precompilato con l'ultimo prezzo inserito
+            </div>
+          )}
           <input
             type="number"
             value={fantamilioni}
@@ -258,10 +346,10 @@ const FantamilioniModal = ({
             onKeyDown={handleKeyPress}
             placeholder="Inserisci fantamilioni"
             min="1"
-            max={maxFantamilioni}
+            max={teamBudget}
             style={inputStyle}
             autoFocus
-            disabled={maxFantamilioni <= 0}
+            disabled={teamBudget <= 0}
           />
         </div>
 
@@ -271,15 +359,25 @@ const FantamilioniModal = ({
             value={selectedTeamId}
             onChange={(e) => setSelectedTeamId(e.target.value)}
             style={inputStyle}
-            disabled={maxFantamilioni <= 0}
+            disabled={teamBudget <= 0}
           >
             <option value="">Seleziona una squadra</option>
-            {teams.map(team => (
+            {teams.filter(team => (team.players || []).length < maxPlayers).map(team => (
               <option key={team.id} value={team.id}>
-                {team.name}
+                {team.name} ({(team.players || []).length}/{maxPlayers})
               </option>
             ))}
           </select>
+          {selectedTeamId && (
+            <div style={{
+              fontSize: '0.75rem',
+              color: '#6b7280',
+              marginTop: '0.25rem',
+              textAlign: 'center'
+            }}>
+              Budget disponibile: {teamBudget.toLocaleString()} FM
+            </div>
+          )}
         </div>
 
         {error && <div style={errorStyle}>{error}</div>}
@@ -294,7 +392,7 @@ const FantamilioniModal = ({
           </button>
           <button
             onClick={handleConfirm}
-            disabled={!fantamilioni || parseInt(fantamilioni) <= 0 || parseInt(fantamilioni) > maxFantamilioni || maxFantamilioni <= 0 || !selectedTeamId}
+            disabled={!fantamilioni || parseInt(fantamilioni) <= 0 || parseInt(fantamilioni) > teamBudget || teamBudget <= 0 || !selectedTeamId}
             style={confirmButtonStyle}
           >
             ✅ Conferma

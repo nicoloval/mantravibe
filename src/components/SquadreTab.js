@@ -1,8 +1,13 @@
 import React, { useState, useEffect } from 'react';
 
-const SquadreTab = ({ budget = 500, onTeamsChange }) => {
-  // Initialize teams with default names
-  const [teams, setTeams] = useState(() => {
+const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }) => {
+  // Use teams from props instead of localStorage
+  const [localTeams, setLocalTeams] = useState(() => {
+    // If teams prop is provided, use it
+    if (teams && teams.length > 0) {
+      return teams;
+    }
+    
     try {
       const savedTeams = localStorage.getItem('fantacalcio_teams');
       if (savedTeams) {
@@ -34,6 +39,9 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
 
   const [numberOfTeams, setNumberOfTeams] = useState(8);
   const [collapsedTeams, setCollapsedTeams] = useState(new Set());
+  const [draggedPlayer, setDraggedPlayer] = useState(null);
+  const [draggedOverPlayer, setDraggedOverPlayer] = useState(null);
+  const [draggedOverTeam, setDraggedOverTeam] = useState(null);
 
   // Clear corrupted localStorage data on mount if needed
   useEffect(() => {
@@ -52,9 +60,17 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
     }
   }, []);
 
+  // Update localTeams when teams prop changes
+  useEffect(() => {
+    if (teams && teams.length > 0) {
+      console.log('🔍 DEBUG: SquadreTab received teams update:', teams);
+      setLocalTeams(teams);
+    }
+  }, [teams]);
+
   // Update team budgets when the main budget changes
   useEffect(() => {
-    setTeams(prevTeams => 
+    setLocalTeams(prevTeams => 
       prevTeams.map(team => ({
         ...team,
         budget: budget
@@ -62,20 +78,20 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
     );
   }, [budget]);
 
-  // Save teams to localStorage whenever teams change
+  // Save teams to localStorage whenever localTeams change
   useEffect(() => {
-    localStorage.setItem('fantacalcio_teams', JSON.stringify(teams));
-  }, [teams]);
+    localStorage.setItem('fantacalcio_teams', JSON.stringify(localTeams));
+  }, [localTeams]);
 
-  // Notify parent of teams changes (only when teams actually change, not on mount)
+  // Notify parent of teams changes (only when localTeams actually change, not on mount)
   useEffect(() => {
-    if (onTeamsChange && teams.length > 0) {
-      onTeamsChange(teams);
+    if (onTeamsChange && localTeams.length > 0) {
+      onTeamsChange(localTeams);
     }
-  }, [teams]); // Removed onTeamsChange from dependencies to avoid infinite loop
+  }, [localTeams]); // Removed onTeamsChange from dependencies to avoid infinite loop
 
   const handleTeamNameChange = (teamId, newName) => {
-    setTeams(prevTeams =>
+    setLocalTeams(prevTeams =>
       prevTeams.map(team =>
         team.id === teamId ? { ...team, name: newName } : team
       )
@@ -83,7 +99,7 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
   };
 
   const handleAddTeam = () => {
-    setTeams(prevTeams => {
+    setLocalTeams(prevTeams => {
       const newId = Math.max(...prevTeams.map(team => team.id), 0) + 1;
       const newTeam = {
         id: newId,
@@ -96,15 +112,172 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
     setNumberOfTeams(prev => prev + 1);
   };
 
-  const handleRemoveTeam = () => {
-    if (teams.length <= 1) return; // Keep at least 1 team
+  const handleRemoveTeam = (teamId) => {
+    if (localTeams.length <= 1) return; // Keep at least 1 team
     
-    setTeams(prevTeams => {
-      const sortedTeams = [...prevTeams].sort((a, b) => b.id - a.id);
-      const teamToRemove = sortedTeams[0];
-      return prevTeams.filter(team => team.id !== teamToRemove.id);
+    setLocalTeams(prevTeams => {
+      return prevTeams.filter(team => team.id !== teamId);
     });
     setNumberOfTeams(prev => Math.max(1, prev - 1));
+  };
+
+  const handleRemovePlayerFromTeam = (teamId, playerIndex) => {
+    setLocalTeams(prevTeams => {
+      return prevTeams.map(team => {
+        if (team.id === teamId) {
+          const updatedPlayers = [...team.players];
+          updatedPlayers.splice(playerIndex, 1);
+          return { ...team, players: updatedPlayers };
+        }
+        return team;
+      });
+    });
+  };
+
+  // Function to sort players by price (highest to lowest)
+  const sortPlayersByPrice = (players) => {
+    return [...players].sort((a, b) => {
+      const priceA = parseFloat(a.price) || 0;
+      const priceB = parseFloat(b.price) || 0;
+      return priceB - priceA; // Descending order (highest first)
+    });
+  };
+
+  const handleDragStart = (e, teamId, playerIndex) => {
+    setDraggedPlayer({ teamId, playerIndex });
+    e.dataTransfer.effectAllowed = 'move';
+    e.dataTransfer.setData('text/html', e.target.outerHTML);
+  };
+
+  const handleDragOver = (e, teamId, playerIndex) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDraggedOverPlayer({ teamId, playerIndex });
+  };
+
+  const handleDragLeave = () => {
+    setDraggedOverPlayer(null);
+  };
+
+  const handleDrop = (e, targetTeamId, targetPlayerIndex) => {
+    e.preventDefault();
+    
+    if (!draggedPlayer) return;
+    
+    const { teamId: sourceTeamId, playerIndex: sourcePlayerIndex } = draggedPlayer;
+    
+    setLocalTeams(prevTeams => {
+      const sourceTeam = prevTeams.find(team => team.id === sourceTeamId);
+      const targetTeam = prevTeams.find(team => team.id === targetTeamId);
+      
+      if (!sourceTeam || !targetTeam) return prevTeams;
+      
+      // Check if target team has space (respect maxPlayers limit)
+      if (sourceTeamId !== targetTeamId && targetTeam.players.length >= maxPlayers) {
+        console.log('Target team is at maximum capacity');
+        return prevTeams;
+      }
+      
+      // Get the dragged player data
+      const draggedPlayerData = sourceTeam.players[sourcePlayerIndex];
+      if (!draggedPlayerData) return prevTeams;
+      
+      // Handle same-team reordering differently
+      if (sourceTeamId === targetTeamId) {
+        return prevTeams.map(team => {
+          if (team.id === sourceTeamId) {
+            const updatedPlayers = [...team.players];
+            // Remove the player from source position
+            updatedPlayers.splice(sourcePlayerIndex, 1);
+            // Adjust target index if needed (since we removed an element)
+            const adjustedTargetIndex = sourcePlayerIndex < targetPlayerIndex 
+              ? targetPlayerIndex - 1 
+              : targetPlayerIndex;
+            // Insert at target position
+            updatedPlayers.splice(adjustedTargetIndex, 0, draggedPlayerData);
+            return { ...team, players: updatedPlayers };
+          }
+          return team;
+        });
+      } else {
+        // Handle cross-team movement
+        return prevTeams.map(team => {
+          if (team.id === sourceTeamId) {
+            // Remove player from source team
+            const updatedPlayers = [...team.players];
+            updatedPlayers.splice(sourcePlayerIndex, 1);
+            return { ...team, players: updatedPlayers };
+          } else if (team.id === targetTeamId) {
+            // Add player to target team
+            const updatedPlayers = [...team.players];
+            updatedPlayers.splice(targetPlayerIndex, 0, draggedPlayerData);
+            return { ...team, players: updatedPlayers };
+          }
+          return team;
+        });
+      }
+    });
+    
+    setDraggedPlayer(null);
+    setDraggedOverPlayer(null);
+  };
+
+  const handleDragEnd = () => {
+    setDraggedPlayer(null);
+    setDraggedOverPlayer(null);
+    setDraggedOverTeam(null);
+  };
+
+  const handleTeamDragOver = (e, teamId) => {
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'move';
+    setDraggedOverTeam(teamId);
+  };
+
+  const handleTeamDrop = (e, targetTeamId) => {
+    e.preventDefault();
+    
+    if (!draggedPlayer) return;
+    
+    const { teamId: sourceTeamId, playerIndex: sourcePlayerIndex } = draggedPlayer;
+    
+    // If dropping on the same team, do nothing
+    if (sourceTeamId === targetTeamId) return;
+    
+    setLocalTeams(prevTeams => {
+      const sourceTeam = prevTeams.find(team => team.id === sourceTeamId);
+      const targetTeam = prevTeams.find(team => team.id === targetTeamId);
+      
+      if (!sourceTeam || !targetTeam) return prevTeams;
+      
+      // Check if target team has space (respect maxPlayers limit)
+      if (targetTeam.players.length >= maxPlayers) {
+        console.log('Target team is at maximum capacity');
+        return prevTeams;
+      }
+      
+      // Get the dragged player data
+      const draggedPlayerData = sourceTeam.players[sourcePlayerIndex];
+      if (!draggedPlayerData) return prevTeams;
+      
+      return prevTeams.map(team => {
+        if (team.id === sourceTeamId) {
+          // Remove player from source team
+          const updatedPlayers = [...team.players];
+          updatedPlayers.splice(sourcePlayerIndex, 1);
+          return { ...team, players: updatedPlayers };
+        } else if (team.id === targetTeamId) {
+          // Add player to end of target team
+          const updatedPlayers = [...team.players, draggedPlayerData];
+          return { ...team, players: updatedPlayers };
+        }
+        return team;
+      });
+    });
+    
+    setDraggedPlayer(null);
+    setDraggedOverPlayer(null);
+    setDraggedOverTeam(null);
   };
 
   const handleResetTeams = () => {
@@ -114,7 +287,7 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
       budget: budget,
       players: []
     }));
-    setTeams(defaultTeams);
+    setLocalTeams(defaultTeams);
     setNumberOfTeams(8);
     localStorage.setItem('fantacalcio_teams', JSON.stringify(defaultTeams));
   };
@@ -133,12 +306,14 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
 
   // Function to add a player to a team (called from App.js)
   const addPlayerToTeam = (teamId, player, price) => {
-    setTeams(prevTeams =>
+    setLocalTeams(prevTeams =>
       prevTeams.map(team =>
         team.id === teamId
           ? {
               ...team,
-              players: [...(team.players || []), { ...player, price }]
+              players: (team.players || []).length >= maxPlayers 
+                ? team.players // Don't add if at max capacity
+                : sortPlayersByPrice([...(team.players || []), { ...player, price }])
             }
           : team
       )
@@ -161,9 +336,10 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
   }, []);
 
   const containerStyle = {
-    padding: '2rem',
-    maxWidth: '1200px',
-    margin: '0 auto'
+    padding: '1rem',
+    maxWidth: '100%',
+    margin: '0 auto',
+    overflowX: 'auto'
   };
 
   const titleStyle = {
@@ -174,16 +350,14 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
     textAlign: 'center'
   };
 
-  // Dynamic grid style based on number of teams
+  // Horizontal flex layout for all teams
   const getTeamsGridStyle = () => {
-    const maxTeamsPerRow = 4;
-    const actualColumns = Math.min(teams.length, maxTeamsPerRow);
     return {
-      display: 'grid',
-      gridTemplateColumns: `repeat(${actualColumns}, 1fr)`,
-      gap: '1.5rem',
+      display: 'flex',
+      gap: '1rem',
       marginBottom: '2rem',
-      justifyItems: 'center'
+      alignItems: 'flex-start',
+      minWidth: 'fit-content'
     };
   };
 
@@ -241,11 +415,15 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
   const teamBoxStyle = {
     backgroundColor: 'white',
     border: '2px solid #e5e7eb',
-    borderRadius: '0.75rem',
-    padding: '1.5rem',
+    borderRadius: '0.5rem',
+    padding: '0.5rem',
     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
     transition: 'all 0.2s',
-    cursor: 'pointer'
+    cursor: 'pointer',
+    minWidth: '140px',
+    maxWidth: '180px',
+    flex: '0 0 auto',
+    height: 'fit-content'
   };
 
   const teamBoxHoverStyle = {
@@ -258,13 +436,13 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
     width: '100%',
     border: 'none',
     backgroundColor: 'transparent',
-    fontSize: '1.125rem',
+    fontSize: '0.75rem',
     fontWeight: '600',
     color: '#1f2937',
     textAlign: 'center',
-    marginBottom: '1rem',
-    padding: '0.5rem',
-    borderRadius: '0.375rem',
+    marginBottom: '0.25rem',
+    padding: '0.125rem',
+    borderRadius: '0.25rem',
     outline: 'none',
     transition: 'background-color 0.2s'
   };
@@ -275,52 +453,104 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
   };
 
   const budgetLabelStyle = {
-    fontSize: '0.875rem',
+    fontSize: '0.7rem',
     color: '#6b7280',
-    marginBottom: '0.5rem',
+    marginBottom: '0.25rem',
     textAlign: 'center'
   };
 
   const budgetValueStyle = {
-    fontSize: '1.5rem',
+    fontSize: '1.2rem',
     fontWeight: '700',
     color: '#059669',
     textAlign: 'center'
   };
 
-  const playersListStyle = {
-    marginTop: '1rem',
-    maxHeight: '200px',
+  // Calculate height based on max players (each player item is ~60px with margins for 4 lines)
+  const getPlayersListStyle = () => ({
+    marginTop: '0.25rem',
+    height: `${maxPlayers * 60}px`, // Always fit exactly maxPlayers * 60px
     overflowY: 'auto'
-  };
+  });
 
   const playerItemStyle = {
     display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: '0.5rem',
-    marginBottom: '0.5rem',
+    flexDirection: 'row',
+    padding: '0.125rem 0.375rem',
+    marginBottom: '0.125rem',
     backgroundColor: '#f9fafb',
-    borderRadius: '0.375rem',
-    fontSize: '0.875rem'
+    borderRadius: '0.25rem',
+    fontSize: '0.7rem',
+    cursor: 'grab',
+    transition: 'all 0.2s',
+    alignItems: 'flex-start',
+    gap: '0.5rem'
   };
 
   const playerNameStyle = {
     fontWeight: '500',
-    color: '#1f2937'
+    color: '#1f2937',
+    fontSize: '0.7rem',
+    marginBottom: '0.05rem'
+  };
+
+  const playerSurnameStyle = {
+    fontWeight: '600',
+    color: '#1f2937',
+    fontSize: '0.7rem',
+    marginBottom: '0.125rem'
+  };
+
+  const playerRolesStyle = {
+    display: 'flex',
+    gap: '0.125rem',
+    marginBottom: '0.125rem',
+    flexWrap: 'wrap'
+  };
+
+  const roleBadgeStyle = {
+    fontSize: '0.6rem',
+    padding: '0.15rem 0.3rem',
+    borderRadius: '0.25rem',
+    color: 'white',
+    fontWeight: '600',
+    minWidth: '20px',
+    textAlign: 'center',
+    lineHeight: '1'
   };
 
   const playerDetailsStyle = {
-    fontSize: '0.75rem',
+    fontSize: '0.65rem',
     color: '#6b7280',
-    textAlign: 'right'
+    textAlign: 'left'
+  };
+
+  const playerLeftContentStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    flex: 1,
+    minWidth: 0
+  };
+
+  const playerRightRolesStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.125rem',
+    flexShrink: 0
+  };
+
+  const playerSecondLineStyle = {
+    display: 'flex',
+    justifyContent: 'flex-start',
+    alignItems: 'center',
+    gap: '0.5rem'
   };
 
   const playerCountStyle = {
-    fontSize: '0.75rem',
+    fontSize: '0.65rem',
     color: '#6b7280',
     textAlign: 'center',
-    marginBottom: '0.5rem',
+    marginBottom: '0.125rem',
     fontWeight: '500'
   };
 
@@ -333,6 +563,58 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
   const calculateRemainingBudget = (team) => {
     const totalSpent = (team.players || []).reduce((sum, player) => sum + (player.price || 0), 0);
     return team.budget - totalSpent;
+  };
+
+  // Function to get role color and Italian translation
+  const getRoleInfo = (role) => {
+    const roleMap = {
+      'G': { italian: 'P', color: '#f97316' },    // Orange
+      'CB': { italian: 'DC', color: '#22c55e' },  // Green
+      'LA': { italian: 'B', color: '#22c55e' },   // Green
+      'RB': { italian: 'DD', color: '#22c55e' },  // Green
+      'LB': { italian: 'DS', color: '#22c55e' },  // Green
+      'E': { italian: 'E', color: '#3b82f6' },    // Blue
+      'DM': { italian: 'M', color: '#3b82f6' },   // Blue
+      'M': { italian: 'C', color: '#3b82f6' },    // Blue
+      'W': { italian: 'W', color: '#a855f7' },    // Purple
+      'OM': { italian: 'T', color: '#a855f7' },   // Purple
+      'F': { italian: 'A', color: '#ef4444' },    // Red
+      'CF': { italian: 'PC', color: '#ef4444' }   // Red
+    };
+    return roleMap[role] || { italian: role, color: '#6b7280' };
+  };
+
+  // Function to parse mantra roles (copied from RosaAcquistata and MantraGiocatoriTab)
+  const parseMantraRoles = (mantraRoles) => {
+    if (!mantraRoles) return [];
+    
+    if (Array.isArray(mantraRoles)) {
+      // It's already an array
+      return mantraRoles;
+    } else if (typeof mantraRoles === 'string') {
+      // It's a string that needs to be parsed
+      try {
+        // Replace single quotes with double quotes and parse as JSON
+        const jsonString = mantraRoles.replace(/'/g, '"');
+        return JSON.parse(jsonString);
+      } catch (e) {
+        // If parsing fails, treat as single role
+        return [mantraRoles];
+      }
+    } else {
+      // Fallback for other types
+      return [mantraRoles];
+    }
+  };
+
+  // Function to extract name and surname
+  const getNameParts = (fullName) => {
+    if (!fullName) return { name: '', surname: '' };
+    const nameParts = fullName.trim().split(' ');
+    if (nameParts.length === 1) return { name: nameParts[0], surname: '' };
+    const surname = nameParts[nameParts.length - 1];
+    const name = nameParts.slice(0, -1).join(' ');
+    return { name, surname };
   };
 
   const remainingBudgetStyle = {
@@ -359,7 +641,7 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
       
       {/* Team Management */}
       <div style={teamCountSelectorStyle}>
-        <span style={teamCountLabelStyle}>Squadre: {teams.length}</span>
+        <span style={teamCountLabelStyle}>Squadre: {localTeams.length}</span>
         <button
           onClick={handleAddTeam}
           style={addButtonStyle}
@@ -373,23 +655,28 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
           + Aggiungi Squadra
         </button>
         <button
-          onClick={handleRemoveTeam}
-          disabled={teams.length <= 1}
+          onClick={() => {
+            if (localTeams.length > 1) {
+              const lastTeam = localTeams.reduce((max, team) => team.id > max.id ? team : max);
+              handleRemoveTeam(lastTeam.id);
+            }
+          }}
+          disabled={localTeams.length <= 1}
           style={{
             ...removeButtonStyle,
-            opacity: teams.length <= 1 ? 0.5 : 1,
-            cursor: teams.length <= 1 ? 'not-allowed' : 'pointer'
+            opacity: localTeams.length <= 1 ? 0.5 : 1,
+            cursor: localTeams.length <= 1 ? 'not-allowed' : 'pointer'
           }}
           onMouseEnter={(e) => {
-            if (teams.length > 1) {
+            if (localTeams.length > 1) {
               Object.assign(e.target.style, { ...removeButtonStyle, ...buttonHoverStyle });
             }
           }}
           onMouseLeave={(e) => {
             Object.assign(e.target.style, {
               ...removeButtonStyle,
-              opacity: teams.length <= 1 ? 0.5 : 1,
-              cursor: teams.length <= 1 ? 'not-allowed' : 'pointer'
+              opacity: localTeams.length <= 1 ? 0.5 : 1,
+              cursor: localTeams.length <= 1 ? 'not-allowed' : 'pointer'
             });
           }}
         >
@@ -410,17 +697,73 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
       </div>
       
       <div style={getTeamsGridStyle()}>
-        {teams && teams.length > 0 ? teams.map((team) => (
-          <div
-            key={team.id}
-            style={teamBoxStyle}
-            onMouseEnter={(e) => {
-              Object.assign(e.currentTarget.style, teamBoxHoverStyle);
-            }}
-            onMouseLeave={(e) => {
-              Object.assign(e.currentTarget.style, teamBoxStyle);
-            }}
-          >
+        {localTeams && localTeams.length > 0 ? localTeams.map((team, index) => {
+          // Special styling for the first team (index 0)
+          const isFirstTeam = index === 0;
+          const isDraggedOver = draggedOverTeam === team.id;
+          const isDraggingFromDifferentTeam = draggedPlayer && draggedPlayer.teamId !== team.id;
+          const canAcceptDrop = isDraggingFromDifferentTeam && team.players.length < maxPlayers;
+          
+          const firstTeamStyle = isFirstTeam ? {
+            ...teamBoxStyle,
+            backgroundColor: 'white',
+            border: '3px solid #22c55e',
+            boxShadow: '0 0 20px rgba(34, 197, 94, 0.3), 0 4px 12px rgba(0, 0, 0, 0.1)',
+            position: 'relative'
+          } : teamBoxStyle;
+          
+          // Add drag over styling
+          const dragOverStyle = isDraggedOver && canAcceptDrop ? {
+            ...firstTeamStyle,
+            border: isFirstTeam ? '3px solid #3b82f6' : '2px solid #3b82f6',
+            backgroundColor: '#f0f9ff',
+            boxShadow: isFirstTeam ? '0 0 25px rgba(59, 130, 246, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15)' : '0 4px 12px rgba(59, 130, 246, 0.15)'
+          } : firstTeamStyle;
+          
+          const firstTeamHoverStyle = isFirstTeam ? {
+            ...firstTeamStyle,
+            borderColor: '#16a34a',
+            boxShadow: '0 0 25px rgba(34, 197, 94, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15)'
+          } : teamBoxHoverStyle;
+          
+          return (
+            <div
+              key={team.id}
+              style={dragOverStyle}
+              onMouseEnter={(e) => {
+                if (!isDraggedOver) {
+                  Object.assign(e.currentTarget.style, firstTeamHoverStyle);
+                }
+              }}
+              onMouseLeave={(e) => {
+                if (!isDraggedOver) {
+                  Object.assign(e.currentTarget.style, firstTeamStyle);
+                }
+              }}
+              onDragOver={(e) => handleTeamDragOver(e, team.id)}
+              onDragLeave={() => setDraggedOverTeam(null)}
+              onDrop={(e) => handleTeamDrop(e, team.id)}
+            >
+              {/* "La tua squadra" label for first team */}
+              {isFirstTeam && (
+                <div style={{
+                  position: 'absolute',
+                  top: '-12px',
+                  left: '50%',
+                  transform: 'translateX(-50%)',
+                  backgroundColor: '#22c55e',
+                  color: 'white',
+                  padding: '4px 12px',
+                  borderRadius: '12px',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                  zIndex: 10
+                }}>
+                  La tua squadra
+                </div>
+              )}
+              
             {/* Team Header - Clickable */}
             <div 
               style={teamBoxHeaderStyle}
@@ -443,7 +786,7 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
               
               {/* Player Count */}
               <div style={playerCountStyle}>
-                {team.players ? team.players.length : 0} giocatori
+                {team.players ? team.players.length : 0} / {maxPlayers} giocatori
               </div>
               
               <div style={budgetLabelStyle}>Budget</div>
@@ -459,20 +802,103 @@ const SquadreTab = ({ budget = 500, onTeamsChange }) => {
 
             {/* Players List - Collapsible */}
             {team.players && team.players.length > 0 && !collapsedTeams.has(team.id) && (
-              <div style={playersListStyle}>
-                {team.players.map((player, index) => (
-                  <div key={index} style={playerItemStyle}>
-                    <div style={playerNameStyle}>{player.Nome}</div>
-                    <div style={playerDetailsStyle}>
-                      <div>{player.price} FM</div>
-                      <div>{player.Ruolo || 'N/A'}</div>
+              <div>
+                <div style={getPlayersListStyle()}>
+                {team.players.map((player, index) => {
+                  const isDragged = draggedPlayer?.teamId === team.id && draggedPlayer?.playerIndex === index;
+                  const isDraggedOver = draggedOverPlayer?.teamId === team.id && draggedOverPlayer?.playerIndex === index;
+                  
+                  return (
+                    <div 
+                      key={index} 
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, team.id, index)}
+                      onDragOver={(e) => handleDragOver(e, team.id, index)}
+                      onDragLeave={handleDragLeave}
+                      onDrop={(e) => handleDrop(e, team.id, index)}
+                      onDragEnd={handleDragEnd}
+                      style={{
+                        ...playerItemStyle,
+                        opacity: isDragged ? 0.5 : 1,
+                        backgroundColor: isDraggedOver ? '#e5e7eb' : '#f9fafb',
+                        border: isDraggedOver ? '2px dashed #3b82f6' : 'none',
+                        cursor: isDragged ? 'grabbing' : 'grab'
+                      }}
+                    >
+                      {(() => {
+                        const { name, surname } = getNameParts(player.Nome);
+                        const mantraRoles = parseMantraRoles(player['Ruolo Mantra']);
+                        return (
+                          <>
+                            <div style={playerLeftContentStyle}>
+                              <div style={playerNameStyle}>{name}</div>
+                              <div style={playerSurnameStyle}>{surname}</div>
+                              <div style={playerSecondLineStyle}>
+                                <div style={playerDetailsStyle}>{player.price} FM</div>
+                                <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleRemovePlayerFromTeam(team.id, index);
+                          }}
+                          style={{
+                            width: '14px',
+                            height: '14px',
+                            borderRadius: '50%',
+                          border: 'none',
+                          backgroundColor: '#ef4444',
+                          color: 'white',
+                          fontSize: '10px',
+                          fontWeight: 'bold',
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+                          transition: 'all 0.2s',
+                          flexShrink: 0
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#dc2626';
+                          e.target.style.transform = 'scale(1.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = '#ef4444';
+                          e.target.style.transform = 'scale(1)';
+                        }}
+                        title="Rimuovi giocatore"
+                      >
+                        ×
+                      </button>
+                              </div>
+                            </div>
+                            <div style={playerRightRolesStyle}>
+                              {mantraRoles.map((role, roleIndex) => {
+                                const roleInfo = getRoleInfo(role);
+                                return (
+                                  <span
+                                    key={roleIndex}
+                                    style={{
+                                      ...roleBadgeStyle,
+                                      backgroundColor: roleInfo.color
+                                    }}
+                                  >
+                                    {roleInfo.italian}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          </>
+                        );
+                      })()}
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
+                </div>
               </div>
             )}
           </div>
-        )) : (
+          );
+        }) : (
           <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
             Nessuna squadra disponibile
           </div>

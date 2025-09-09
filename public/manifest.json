@@ -1,11 +1,11 @@
 {
-  "short_name": "Fantavibe",
-  "name": "Fantavibe",
+  "short_name": "Mantravibe",
+  "name": "Mantravibe",
   "icons": [
     {
-      "src": "assets/favicon.ico",
+      "src": "assets/favicon.png",
       "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "type": "image/png"
     },
     {
       "src": "assets/logo192.png",

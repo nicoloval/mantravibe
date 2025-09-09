@@ -1,14 +1,13 @@
 // src/components/RosaAcquistata.js
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
-import { getAcquiredPlayers } from '../utils/storage';
 
 const RosaAcquistata = ({ 
   players = [],
   playerStatus = {},
   onPlayerStatusChange,
-  isMantraMode = false,
   roleMapping = {},
   teams = [],
+  onTeamsChange,
   appetibilitaData = {}
 }) => {
   const [selectedTeamId, setSelectedTeamId] = useState(null);
@@ -27,10 +26,8 @@ const RosaAcquistata = ({
       }
     };
     
-    if (isMantraMode) {
       loadFormations();
-    }
-  }, [isMantraMode]);
+  }, []);
 
   // Initialize selected team when teams are available
   useEffect(() => {
@@ -42,15 +39,15 @@ const RosaAcquistata = ({
   // Get selected team
   const selectedTeam = teams.find(team => team.id === selectedTeamId);
 
-  // Helper function to get player role (handles both normal and Mantra modes)
+  // Helper function to get player role (always Mantra mode)
   const getPlayerRole = useCallback((player) => {
-    if (isMantraMode && player['Ruolo Mantra']) {
+    if (player['Ruolo Mantra']) {
       // In Mantra mode, use the first role from the array and map it
       const mantraRole = player['Ruolo Mantra'][0];
       return roleMapping[mantraRole] || mantraRole;
     }
     return player.Ruolo;
-  }, [isMantraMode, roleMapping]);
+  }, [roleMapping]);
   // Get players from selected team
   const teamPlayers = useMemo(() => {
     if (!selectedTeam || !selectedTeam.players) return [];
@@ -69,11 +66,11 @@ const RosaAcquistata = ({
 
   // Get available roles from roleMapping
   const availableRoles = useMemo(() => {
-    if (isMantraMode && roleMapping) {
+    if (roleMapping) {
       return Object.values(roleMapping).filter((role, index, arr) => arr.indexOf(role) === index);
     }
     return ['POR', 'DIF', 'CEN', 'ATT'];
-  }, [isMantraMode, roleMapping]);
+  }, [roleMapping]);
 
   // Raggruppa giocatori per ruolo
   const playersByRole = useMemo(() => {
@@ -85,7 +82,7 @@ const RosaAcquistata = ({
     });
 
     teamPlayers.forEach(player => {
-      if (isMantraMode && player['Ruolo Mantra']) {
+      if (player['Ruolo Mantra']) {
         // In Mantra mode, player can have multiple roles
         try {
           const roles = JSON.parse(player['Ruolo Mantra'].replace(/'/g, '"'));
@@ -101,12 +98,12 @@ const RosaAcquistata = ({
           console.error('Error parsing Ruolo Mantra:', error);
         }
       } else {
-        // Normal mode - single role
+        // Fallback - single role
         const role = getPlayerRole(player);
-        if (grouped[role]) {
-          grouped[role].players.push(player);
-          grouped[role].count++;
-          grouped[role].total += player.fantamilioni || 0;
+      if (grouped[role]) {
+        grouped[role].players.push(player);
+        grouped[role].count++;
+        grouped[role].total += player.fantamilioni || 0;
         }
       }
     });
@@ -117,19 +114,45 @@ const RosaAcquistata = ({
     });
 
     return grouped;
-  }, [teamPlayers, getPlayerRole, isMantraMode, roleMapping, availableRoles]);
+  }, [teamPlayers, getPlayerRole, roleMapping, availableRoles]);
 
   // Statistiche totali
   const totalPlayers = teamPlayers.length;
 
   // Gestori eventi
   const handleRemovePlayer = (playerId) => {
+    console.log('🔍 DEBUG: handleRemovePlayer called with playerId:', playerId);
+    console.log('🔍 DEBUG: selectedTeamId:', selectedTeamId);
+    console.log('🔍 DEBUG: current teams:', teams);
+    console.log('🔍 DEBUG: current playerStatus:', playerStatus);
+    
     if (window.confirm('Sei sicuro di voler rimuovere questo giocatore dalla squadra?')) {
       // Remove player from team
-      if (window.addPlayerToTeam && selectedTeamId) {
-        // This is a bit of a hack - we need to remove the player from the team
-        // For now, we'll use the existing player status change
-        onPlayerStatusChange(playerId, 'none');
+      if (selectedTeamId && onTeamsChange) {
+        // Update teams by removing the player from the selected team
+        const updatedTeams = teams.map(team => {
+          if (team.id === selectedTeamId) {
+            console.log('🔍 DEBUG: Team before removal:', team.players);
+            const filteredPlayers = team.players.filter(player => player.id !== playerId);
+            console.log('🔍 DEBUG: Team after removal:', filteredPlayers);
+            return {
+              ...team,
+              players: filteredPlayers
+            };
+          }
+          return team;
+        });
+        
+        console.log('🔍 DEBUG: Updated teams:', updatedTeams);
+        
+        // Update teams state
+        onTeamsChange(updatedTeams);
+        
+        // Update player status to 'none' (available again)
+        console.log('🔍 DEBUG: Calling onPlayerStatusChange with:', playerId, 'none');
+      onPlayerStatusChange(playerId, 'none');
+        
+        console.log(`✅ Removed player ${playerId} from team ${selectedTeamId}`);
       }
     }
   };
@@ -311,15 +334,16 @@ const RosaAcquistata = ({
     padding: '1.5rem',
     backgroundColor: '#f8fafc',
     borderRadius: '0.75rem',
-    border: '1px solid #e2e8f0'
+    border: '1px solid #e2e8f0',
+    justifyContent: 'center'
   };
 
   const formationLineStyle = {
     display: 'flex',
     justifyContent: 'center',
     alignItems: 'center',
-    gap: '0.5rem',
-    marginBottom: '0.75rem'
+    gap: '1rem',
+    marginBottom: '1.5rem'
   };
 
   const formationPositionStyle = {
@@ -333,6 +357,60 @@ const RosaAcquistata = ({
     minWidth: '50px',
     textAlign: 'center',
     whiteSpace: 'nowrap'
+  };
+
+  // Function to get role color for formation positions
+  const getRoleColor = (role) => {
+    const roleColorMap = {
+      'P': '#f97316',    // Orange
+      'DC': '#22c55e',   // Green
+      'B': '#22c55e',    // Green
+      'DD': '#22c55e',   // Green
+      'DS': '#22c55e',   // Green (updated from Blue)
+      'E': '#3b82f6',    // Blue
+      'M': '#3b82f6',    // Blue
+      'C': '#3b82f6',    // Blue
+      'W': '#a855f7',    // Purple
+      'T': '#a855f7',    // Purple
+      'A': '#ef4444',    // Red
+      'PC': '#ef4444'    // Red
+    };
+    return roleColorMap[role] || '#6b7280';
+  };
+
+  // Function to get position style with split colors for multiple roles
+  const getPositionStyle = (positionData) => {
+    const roles = positionData.roles || [positionData.role];
+    const colors = roles.map(role => getRoleColor(role));
+    
+    // If only one role or all roles have the same color, use solid color
+    if (colors.length === 1 || colors.every(color => color === colors[0])) {
+      return {
+        ...formationPositionStyle,
+        backgroundColor: colors[0],
+        color: 'white',
+        border: `1px solid ${colors[0]}`
+      };
+    }
+    
+    // For multiple different colors, create a gradient or split effect
+    if (colors.length === 2) {
+      return {
+        ...formationPositionStyle,
+        background: `linear-gradient(90deg, ${colors[0]} 50%, ${colors[1]} 50%)`,
+        color: 'white',
+        border: `1px solid ${colors[0]}`,
+        position: 'relative'
+      };
+    }
+    
+    // For more than 2 colors, use the first color as fallback
+    return {
+      ...formationPositionStyle,
+      backgroundColor: colors[0],
+      color: 'white',
+      border: `1px solid ${colors[0]}`
+    };
   };
 
   const formationLineLabelStyle = {
@@ -354,11 +432,6 @@ const RosaAcquistata = ({
     border: '1px solid #e5e7eb'
   };
 
-  const playerUnderRoleMultipleStyle = {
-    ...playerUnderRoleStyle,
-    backgroundColor: '#fef3c7',
-    borderColor: '#f59e0b'
-  };
 
   const unusedRolesBoxStyle = {
     marginTop: '1rem',
@@ -406,15 +479,22 @@ const RosaAcquistata = ({
       // Handle double roles - if array has multiple roles, show them as "Role1/Role2"
       const positionDisplay = positionGroup.length > 1 ? positionGroup.join('/') : positionGroup[0];
       
+      // Create position data with both display role and original roles array
+      const positionData = { 
+        role: positionDisplay, 
+        roles: positionGroup, 
+        positionIndex: index 
+      };
+      
       // Categorize positions into lines based on the formation structure
       if (positionGroup.some(role => role.toLowerCase() === 'p')) {
-        lines.p.push(positionDisplay);
+        lines.p.push(positionData);
       } else if (positionGroup.some(role => ['DC', 'DD', 'DS', 'B'].map(r => r.toLowerCase()).includes(role.toLowerCase()))) {
-        lines.defense.push(positionDisplay);
+        lines.defense.push(positionData);
       } else if (positionGroup.some(role => ['M', 'C', 'E'].map(r => r.toLowerCase()).includes(role.toLowerCase()))) {
-        lines.midfield.push(positionDisplay);
+        lines.midfield.push(positionData);
       } else if (positionGroup.some(role => ['A', 'T', 'PC', 'W'].map(r => r.toLowerCase()).includes(role.toLowerCase()))) {
-        lines.attack.push(positionDisplay);
+        lines.attack.push(positionData);
       }
     });
     
@@ -436,6 +516,7 @@ const RosaAcquistata = ({
     });
     return roles;
   }, [formations, selectedFormation]);
+
 
   // Organize players by their roles for the formation display
   const getPlayersByFormationRoles = useMemo(() => {
@@ -476,7 +557,7 @@ const RosaAcquistata = ({
       let possibleRoles = [];
       let unusedRoles = [];
       
-      if (isMantraMode && playerDetail['Ruolo Mantra']) {
+      if (playerDetail['Ruolo Mantra']) {
         try {
           const roles = JSON.parse(playerDetail['Ruolo Mantra'].replace(/'/g, '"'));
           const mappedRoles = roles.map(role => roleMapping[role] || role);
@@ -554,79 +635,237 @@ const RosaAcquistata = ({
     
     console.log('Team players with roles:', teamPlayers);
     
-    // Sort players by their best possible role ranking (lower is better)
-    teamPlayers.sort((a, b) => {
-      const aBestRanking = Math.min(...a.possibleRoles.map(r => r.ranking));
-      const bBestRanking = Math.min(...b.possibleRoles.map(r => r.ranking));
-      return aBestRanking - bBestRanking;
+    // NEW ASSIGNMENT ALGORITHM: Position-based assignment following appetibilita priority
+    
+    // Step 1: Create a list of all positions with their appetibilita rankings
+    // Each position can have multiple roles, so we need to find the best appetibilita for each position
+    const positionAssignmentsList = [];
+    formationPositions.forEach((position, positionIndex) => {
+      // Find the best (lowest) appetibilita among all roles for this position
+      const bestAppetibilita = Math.min(...position.roles.map(role => getRoleRanking(role)));
+      
+      positionAssignmentsList.push({
+        positionIndex,
+        roles: position.roles, // All possible roles for this position
+        appetibilita: bestAppetibilita,
+        assigned: false,
+        assignedPlayer: null
+      });
     });
     
-    // Assign players to positions using greedy algorithm
-    teamPlayers.forEach(playerData => {
-      if (playerData.possibleRoles.length === 0) {
-        // Player has no matching roles, add to unused
-        playerData.unusedRoles.forEach(unusedRole => {
-          unassignedPlayers.push({
-            ...playerData.player,
-            price: playerData.teamPlayer.price,
-            originalRole: unusedRole,
-            playerId: playerData.playerId
-          });
+    // Step 2: Sort positions by appetibilita (lower number = higher priority)
+    // For same appetibilita, maintain original order (positionIndex)
+    positionAssignmentsList.sort((a, b) => {
+      if (a.appetibilita !== b.appetibilita) {
+        return a.appetibilita - b.appetibilita;
+      }
+      // If same appetibilita, maintain original order (positionIndex)
+      return a.positionIndex - b.positionIndex;
+    });
+    
+    console.log('=== FORMATION ASSIGNMENT DEBUG ===');
+    console.log('Position assignments sorted by appetibilita:', positionAssignmentsList);
+    console.log('Total positions to fill:', positionAssignmentsList.length);
+    console.log('Available players:', teamPlayers.length);
+    
+    // Debug: Show each position and its roles
+    positionAssignmentsList.forEach((pos, index) => {
+      console.log(`Position ${pos.positionIndex}: roles [${pos.roles.join(', ')}], appetibilita: ${pos.appetibilita}`);
+    });
+    
+    // Step 3: For each position (in appetibilita order), find the best available player
+    const availablePlayers = [...teamPlayers]; // Copy of all players
+    const assignedPlayerIds = new Set(); // Track assigned players
+    let totalAssignedPlayers = 0;
+    const maxPlayers = 11; // Maximum 11 players in formation
+    
+    positionAssignmentsList.forEach((positionAssignment, assignmentIndex) => {
+      console.log(`\n--- Processing Position ${positionAssignment.positionIndex} (${assignmentIndex + 1}/${positionAssignmentsList.length}) ---`);
+      console.log(`Roles needed: [${positionAssignment.roles.join(', ')}]`);
+      console.log(`Appetibilita: ${positionAssignment.appetibilita}`);
+      
+      if (positionAssignment.assigned) {
+        console.log('❌ Position already assigned, skipping');
+        return; // Skip already assigned positions
+      }
+      if (totalAssignedPlayers >= maxPlayers) {
+        console.log('❌ Max players reached, stopping');
+        return; // Stop if we've reached max players
+      }
+      
+      const position = formationPositions[positionAssignment.positionIndex];
+      if (position.assignedPlayer) {
+        console.log('❌ Position already has a player, skipping');
+        return; // Skip if position already has a player
+      }
+      
+      console.log(`Available players before filtering: ${availablePlayers.length}`);
+      console.log(`Already assigned player IDs: [${Array.from(assignedPlayerIds).join(', ')}]`);
+      
+      // Find all available players who can play ANY of the roles for this position
+      const eligiblePlayers = availablePlayers.filter(playerData => {
+        if (assignedPlayerIds.has(playerData.playerId)) {
+          console.log(`  ❌ ${playerData.player.Nome} already assigned`);
+          return false; // Already assigned
+        }
+        
+        // Check if player can play ANY of the roles for this position
+        const canPlay = playerData.possibleRoles.some(roleOption => 
+          positionAssignment.roles.some(positionRole => 
+            roleOption.role.toLowerCase() === positionRole.toLowerCase()
+          )
+        );
+        
+        if (canPlay) {
+          console.log(`  ✅ ${playerData.player.Nome} can play this position`);
+        } else {
+          console.log(`  ❌ ${playerData.player.Nome} cannot play this position`);
+        }
+        
+        return canPlay;
+      });
+      
+      console.log(`Eligible players found: ${eligiblePlayers.length}`);
+      
+      if (eligiblePlayers.length > 0) {
+        // Sort eligible players by Punteggio FPEDIA (higher is better)
+        eligiblePlayers.sort((a, b) => {
+          const aPunteggio = parseFloat(a.player['Punteggio FPEDIA'] || 0);
+          const bPunteggio = parseFloat(b.player['Punteggio FPEDIA'] || 0);
+          return bPunteggio - aPunteggio; // Higher Punteggio FPEDIA first
         });
+        
+        console.log('Eligible players sorted by Punteggio FPEDIA:');
+        eligiblePlayers.forEach((player, index) => {
+          const punteggio = parseFloat(player.player['Punteggio FPEDIA'] || 0);
+          console.log(`  ${index + 1}. ${player.player.Nome} - Punteggio FPEDIA: ${punteggio}`);
+        });
+        
+        const bestPlayer = eligiblePlayers[0];
+        console.log(`🎯 Selected best player: ${bestPlayer.player.Nome}`);
+        
+        // Find which role the player will be assigned to (prefer the one with better appetibilita)
+        const assignedRoleOption = bestPlayer.possibleRoles
+          .filter(roleOption => 
+            positionAssignment.roles.some(positionRole => 
+              roleOption.role.toLowerCase() === positionRole.toLowerCase()
+            )
+          )
+          .sort((a, b) => a.ranking - b.ranking)[0]; // Sort by appetibilita, pick the best
+        
+        if (!assignedRoleOption) {
+          console.error('❌ No valid role found for player', bestPlayer.player.Nome);
         return;
       }
       
-      // Sort possible roles by ranking (lower is better)
-      playerData.possibleRoles.sort((a, b) => a.ranking - b.ranking);
-      
-      // Try to assign player to their best available position
-      let assigned = false;
-      for (const roleOption of playerData.possibleRoles) {
-        const position = formationPositions[roleOption.positionIndex];
+        console.log(`🎯 Selected role: ${assignedRoleOption.role} (appetibilita: ${assignedRoleOption.ranking})`);
         
-        // Check if this position is still available
-        if (!position.assignedPlayer) {
-          // Assign player to this position
-          position.assignedPlayer = playerData.player;
-          position.assignedPlayerId = playerData.playerId;
-          positionAssignments[playerData.playerId] = {
-            positionIndex: roleOption.positionIndex,
-            role: roleOption.role,
-            originalRole: roleOption.originalRole
+        // Assign the best player to this position
+        position.assignedPlayer = bestPlayer.player;
+        position.assignedPlayerId = bestPlayer.playerId;
+        positionAssignment.assigned = true;
+        positionAssignment.assignedPlayer = bestPlayer;
+        assignedPlayerIds.add(bestPlayer.playerId);
+        totalAssignedPlayers++;
+        
+        console.log(`✅ ASSIGNED: ${bestPlayer.player.Nome} (ID: ${bestPlayer.playerId}) to position ${positionAssignment.positionIndex} as ${assignedRoleOption.role} with Punteggio FPEDIA ${bestPlayer.player['Punteggio FPEDIA']}`);
+        console.log(`📊 Total assigned players: ${totalAssignedPlayers}/${maxPlayers}`);
+        
+        // Add to positionAssignments for tracking
+        positionAssignments[bestPlayer.playerId] = {
+          positionIndex: positionAssignment.positionIndex,
+          role: assignedRoleOption.role,
+          originalRole: assignedRoleOption.originalRole
           };
           
           // Add to playersByRole for display
-          if (!playersByRole[roleOption.role]) {
-            playersByRole[roleOption.role] = [];
-          }
-          
-          playersByRole[roleOption.role].push({
-            ...playerData.player,
-            price: playerData.teamPlayer.price,
-            playerId: playerData.playerId,
-            assignedRole: roleOption.role,
-            positionIndex: roleOption.positionIndex,
-            originalRoles: playerData.possibleRoles.map(r => r.originalRole)
-          });
-          
-          assigned = true;
-          
-          // Debug logging
-          if (playerData.player.Nome && playerData.player.Nome.toLowerCase().includes('tramoni')) {
-            console.log('Tramoni assigned to position:', {
-              playerName: playerData.player.Nome,
-              positionIndex: roleOption.positionIndex,
-              role: roleOption.role,
-              ranking: roleOption.ranking
-            });
-          }
-          
-          break;
+        if (!playersByRole[assignedRoleOption.role]) {
+          playersByRole[assignedRoleOption.role] = [];
         }
+        
+        playersByRole[assignedRoleOption.role].push({
+          ...bestPlayer.player,
+          price: bestPlayer.teamPlayer.price,
+          fantamilioni: bestPlayer.teamPlayer.price,
+          playerId: bestPlayer.playerId,
+          assignedRole: assignedRoleOption.role,
+          positionIndex: positionAssignment.positionIndex,
+          originalRoles: bestPlayer.possibleRoles.map(r => r.originalRole)
+        });
+        
+        console.log(`📋 Added to playersByRole[${assignedRoleOption.role}]`);
+      } else {
+        console.log(`❌ No eligible players found for position ${positionAssignment.positionIndex} with roles: ${positionAssignment.roles.join(', ')}`);
       }
+    });
+    
+    console.log(`Total players assigned: ${totalAssignedPlayers}/${maxPlayers}`);
+    
+    // Create console command for debugging
+    if (typeof window !== 'undefined') {
+      window.debugFormation = () => {
+        console.log('=== FORMATION DEBUG INFO ===');
+        console.log('Selected Formation:', selectedFormation);
+        console.log('Formation Positions:', formationPositions);
+        console.log('Position Assignments:', positionAssignments);
+        console.log('Players by Role:', playersByRole);
+        console.log('Assigned Player IDs:', Array.from(assignedPlayerIds));
+        console.log('Total Assigned Players:', totalAssignedPlayers);
+        
+        // Show each position and its assignment
+        formationPositions.forEach((position, index) => {
+          console.log(`Position ${index}:`, {
+            roles: position.roles,
+            assignedPlayer: position.assignedPlayer ? position.assignedPlayer.Nome : 'NONE',
+            assignedPlayerId: position.assignedPlayerId || 'NONE'
+          });
+        });
+        
+        // Check for duplicates
+        const playerIdCounts = {};
+        formationPositions.forEach(position => {
+          if (position.assignedPlayerId) {
+            playerIdCounts[position.assignedPlayerId] = (playerIdCounts[position.assignedPlayerId] || 0) + 1;
+          }
+        });
+        
+        const duplicates = Object.entries(playerIdCounts).filter(([id, count]) => count > 1);
+        if (duplicates.length > 0) {
+          console.error('🚨 DUPLICATE PLAYERS FOUND:', duplicates);
+        } else {
+          console.log('✅ No duplicate players found');
+        }
+        
+        return {
+          formation: selectedFormation,
+          positions: formationPositions,
+          assignments: positionAssignments,
+          playersByRole,
+          totalAssigned: totalAssignedPlayers,
+          duplicates
+        };
+      };
       
-      if (!assigned) {
-        // Player couldn't be assigned to any position, add to unused
+      console.log('🔧 Debug command available: window.debugFormation()');
+    }
+    
+    // Step 4: Add unassigned players to unused
+    teamPlayers.forEach(playerData => {
+      if (!assignedPlayerIds.has(playerData.playerId)) {
+        // Player was not assigned to any position
+        if (playerData.possibleRoles.length === 0) {
+          // Player has no matching roles
+          playerData.unusedRoles.forEach(unusedRole => {
+            unassignedPlayers.push({
+              ...playerData.player,
+              price: playerData.teamPlayer.price,
+              fantamilioni: playerData.teamPlayer.price,
+              originalRole: unusedRole,
+              playerId: playerData.playerId
+            });
+          });
+        } else {
+          // Player has matching roles but wasn't assigned (all positions taken)
         playerData.unusedRoles.forEach(unusedRole => {
           unassignedPlayers.push({
             ...playerData.player,
@@ -635,17 +874,77 @@ const RosaAcquistata = ({
             playerId: playerData.playerId
           });
         });
+        }
       }
     });
     
     // Add unassigned players to unused box
     playersByRole['UNUSED'] = unassignedPlayers;
     
+    console.log('\n=== ASSIGNMENT SUMMARY ===');
     console.log('Final position assignments:', positionAssignments);
-    console.log('Unassigned players:', unassignedPlayers);
+    console.log('Unassigned players:', unassignedPlayers.length);
+    console.log('Players by role summary:');
+    Object.entries(playersByRole).forEach(([role, players]) => {
+      console.log(`  ${role}: ${players.length} players`);
+    });
+    console.log('=== END ASSIGNMENT DEBUG ===\n');
     
     return { playersByRole, positionAssignments };
-  }, [selectedTeam, players, getFormationRoles, isMantraMode, roleMapping, getPlayerRole, formations, selectedFormation, appetibilitaData]);
+  }, [selectedTeam, players, getFormationRoles, roleMapping, getPlayerRole, formations, selectedFormation, appetibilitaData]);
+
+  // Get reserve players (not assigned to formation) sorted by roles.csv order
+  const getReservePlayers = useMemo(() => {
+    if (!selectedTeam || !selectedTeam.players || !formations[selectedFormation]) return [];
+    
+    const assignedPlayerIds = new Set();
+    
+    // Get all assigned player IDs from the formation assignment results
+    if (getPlayersByFormationRoles && getPlayersByFormationRoles.positionAssignments) {
+      // The player IDs are the keys of the positionAssignments object
+      Object.keys(getPlayersByFormationRoles.positionAssignments).forEach(playerId => {
+        assignedPlayerIds.add(parseInt(playerId));
+      });
+    }
+    
+    console.log('🔍 DEBUG: Reserve players calculation:');
+    console.log('  Total team players:', selectedTeam.players.length);
+    console.log('  Assigned player IDs from positionAssignments:', Array.from(assignedPlayerIds));
+    console.log('  getPlayersByFormationRoles:', getPlayersByFormationRoles);
+    console.log('  positionAssignments keys:', getPlayersByFormationRoles?.positionAssignments ? Object.keys(getPlayersByFormationRoles.positionAssignments) : 'none');
+    console.log('  positionAssignments values:', getPlayersByFormationRoles?.positionAssignments ? Object.values(getPlayersByFormationRoles.positionAssignments) : 'none');
+    
+    // Get unassigned players from the team
+    const reservePlayers = selectedTeam.players.filter(player => {
+      const isAssigned = assignedPlayerIds.has(player.player_id);
+      if (isAssigned) {
+        console.log(`  ❌ Player ${player.Nome} (ID: ${player.player_id}) is assigned to formation`);
+      } else {
+        console.log(`  ✅ Player ${player.Nome} (ID: ${player.player_id}) is available for reserves`);
+      }
+      return !isAssigned;
+    });
+    
+    console.log('  Reserve players count:', reservePlayers.length);
+    console.log('  Reserve players:', reservePlayers.map(p => `${p.Nome} (ID: ${p.player_id})`));
+    
+    // Sort by roles.csv order
+    const roleOrder = ['G', 'CB', 'LA', 'RB', 'LB', 'E', 'DM', 'M', 'W', 'OM', 'F', 'CF'];
+    
+    return reservePlayers.sort((a, b) => {
+      const aRole = a['Ruolo Mantra'] ? (Array.isArray(a['Ruolo Mantra']) ? a['Ruolo Mantra'][0] : a['Ruolo Mantra']) : '';
+      const bRole = b['Ruolo Mantra'] ? (Array.isArray(b['Ruolo Mantra']) ? b['Ruolo Mantra'][0] : b['Ruolo Mantra']) : '';
+      
+      const aIndex = roleOrder.indexOf(aRole);
+      const bIndex = roleOrder.indexOf(bRole);
+      
+      if (aIndex === -1 && bIndex === -1) return 0;
+      if (aIndex === -1) return 1;
+      if (bIndex === -1) return -1;
+      
+      return aIndex - bIndex;
+    });
+  }, [selectedTeam, formations, selectedFormation, getPlayersByFormationRoles]);
 
   if (totalPlayers === 0) {
     return (
@@ -675,7 +974,7 @@ const RosaAcquistata = ({
         )}
 
         {/* Formation Selector */}
-        {isMantraMode && Object.keys(formations).length > 0 && (
+        {Object.keys(formations).length > 0 && (
           <div style={formationSelectorStyle}>
             <span style={teamSelectorLabelStyle}>Formazione:</span>
             {Object.keys(formations).map(formation => (
@@ -691,7 +990,7 @@ const RosaAcquistata = ({
         )}
 
         {/* Formation Display */}
-        {isMantraMode && formations[selectedFormation] && (
+        {formations[selectedFormation] && (
           <div style={formationDisplayStyle}>
             <h3 style={{ textAlign: 'center', marginBottom: '0.5rem', fontSize: '1.125rem', fontWeight: '600', color: '#374151' }}>
               Formazione {selectedFormation}
@@ -703,21 +1002,30 @@ const RosaAcquistata = ({
             {/* P Line */}
             <div style={formationLineStyle}>
               <span style={formationLineLabelStyle}>Portiere:</span>
-              {getFormationLines.p.map((role, index) => (
+              {getFormationLines.p.map((positionData, index) => (
                 <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                   <div style={formationPositionStyle}>
-                    {role}
+                    {positionData.role}
                   </div>
-                  {getPlayersByFormationRoles.playersByRole && getPlayersByFormationRoles.playersByRole['P'] && 
-                    getPlayersByFormationRoles.playersByRole['P'].map((player, playerIndex) => (
-                      <div 
-                        key={playerIndex} 
-                        style={playerUnderRoleStyle}
-                      >
+                  {(() => {
+                    // Find the player assigned to this specific position
+                    const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
+                      Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
+                        assignment.positionIndex === positionData.positionIndex
+                      ) : null;
+                    
+                    if (assignedPlayer) {
+                      const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
+                        p.positionIndex === positionData.positionIndex
+                      );
+                      return player ? (
+                        <div style={playerUnderRoleStyle}>
                         {player.Nome}
                       </div>
-                    ))
+                      ) : null;
                   }
+                    return null;
+                  })()}
                 </div>
               ))}
             </div>
@@ -725,82 +1033,94 @@ const RosaAcquistata = ({
             {/* Defense Line */}
             <div style={formationLineStyle}>
               <span style={formationLineLabelStyle}>Difesa:</span>
-              {getFormationLines.defense.map((role, index) => {
-                // Get all individual roles from the position (e.g., "A/PC" -> ["A", "PC"])
-                const individualRoles = role.includes('/') ? role.split('/') : [role];
-                return (
+              {getFormationLines.defense.map((positionData, index) => (
                   <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <div style={formationPositionStyle}>
-                      {role}
+                    {positionData.role}
                     </div>
-                    {individualRoles.map(individualRole => 
-                      getPlayersByFormationRoles.playersByRole && getPlayersByFormationRoles.playersByRole[individualRole] && 
-                      getPlayersByFormationRoles.playersByRole[individualRole].map((player, playerIndex) => (
-                        <div 
-                          key={`${individualRole}-${playerIndex}`} 
-                          style={playerUnderRoleStyle}
-                        >
+                  {(() => {
+                    // Find the player assigned to this specific position
+                    const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
+                      Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
+                        assignment.positionIndex === positionData.positionIndex
+                      ) : null;
+                    
+                    if (assignedPlayer) {
+                      const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
+                        p.positionIndex === positionData.positionIndex
+                      );
+                      return player ? (
+                        <div style={playerUnderRoleStyle}>
                           {player.Nome}
                         </div>
-                      ))
-                    )}
+                      ) : null;
+                    }
+                    return null;
+                  })()}
                   </div>
-                );
-              })}
+              ))}
             </div>
 
             {/* Midfield Line */}
             <div style={formationLineStyle}>
               <span style={formationLineLabelStyle}>Centrocampo:</span>
-              {getFormationLines.midfield.map((role, index) => {
-                // Get all individual roles from the position (e.g., "A/PC" -> ["A", "PC"])
-                const individualRoles = role.includes('/') ? role.split('/') : [role];
-                return (
+              {getFormationLines.midfield.map((positionData, index) => (
                   <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <div style={formationPositionStyle}>
-                      {role}
+                    {positionData.role}
                     </div>
-                    {individualRoles.map(individualRole => 
-                      getPlayersByFormationRoles.playersByRole && getPlayersByFormationRoles.playersByRole[individualRole] && 
-                      getPlayersByFormationRoles.playersByRole[individualRole].map((player, playerIndex) => (
-                        <div 
-                          key={`${individualRole}-${playerIndex}`} 
-                          style={playerUnderRoleStyle}
-                        >
+                  {(() => {
+                    // Find the player assigned to this specific position
+                    const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
+                      Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
+                        assignment.positionIndex === positionData.positionIndex
+                      ) : null;
+                    
+                    if (assignedPlayer) {
+                      const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
+                        p.positionIndex === positionData.positionIndex
+                      );
+                      return player ? (
+                        <div style={playerUnderRoleStyle}>
                           {player.Nome}
                         </div>
-                      ))
-                    )}
+                      ) : null;
+                    }
+                    return null;
+                  })()}
                   </div>
-                );
-              })}
+              ))}
             </div>
 
             {/* Attack Line */}
             <div style={formationLineStyle}>
               <span style={formationLineLabelStyle}>Attacco:</span>
-              {getFormationLines.attack.map((role, index) => {
-                // Get all individual roles from the position (e.g., "A/PC" -> ["A", "PC"])
-                const individualRoles = role.includes('/') ? role.split('/') : [role];
-                return (
+              {getFormationLines.attack.map((positionData, index) => (
                   <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                     <div style={formationPositionStyle}>
-                      {role}
+                    {positionData.role}
                     </div>
-                    {individualRoles.map(individualRole => 
-                      getPlayersByFormationRoles.playersByRole && getPlayersByFormationRoles.playersByRole[individualRole] && 
-                      getPlayersByFormationRoles.playersByRole[individualRole].map((player, playerIndex) => (
-                        <div 
-                          key={`${individualRole}-${playerIndex}`} 
-                          style={playerUnderRoleStyle}
-                        >
+                  {(() => {
+                    // Find the player assigned to this specific position
+                    const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
+                      Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
+                        assignment.positionIndex === positionData.positionIndex
+                      ) : null;
+                    
+                    if (assignedPlayer) {
+                      const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
+                        p.positionIndex === positionData.positionIndex
+                      );
+                      return player ? (
+                        <div style={playerUnderRoleStyle}>
                           {player.Nome}
                         </div>
-                      ))
-                    )}
+                      ) : null;
+                    }
+                    return null;
+                  })()}
                   </div>
-                );
-              })}
+              ))}
             </div>
 
             {/* Unused Roles Box */}
@@ -812,7 +1132,7 @@ const RosaAcquistata = ({
                 </div>
                 {getPlayersByFormationRoles.playersByRole['UNUSED'].map((player, index) => (
                   <div key={index} style={unusedPlayerStyle}>
-                    {player.Nome} - {player.originalRole} ({player.price} FM)
+                    {player.Nome} - {player.originalRole} ({player.fantamilioni} FM)
                   </div>
                 ))}
               </div>
@@ -878,7 +1198,7 @@ const RosaAcquistata = ({
       )}
 
       {/* Formation Selector */}
-      {isMantraMode && Object.keys(formations).length > 0 && (
+      {Object.keys(formations).length > 0 && (
         <div style={formationSelectorStyle}>
           <span style={teamSelectorLabelStyle}>Formazione:</span>
           {Object.keys(formations).map(formation => (
@@ -894,126 +1214,278 @@ const RosaAcquistata = ({
       )}
 
       {/* Formation Display */}
-      {isMantraMode && formations[selectedFormation] && (
-        <div style={formationDisplayStyle}>
-          <h3 style={{ textAlign: 'center', marginBottom: '0.5rem', fontSize: '1.125rem', fontWeight: '600', color: '#374151' }}>
-            Formazione {selectedFormation}
+      {formations[selectedFormation] && (
+        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', minHeight: '600px' }}>
+          {/* Riserve Column */}
+          <div style={{ 
+            minWidth: '280px', 
+            maxWidth: '300px',
+            backgroundColor: '#f8fafc', 
+            borderRadius: '0.5rem', 
+            padding: '1rem',
+            border: '1px solid #e2e8f0',
+            height: 'fit-content'
+          }}>
+            <h3 style={{ 
+              textAlign: 'center', 
+              marginBottom: '1rem', 
+              fontSize: '1.125rem', 
+              fontWeight: '600', 
+              color: '#374151' 
+            }}>
+              Riserve ({getReservePlayers.length})
           </h3>
-          <div style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '0.75rem', color: '#6b7280' }}>
-            {getTotalPositions} posizioni totali
+            
+            {getReservePlayers.length > 0 ? (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
+                {getReservePlayers.map((player, index) => {
+                  // Convert role to Italian and get color using roles.csv mapping
+                  const roleToItalianAndColor = (role) => {
+                    const roleMap = {
+                      'G': { italian: 'P', color: 'Orange' }, 
+                      'CB': { italian: 'DC', color: 'Green' }, 
+                      'LA': { italian: 'B', color: 'Green' }, 
+                      'RB': { italian: 'DD', color: 'Green' }, 
+                      'LB': { italian: 'DS', color: 'Green' }, // Updated from Blue to Green
+                      'E': { italian: 'E', color: 'Blue' }, 
+                      'DM': { italian: 'M', color: 'Blue' }, 
+                      'M': { italian: 'C', color: 'Blue' }, 
+                      'W': { italian: 'W', color: 'Purple' }, 
+                      'OM': { italian: 'T', color: 'Purple' }, 
+                      'F': { italian: 'A', color: 'Red' }, 
+                      'CF': { italian: 'PC', color: 'Red' }
+                    };
+                    return roleMap[role] || { italian: role, color: 'Gray' };
+                  };
+                  
+                  // Parse the Ruolo Mantra field properly
+                  let playerRoles = [];
+                  if (player['Ruolo Mantra']) {
+                    if (Array.isArray(player['Ruolo Mantra'])) {
+                      // It's already an array
+                      playerRoles = player['Ruolo Mantra'];
+                    } else if (typeof player['Ruolo Mantra'] === 'string') {
+                      // It's a string that needs to be parsed
+                      try {
+                        // Replace single quotes with double quotes and parse as JSON
+                        const jsonString = player['Ruolo Mantra'].replace(/'/g, '"');
+                        playerRoles = JSON.parse(jsonString);
+                      } catch (e) {
+                        // If parsing fails, treat as single role
+                        playerRoles = [player['Ruolo Mantra']];
+                      }
+                    } else {
+                      // Fallback for other types
+                      playerRoles = [player['Ruolo Mantra']];
+                    }
+                  }
+                  
+                  // Debug logging
+                  console.log('🔍 DEBUG: Player roles for', player.Nome, ':', {
+                    original: player['Ruolo Mantra'],
+                    parsed: playerRoles,
+                    type: typeof player['Ruolo Mantra']
+                  });
+                  
+                  // Convert each role to Italian and get color
+                  const roleData = playerRoles.map(roleToItalianAndColor);
+                  
+                  return (
+                    <div key={player.player_id} style={{
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '0.5rem',
+                      backgroundColor: 'white',
+                      borderRadius: '0.25rem',
+                      border: '1px solid #e2e8f0',
+                      fontSize: '0.75rem'
+                    }}>
+                      <div>
+                        <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '0.75rem' }}>
+                          {player.Nome}
           </div>
+                        <div style={{ fontSize: '0.625rem', color: '#6b7280' }}>
+                          {player.Squadra}
+                        </div>
+                      </div>
+                      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                        {roleData.map((roleInfo, roleIndex) => {
+                          // Convert color name to hex
+                          const getColorHex = (colorName) => {
+                            const colorMap = {
+                              'Orange': '#f97316',
+                              'Green': '#22c55e', 
+                              'Blue': '#3b82f6',
+                              'Purple': '#a855f7',
+                              'Red': '#ef4444',
+                              'Gray': '#6b7280'
+                            };
+                            return colorMap[colorName] || '#6b7280';
+                          };
+                          
+                          return (
+                            <span key={roleIndex} style={{
+                              padding: '0.125rem 0.375rem',
+                              backgroundColor: getColorHex(roleInfo.color),
+                              color: 'white',
+                              borderRadius: '0.25rem',
+                              fontSize: '0.625rem',
+                              fontWeight: '600',
+                              minWidth: '1.5rem',
+                              textAlign: 'center'
+                            }}>
+                              {roleInfo.italian}
+                            </span>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            ) : (
+              <div style={{ 
+                textAlign: 'center', 
+                color: '#6b7280', 
+                fontSize: '0.875rem',
+                padding: '2rem 1rem'
+              }}>
+                Nessuna riserva
+              </div>
+            )}
+          </div>
+
+          {/* Formation Column */}
+          <div style={{
+            ...formationDisplayStyle,
+            flex: 1,
+            minHeight: '600px',
+            display: 'flex',
+            flexDirection: 'column'
+          }}>
+            <h3 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.125rem', fontWeight: '600', color: '#374151' }}>
+              Formazione {selectedFormation}
+            </h3>
           
           {/* P Line */}
           <div style={formationLineStyle}>
-            <span style={formationLineLabelStyle}>Portiere:</span>
-            {getFormationLines.p.map((role, index) => (
+            {getFormationLines.p.map((positionData, index) => (
               <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={formationPositionStyle}>
-                  {role}
+                <div style={getPositionStyle(positionData)}>
+                  {positionData.role}
                 </div>
-                {getPlayersByFormationRoles.playersByRole && getPlayersByFormationRoles.playersByRole['P'] && 
-                  getPlayersByFormationRoles.playersByRole['P'].map((player, playerIndex) => (
-                    <div 
-                      key={playerIndex} 
-                      style={player.hasMultipleRoles ? playerUnderRoleMultipleStyle : playerUnderRoleStyle}
-                    >
-                      {player.Nome} ({player.price} FM)
+                {(() => {
+                  // Find the player assigned to this specific position
+                  const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
+                    Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
+                      assignment.positionIndex === positionData.positionIndex
+                    ) : null;
+                  
+                  if (assignedPlayer) {
+                    const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
+                      p.positionIndex === positionData.positionIndex
+                    );
+                    return player ? (
+                      <div style={playerUnderRoleStyle}>
+                      {player.Nome} ({player.fantamilioni} FM)
                     </div>
-                  ))
+                    ) : null;
                 }
+                  return null;
+                })()}
               </div>
             ))}
           </div>
 
           {/* Defense Line */}
           <div style={formationLineStyle}>
-            <span style={formationLineLabelStyle}>Difesa:</span>
-            {getFormationLines.defense.map((role, index) => {
-              // Get all individual roles from the position (e.g., "A/PC" -> ["A", "PC"])
-              const individualRoles = role.includes('/') ? role.split('/') : [role];
-              return (
+            {getFormationLines.defense.map((positionData, index) => (
                 <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={formationPositionStyle}>
-                    {role}
+                  <div style={getPositionStyle(positionData)}>
+                  {positionData.role}
                   </div>
-                  {individualRoles.map(individualRole => {
-                    // Debug logging for display
-                    if (individualRole === 'DC' || individualRole === 'PC') {
-                      console.log('Display debug:', {
-                        individualRole: individualRole,
-                        playersByRole: getPlayersByFormationRoles.playersByRole,
-                        playersForRole: getPlayersByFormationRoles.playersByRole ? getPlayersByFormationRoles.playersByRole[individualRole] : 'undefined',
-                        allRoleKeys: getPlayersByFormationRoles.playersByRole ? Object.keys(getPlayersByFormationRoles.playersByRole) : 'undefined'
-                      });
-                    }
-                    
-                    return getPlayersByFormationRoles.playersByRole && getPlayersByFormationRoles.playersByRole[individualRole] && 
-                      getPlayersByFormationRoles.playersByRole[individualRole].map((player, playerIndex) => (
-                        <div 
-                          key={`${individualRole}-${playerIndex}`} 
-                          style={playerUnderRoleStyle}
-                        >
+                {(() => {
+                  // Find the player assigned to this specific position
+                  const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
+                    Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
+                      assignment.positionIndex === positionData.positionIndex
+                    ) : null;
+                  
+                  if (assignedPlayer) {
+                    const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
+                      p.positionIndex === positionData.positionIndex
+                    );
+                    return player ? (
+                      <div style={playerUnderRoleStyle}>
                           {player.Nome}
                         </div>
-                      ));
-                  })}
+                    ) : null;
+                  }
+                  return null;
+                })()}
                 </div>
-              );
-            })}
+            ))}
           </div>
 
           {/* Midfield Line */}
           <div style={formationLineStyle}>
-            <span style={formationLineLabelStyle}>Centrocampo:</span>
-            {getFormationLines.midfield.map((role, index) => {
-              // Get all individual roles from the position (e.g., "A/PC" -> ["A", "PC"])
-              const individualRoles = role.includes('/') ? role.split('/') : [role];
-              return (
+            {getFormationLines.midfield.map((positionData, index) => (
                 <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={formationPositionStyle}>
-                    {role}
+                  <div style={getPositionStyle(positionData)}>
+                  {positionData.role}
                   </div>
-                  {individualRoles.map(individualRole => 
-                    getPlayersByFormationRoles.playersByRole && getPlayersByFormationRoles.playersByRole[individualRole] && 
-                    getPlayersByFormationRoles.playersByRole[individualRole].map((player, playerIndex) => (
-                      <div 
-                        key={`${individualRole}-${playerIndex}`} 
-                        style={playerUnderRoleStyle}
-                      >
+                {(() => {
+                  // Find the player assigned to this specific position
+                  const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
+                    Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
+                      assignment.positionIndex === positionData.positionIndex
+                    ) : null;
+                  
+                  if (assignedPlayer) {
+                    const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
+                      p.positionIndex === positionData.positionIndex
+                    );
+                    return player ? (
+                      <div style={playerUnderRoleStyle}>
                         {player.Nome}
                       </div>
-                    ))
-                  )}
+                    ) : null;
+                  }
+                  return null;
+                })()}
                 </div>
-              );
-            })}
+            ))}
           </div>
 
           {/* Attack Line */}
           <div style={formationLineStyle}>
-            <span style={formationLineLabelStyle}>Attacco:</span>
-            {getFormationLines.attack.map((role, index) => {
-              // Get all individual roles from the position (e.g., "A/PC" -> ["A", "PC"])
-              const individualRoles = role.includes('/') ? role.split('/') : [role];
-              return (
+            {getFormationLines.attack.map((positionData, index) => (
                 <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={formationPositionStyle}>
-                    {role}
+                  <div style={getPositionStyle(positionData)}>
+                  {positionData.role}
                   </div>
-                  {individualRoles.map(individualRole => 
-                    getPlayersByFormationRoles.playersByRole && getPlayersByFormationRoles.playersByRole[individualRole] && 
-                    getPlayersByFormationRoles.playersByRole[individualRole].map((player, playerIndex) => (
-                      <div 
-                        key={`${individualRole}-${playerIndex}`} 
-                        style={playerUnderRoleStyle}
-                      >
+                {(() => {
+                  // Find the player assigned to this specific position
+                  const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
+                    Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
+                      assignment.positionIndex === positionData.positionIndex
+                    ) : null;
+                  
+                  if (assignedPlayer) {
+                    const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
+                      p.positionIndex === positionData.positionIndex
+                    );
+                    return player ? (
+                      <div style={playerUnderRoleStyle}>
                         {player.Nome}
                       </div>
-                    ))
-                  )}
+                    ) : null;
+                  }
+                  return null;
+                })()}
                 </div>
-              );
-            })}
+            ))}
           </div>
 
           {/* Unused Roles Box */}
@@ -1030,6 +1502,7 @@ const RosaAcquistata = ({
               ))}
             </div>
           )}
+          </div>
         </div>
       )}
 
