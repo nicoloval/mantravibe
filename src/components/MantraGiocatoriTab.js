@@ -2,7 +2,8 @@ import React, { useState, useMemo } from 'react';
 
 const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusChange, onPlayerAcquire, roles = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRole, setSelectedRole] = useState('');
+  const [selectedRoles, setSelectedRoles] = useState([]);
+  const [selectedSkills, setSelectedSkills] = useState([]);
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
   const [hideAcquired, setHideAcquired] = useState(false);
   
@@ -28,11 +29,117 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     return mapping;
   }, [roles]);
 
+  // Create role color mapping from roles.csv
+  const roleColorMapping = useMemo(() => {
+    const colorNameToHex = {
+      'Orange': '#f97316',
+      'Green': '#22c55e', 
+      'Blue': '#3b82f6',
+      'Purple': '#a855f7',
+      'Red': '#ef4444'
+    };
+    
+    const mapping = {};
+    
+    // Map roles.csv roles using Italian role names (Ruolo column)
+    roles.forEach(role => {
+      console.log('🔍 Raw role object:', role);
+      const hexColor = colorNameToHex[role.Color] || '#6b7280';
+      mapping[role.Ruolo] = hexColor; // Use Italian role name as key
+      console.log(`🎨 Role ${role.Role} (${role.Ruolo}): "${role.Color}" -> ${hexColor}`);
+    });
+    
+    // Fallback mapping based on roles.csv structure when Color field is empty
+    if (Object.values(mapping).every(color => color === '#6b7280')) {
+      console.log('🎨 Using fallback color mapping due to empty Color fields');
+      const fallbackMapping = {
+        'P': '#f97316',    // G -> Orange
+        'Dc': '#22c55e',   // CB -> Green
+        'B': '#22c55e',    // LA -> Green
+        'Dd': '#22c55e',   // RB -> Green
+        'Ds': '#22c55e',   // LB -> Green
+        'E': '#3b82f6',    // E -> Blue
+        'M': '#3b82f6',    // DM -> Blue
+        'C': '#3b82f6',    // M -> Blue
+        'W': '#a855f7',    // W -> Purple
+        'T': '#a855f7',    // OM -> Purple
+        'A': '#ef4444',    // F -> Red
+        'Pc': '#ef4444'    // CF -> Red
+      };
+      
+      // Apply fallback mapping
+      Object.keys(fallbackMapping).forEach(italianRole => {
+        mapping[italianRole] = fallbackMapping[italianRole];
+      });
+    }
+    
+    console.log('🎨 Final role color mapping (Italian keys):', mapping);
+    return mapping;
+  }, [roles]);
+
+  // Enhanced role mapping that includes formation roles
+  const enhancedRoleMapping = useMemo(() => {
+    const mapping = {};
+    roles.forEach(role => {
+      mapping[role.Role] = role.Ruolo;
+    });
+    return mapping;
+  }, [roles]);
+
   // Get all available roles from roles.csv (first column) in CSV order
   const availableRoles = useMemo(() => {
     // Use all roles from the roles.csv file (first column) in the order they appear in CSV
     return roles.map(role => role.Role);
   }, [roles]);
+
+  // Get all available skills from players data
+  const availableSkills = useMemo(() => {
+    const skillsSet = new Set();
+    players.forEach(player => {
+      if (player.Skills) {
+        let skills = [];
+        if (Array.isArray(player.Skills)) {
+          skills = player.Skills;
+        } else if (typeof player.Skills === 'string') {
+          try {
+            const jsonString = player.Skills.replace(/'/g, '"');
+            skills = JSON.parse(jsonString);
+          } catch (e) {
+            skills = [player.Skills];
+          }
+        } else {
+          skills = [player.Skills];
+        }
+        skills.forEach(skill => skillsSet.add(skill));
+      }
+    });
+    
+    const skillsArray = Array.from(skillsSet).sort();
+    console.log('🎯 Available skills found:', skillsArray);
+    return skillsArray;
+  }, [players]);
+
+  // Toggle role selection
+  const toggleRole = (role) => {
+    setSelectedRoles(prev => {
+      if (prev.includes(role)) {
+        return prev.filter(r => r !== role);
+      } else {
+        return [...prev, role];
+      }
+    });
+  };
+
+  // Toggle skill selection
+  const toggleSkill = (skill) => {
+    setSelectedSkills(prev => {
+      if (prev.includes(skill)) {
+        return prev.filter(s => s !== skill);
+      } else {
+        return [...prev, skill];
+      }
+    });
+  };
 
   // Filter and sort players
   const filteredAndSortedPlayers = useMemo(() => {
@@ -47,7 +154,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         player.Nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         player.Squadra?.toLowerCase().includes(searchTerm.toLowerCase());
       
-      const matchesRole = !selectedRole || (() => {
+      const matchesRole = selectedRoles.length === 0 || (() => {
         // Parse the Ruolo Mantra field for filtering
         let roles = [];
         if (player['Ruolo Mantra']) {
@@ -69,7 +176,30 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
           }
         }
         
-        return roles.includes(selectedRole);
+        // Check if player has ALL of the selected roles (intersection)
+        return selectedRoles.every(selectedRole => roles.includes(selectedRole));
+      })();
+
+      const matchesSkills = selectedSkills.length === 0 || (() => {
+        // Parse the Skills field for filtering
+        let skills = [];
+        if (player.Skills) {
+          if (Array.isArray(player.Skills)) {
+            skills = player.Skills;
+          } else if (typeof player.Skills === 'string') {
+            try {
+              const jsonString = player.Skills.replace(/'/g, '"');
+              skills = JSON.parse(jsonString);
+            } catch (e) {
+              skills = [player.Skills];
+            }
+          } else {
+            skills = [player.Skills];
+          }
+        }
+        
+        // Check if player has any of the selected skills
+        return selectedSkills.every(selectedSkill => skills.includes(selectedSkill));
       })();
       
       // Filter out acquired players if hideAcquired is true
@@ -81,7 +211,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         console.log('🔍 DEBUG: Player:', player.Nome, 'ID:', player.player_id, 'Status:', playerStatusValue, 'Will show:', isNotAcquired);
       }
       
-      return matchesSearch && matchesRole && isNotAcquired;
+      return matchesSearch && matchesRole && matchesSkills && isNotAcquired;
     });
     
 
@@ -114,7 +244,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     }
 
     return filtered;
-  }, [players, searchTerm, selectedRole, sortConfig, hideAcquired, playerStatus]);
+  }, [players, searchTerm, selectedRoles, selectedSkills, sortConfig, hideAcquired, playerStatus]);
 
   const handleSort = (key) => {
     setSortConfig(prevConfig => ({
@@ -529,52 +659,136 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   return (
     <div style={containerStyle}>
       {/* Filtri */}
-      <div style={filtersStyle}>
-        <input
-          type="text"
-          placeholder="Cerca giocatore o squadra..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          style={inputStyle}
-        />
-        
-        <select
-          value={selectedRole}
-          onChange={(e) => setSelectedRole(e.target.value)}
-          style={selectStyle}
-        >
-          <option value="">Tutti i ruoli</option>
-          {availableRoles.map(role => (
-            <option key={role} value={role}>
-              {roleMapping[role] || role}
-            </option>
-          ))}
-        </select>
-
-        {/* Toggle for hiding acquired players */}
-        <label style={{
-          display: 'flex',
+      <div style={{ 
+        ...filtersStyle,
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '1rem',
+        alignItems: 'center'
+      }}>
+        {/* First Line: Search and Hide Acquired */}
+        <div style={{ 
+          display: 'flex', 
+          gap: '1rem', 
           alignItems: 'center',
-          gap: '0.5rem',
-          fontSize: '0.875rem',
-          color: '#374151',
-          cursor: 'pointer'
+          justifyContent: 'center'
         }}>
           <input
-            type="checkbox"
-            checked={hideAcquired}
-            onChange={(e) => {
-              console.log('🔍 DEBUG: Toggle changed to:', e.target.checked);
-              setHideAcquired(e.target.checked);
-            }}
-            style={{
-              width: '1rem',
-              height: '1rem',
-              cursor: 'pointer'
-            }}
+            type="text"
+            placeholder="Cerca giocatore o squadra..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            style={inputStyle}
           />
-          Nascondi acquistati
-        </label>
+          
+          {/* Toggle for hiding acquired players */}
+          <label style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.875rem',
+            color: '#374151',
+            cursor: 'pointer'
+          }}>
+            <input
+              type="checkbox"
+              checked={hideAcquired}
+              onChange={(e) => {
+                console.log('🔍 DEBUG: Toggle changed to:', e.target.checked);
+                setHideAcquired(e.target.checked);
+              }}
+              style={{
+                width: '1rem',
+                height: '1rem',
+                cursor: 'pointer'
+              }}
+            />
+            Nascondi acquistati
+          </label>
+        </div>
+        
+        {/* Second Line: Role Filter Buttons */}
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+          {availableRoles.map(englishRole => {
+            const isSelected = selectedRoles.includes(englishRole);
+            const italianRole = enhancedRoleMapping[englishRole] || englishRole;
+            const roleColor = roleColorMapping[italianRole] || '#6b7280';
+            
+            return (
+              <button
+                key={englishRole}
+                onClick={() => toggleRole(englishRole)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  border: `2px solid ${roleColor}`,
+                  borderRadius: '0.375rem',
+                  backgroundColor: isSelected ? roleColor : 'white',
+                  color: isSelected ? 'white' : roleColor,
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  minWidth: '40px',
+                  textAlign: 'center'
+                }}
+                title={`${italianRole} - ${englishRole}`}
+              >
+                {italianRole}
+              </button>
+            );
+          })}
+        </div>
+
+        {/* Third Line: Skill Filter Buttons */}
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+          {availableSkills.map(skill => {
+            const isSelected = selectedSkills.includes(skill);
+            const getSkillColor = (skill) => {
+              // Categorical color scheme for skills
+              const skillColorMap = {
+                'Outsider': '#e11d48',      // Rose-600
+                'Titolare': '#059669',      // Emerald-600
+                'Buona Media': '#0ea5e9',   // Sky-500
+                'Assistman': '#7c3aed',     // Violet-600
+                'Goleador': '#dc2626',      // Red-600
+                'Difensore': '#64748b',     // Slate-500
+                'Portiere': '#ea580c',      // Orange-600
+                'Centrocampista': '#0891b2', // Cyan-600
+                'Attaccante': '#be185d',    // Pink-700
+                'Falloso': '#f59e0b',       // Amber-500
+                'Fuoriclasse': '#8b5cf6',   // Violet-500
+                'Giovane talento': '#10b981', // Emerald-500
+                'Panchinaro': '#6b7280',    // Slate-500
+                'Piazzati': '#f97316',      // Orange-500
+                'Rigorista': '#ef4444'      // Red-500
+              };
+              const color = skillColorMap[skill] || '#6b7280';
+              console.log(`🎨 Skill "${skill}" -> ${color}`);
+              return color;
+            };
+            
+            return (
+              <button
+                key={skill}
+                onClick={() => toggleSkill(skill)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  fontSize: '0.875rem',
+                  fontWeight: '600',
+                  border: `2px solid ${getSkillColor(skill)}`,
+                  borderRadius: '0.375rem',
+                  backgroundColor: isSelected ? getSkillColor(skill) : 'white',
+                  color: isSelected ? 'white' : getSkillColor(skill),
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                title={`Filter by ${skill}`}
+              >
+                {skill}
+              </button>
+            );
+          })}
+        </div>
 
         <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
           {filteredAndSortedPlayers.length} giocatori trovati
@@ -965,7 +1179,14 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                   </Tooltip>
                 </th>
               )}
-              {columns.filter(column => visibleColumns.has(column) && column !== 'Nome' && column !== 'Squadra' && column !== 'Ruolo Mantra').map(column => (
+              {visibleColumns.has('Skills') && (
+                <th style={thStyle}>
+                  <Tooltip content="Skills" columnName="Skills">
+                    Skills
+                  </Tooltip>
+                </th>
+              )}
+              {columns.filter(column => visibleColumns.has(column) && column !== 'Nome' && column !== 'Squadra' && column !== 'Ruolo Mantra' && column !== 'Skills').map(column => (
                 <th key={column} style={thStyle} onClick={() => handleSort(column)}>
                   <Tooltip content={column} columnName={column}>
                     {getColumnAcronym(column)} {getSortIcon(column)}
@@ -1097,7 +1318,66 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                     })()}
                     </td>
                   )}
-                  {columns.filter(column => visibleColumns.has(column) && column !== 'Nome' && column !== 'Squadra' && column !== 'Ruolo Mantra').map(column => {
+                  {visibleColumns.has('Skills') && (
+                    <td style={tdStyle}>
+                    {(() => {
+                      // Parse the Skills field for display
+                      let skills = [];
+                      if (player.Skills) {
+                        if (Array.isArray(player.Skills)) {
+                          skills = player.Skills;
+                        } else if (typeof player.Skills === 'string') {
+                          try {
+                            const jsonString = player.Skills.replace(/'/g, '"');
+                            skills = JSON.parse(jsonString);
+                          } catch (e) {
+                            skills = [player.Skills];
+                          }
+                        } else {
+                          skills = [player.Skills];
+                        }
+                      }
+                      
+                      return skills.length > 0 ? (
+                        <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                          {skills.map((skill, idx) => {
+                            // Define skill colors
+                            const getSkillColor = (skill) => {
+                              const skillColorMap = {
+                                'Outsider': '#f59e0b',      // Orange
+                                'Titolare': '#10b981',      // Green
+                                'Buona Media': '#3b82f6',   // Blue
+                                'Assistman': '#8b5cf6',     // Purple
+                                'Goleador': '#ef4444',      // Red
+                                'Difensore': '#6b7280',     // Gray
+                                'Portiere': '#f97316',      // Orange
+                                'Centrocampista': '#06b6d4', // Cyan
+                                'Attaccante': '#ec4899'     // Pink
+                              };
+                              return skillColorMap[skill] || '#6b7280';
+                            };
+                            
+                            return (
+                              <span key={idx} style={{
+                                padding: '0.125rem 0.375rem',
+                                backgroundColor: getSkillColor(skill),
+                                borderRadius: '0.25rem',
+                                fontSize: '0.75rem',
+                                color: 'white',
+                                fontWeight: '600'
+                              }}>
+                                {skill}
+                              </span>
+                            );
+                          })}
+                        </div>
+                      ) : (
+                        <span style={{ color: '#9ca3af' }}>-</span>
+                      );
+                    })()}
+                    </td>
+                  )}
+                  {columns.filter(column => visibleColumns.has(column) && column !== 'Nome' && column !== 'Squadra' && column !== 'Ruolo Mantra' && column !== 'Skills').map(column => {
                     const value = player[column];
                     const isMissing = isMissingData(value);
                     const cellStyle = isMissing ? missingDataTdStyle : tdStyle;
