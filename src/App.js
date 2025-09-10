@@ -4,12 +4,18 @@ import Header from './components/Header';
 import RosaAcquistata from './components/RosaAcquistata';
 import MantraGiocatoriTab from './components/MantraGiocatoriTab';
 import SquadreTab from './components/SquadreTab';
+import Settings from './components/Settings';
 import { canAffordPlayer, getTotalFantamilioni, loadBudget, loadPlayerStatus, saveBudget, savePlayerStatus, updatePlayerStatus } from './utils/storage';
 
 const App = () => {
   // Stati principali
   const [mantraData, setMantraData] = useState([]);
   const [rolesData, setRolesData] = useState([]);
+  
+  // Debug effect to track rolesData changes
+  useEffect(() => {
+    console.log('🔍 DEBUG: rolesData state changed:', rolesData);
+  }, [rolesData]);
   const [appetibilitaData, setAppetibilitaData] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -43,6 +49,9 @@ const App = () => {
   // Stati per la modal fantamilioni
   const [showFantamilioniModal, setShowFantamilioniModal] = useState(false);
   const [playerToAcquire, setPlayerToAcquire] = useState(null);
+
+  // Settings state
+  const [showSettings, setShowSettings] = useState(false);
 
 
   // Teams state for Squadre tab
@@ -204,16 +213,34 @@ const App = () => {
       }
 
       // Carica roles.csv
-      const rolesResponse = await fetch('/data/roles.csv');
+      console.log('🔍 DEBUG: Starting to load roles.csv...');
+      const rolesResponse = await fetch(`/data/roles.csv?t=${Date.now()}`);
+      console.log('🔍 DEBUG: Roles response status:', rolesResponse.status, rolesResponse.ok);
+      
       if (rolesResponse.ok) {
         const rolesText = await rolesResponse.text();
+        console.log('🔍 DEBUG: Raw CSV text:', rolesText);
         const rolesLines = rolesText.split('\n').filter(line => line.trim());
+        console.log('🔍 DEBUG: CSV lines:', rolesLines);
         const roles = rolesLines.slice(1).map(line => {
-          const [Role, Ruolo] = line.split(',');
-          return { Role: Role.trim(), Ruolo: Ruolo.trim() };
-        });
+          const parts = line.split(',');
+          console.log('🔍 DEBUG: Parsing line:', line, 'Parts:', parts);
+          return { 
+            Role: parts[0]?.trim() || '', 
+            Ruolo: parts[1]?.trim() || '', 
+            Color: parts[2]?.trim() || '' 
+          };
+        }).filter(role => {
+          const isValid = role.Role && role.Ruolo; // Make Color optional for now
+          console.log('🔍 DEBUG: Role validation:', role, 'Valid:', isValid);
+          return isValid;
+        }); // Only keep complete entries
+        
+        console.log('🔍 DEBUG: Parsed roles from CSV:', roles);
+        console.log('🔍 DEBUG: Setting rolesData with:', roles.length, 'roles');
         setRolesData(roles);
       } else {
+        console.error('🔍 DEBUG: Failed to load roles.csv:', rolesResponse.status, rolesResponse.statusText);
         setError('File roles.csv non trovato nella cartella public/data/.');
         return;
       }
@@ -378,19 +405,97 @@ const App = () => {
     flex: 1
   };
 
+  // Settings functions
+
+  const handleReset = () => {
+    // Reset all data
+    setMantraPlayerStatus({});
+    setNormalPlayerStatus({});
+    setMantraBudget(500);
+    setNormalBudget(500);
+    setTeams([]);
+    setMinPlayers(21);
+    setMaxPlayers(30);
+    
+    // Clear localStorage
+    localStorage.removeItem('playerStatus_mantra');
+    localStorage.removeItem('playerStatus_normal');
+    localStorage.removeItem('budget_mantra');
+    localStorage.removeItem('budget_normal');
+    localStorage.removeItem('teams');
+    localStorage.removeItem('minPlayers');
+    localStorage.removeItem('maxPlayers');
+    
+    alert('All data has been reset!');
+  };
+
+  const handleExport = () => {
+    const exportData = {
+      mantraPlayerStatus,
+      normalPlayerStatus,
+      mantraBudget,
+      normalBudget,
+      teams,
+      minPlayers,
+      maxPlayers,
+      exportDate: new Date().toISOString(),
+      version: '1.0'
+    };
+    
+    const dataStr = JSON.stringify(exportData, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `mantravibe-export-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleImport = (data) => {
+    try {
+      // Validate the imported data
+      if (!data || typeof data !== 'object') {
+        throw new Error('Invalid data format');
+      }
+      
+      // Import data with fallbacks
+      if (data.mantraPlayerStatus) setMantraPlayerStatus(data.mantraPlayerStatus);
+      if (data.normalPlayerStatus) setNormalPlayerStatus(data.normalPlayerStatus);
+      if (data.mantraBudget !== undefined) setMantraBudget(data.mantraBudget);
+      if (data.normalBudget !== undefined) setNormalBudget(data.normalBudget);
+      if (data.teams) setTeams(data.teams);
+      if (data.minPlayers !== undefined) {
+        setMinPlayers(data.minPlayers);
+        localStorage.setItem('minPlayers', data.minPlayers.toString());
+      }
+      if (data.maxPlayers !== undefined) {
+        setMaxPlayers(data.maxPlayers);
+        localStorage.setItem('maxPlayers', data.maxPlayers.toString());
+      }
+      
+      alert('Data imported successfully!');
+    } catch (error) {
+      alert('Error importing data: ' + error.message);
+    }
+  };
+
   return (
     <div style={containerStyle}>
-      {/* Header con Budget integrato */}
+      {/* Settings Gear Button */}
+      <button 
+        className="settings-gear-button"
+        onClick={() => setShowSettings(true)}
+        title="Settings"
+      >
+        ⚙️
+      </button>
+
+      {/* Header */}
       <Header 
         dataCount={mantraData.length}
-        playerStatus={currentPlayerStatus}
-        budget={currentBudget}
-        onBudgetChange={handleBudgetChange}
-        teams={teams}
-        minPlayers={minPlayers}
-        maxPlayers={maxPlayers}
-        onMinPlayersChange={handleMinPlayersChange}
-        onMaxPlayersChange={handleMaxPlayersChange}
       />
 
       {/* Navigation Tabs - solo se ci sono dati */}
@@ -487,6 +592,7 @@ const App = () => {
                 playerStatus={currentPlayerStatus}
                 onPlayerStatusChange={handlePlayerStatusChange}
                 budget={currentBudget}
+                roles={rolesData}
                 roleMapping={rolesData.reduce((acc, role) => {
                   acc[role.Role] = role.Ruolo;
                   return acc;
@@ -516,6 +622,21 @@ const App = () => {
           minPlayers={minPlayers}
         />
       )}
+
+      {/* Settings Modal */}
+      <Settings
+        isOpen={showSettings}
+        onClose={() => setShowSettings(false)}
+        budget={currentBudget}
+        onBudgetChange={handleBudgetChange}
+        minPlayers={minPlayers}
+        onMinPlayersChange={handleMinPlayersChange}
+        maxPlayers={maxPlayers}
+        onMaxPlayersChange={handleMaxPlayersChange}
+        onReset={handleReset}
+        onExport={handleExport}
+        onImport={handleImport}
+      />
     </div>
   );
 };

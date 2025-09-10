@@ -1,4 +1,5 @@
 // src/components/RosaAcquistata.js
+/* eslint-disable no-unused-vars */
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
 
 const RosaAcquistata = ({ 
@@ -8,11 +9,21 @@ const RosaAcquistata = ({
   roleMapping = {},
   teams = [],
   onTeamsChange,
-  appetibilitaData = {}
+  appetibilitaData = {},
+  roles = []
 }) => {
+  
+  
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [formations, setFormations] = useState({});
   const [selectedFormation, setSelectedFormation] = useState('4-3-3');
+  
+  // Search and filter state
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedRoles, setSelectedRoles] = useState([]);
+  
+  // Sorting state
+  const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
   // Load formations data
   useEffect(() => {
@@ -38,6 +49,124 @@ const RosaAcquistata = ({
 
   // Get selected team
   const selectedTeam = teams.find(team => team.id === selectedTeamId);
+
+  // Create role color mapping from roles.csv - SIMPLE VERSION
+  const roleColorMapping = useMemo(() => {
+    const colorNameToHex = {
+      'Orange': '#f97316',
+      'Green': '#22c55e', 
+      'Blue': '#3b82f6',
+      'Purple': '#a855f7',
+      'Red': '#ef4444'
+    };
+    
+    const mapping = {};
+    
+    // Map roles.csv roles directly - this is the source of truth
+    roles.forEach(role => {
+      mapping[role.Role] = colorNameToHex[role.Color] || role.Color;
+    });
+    
+    // Fallback color mapping for when CSV Color column is missing
+    const fallbackColors = {
+      'G': '#f97316',    // Orange - Goalkeeper
+      'CB': '#22c55e',   // Green - Center Back
+      'LA': '#22c55e',   // Green - Left Back
+      'RB': '#22c55e',   // Green - Right Back
+      'LB': '#22c55e',   // Green - Left Back
+      'E': '#3b82f6',    // Blue - Wing
+      'DM': '#3b82f6',   // Blue - Defensive Midfielder
+      'M': '#3b82f6',    // Blue - Midfielder
+      'W': '#a855f7',    // Purple - Winger
+      'OM': '#a855f7',   // Purple - Offensive Midfielder
+      'F': '#ef4444',    // Red - Forward
+      'CF': '#ef4444',   // Red - Center Forward
+      // Formation roles (Italian)
+      'P': '#f97316',    // Orange - Portiere
+      'DC': '#22c55e',   // Green - Difensore Centrale
+      'DD': '#3b82f6',   // Blue - Difensore Destro
+      'DS': '#3b82f6',   // Blue - Difensore Sinistro
+      'B': '#22c55e',    // Green - Back
+      'C': '#3b82f6',    // Blue - Centrocampista
+      'T': '#a855f7',    // Purple - Trequartista
+      'A': '#ef4444',    // Red - Attaccante
+      'PC': '#ef4444'    // Red - Punto Centrale
+    };
+    
+    // Apply fallback colors for any missing mappings
+    Object.keys(fallbackColors).forEach(role => {
+      if (!mapping[role] || mapping[role] === '') {
+        mapping[role] = fallbackColors[role];
+      }
+    });
+    
+    
+    return mapping;
+  }, [roles]);
+
+  // Get all available roles from roles.csv (first column) in CSV order - same as Giocatori tab
+  const availableRolesForFilter = useMemo(() => {
+    // Use all roles from the roles.csv file (first column) in the order they appear in CSV
+    // This ensures consistent sorting with the Giocatori tab
+    const csvRoles = roles.map(role => role.Role);
+    
+    return csvRoles;
+  }, [roles]);
+
+  // Enhanced role mapping that includes formation roles
+  const enhancedRoleMapping = useMemo(() => {
+    const mapping = {};
+    
+    // Map roles.csv roles directly - this is the source of truth
+    roles.forEach(role => {
+      mapping[role.Role] = role.Ruolo;
+    });
+    
+    
+    return mapping;
+  }, [roles]);
+
+  // Function to translate English role to Italian for formation matching
+  const translateRoleToItalian = useCallback((englishRole) => {
+    const italianRole = enhancedRoleMapping[englishRole] || englishRole;
+    return italianRole;
+  }, [enhancedRoleMapping]);
+
+  // Toggle role selection
+  const toggleRole = useCallback((role) => {
+    setSelectedRoles(prev => {
+      if (prev.includes(role)) {
+        return prev.filter(r => r !== role);
+      } else {
+        return [...prev, role];
+      }
+    });
+  }, []);
+
+  // Handle sorting
+  const handleSort = useCallback((key) => {
+    setSortConfig(prevConfig => {
+      if (prevConfig.key === key) {
+        // Same column clicked, toggle direction
+        return {
+          key,
+          direction: prevConfig.direction === 'asc' ? 'desc' : 'asc'
+        };
+      } else {
+        // New column clicked, default to ascending
+        return {
+          key,
+          direction: 'asc'
+        };
+      }
+    });
+  }, []);
+
+  // Get sort icon
+  const getSortIcon = useCallback((key) => {
+    if (sortConfig.key !== key) return '↕️';
+    return sortConfig.direction === 'asc' ? '↑' : '↓';
+  }, [sortConfig]);
 
   // Helper function to get player role (always Mantra mode)
   const getPlayerRole = useCallback((player) => {
@@ -72,59 +201,13 @@ const RosaAcquistata = ({
     return ['POR', 'DIF', 'CEN', 'ATT'];
   }, [roleMapping]);
 
-  // Raggruppa giocatori per ruolo
-  const playersByRole = useMemo(() => {
-    const grouped = {};
-    
-    // Initialize grouped object with available roles
-    availableRoles.forEach(role => {
-      grouped[role] = { players: [], count: 0, total: 0 };
-    });
-
-    teamPlayers.forEach(player => {
-      if (player['Ruolo Mantra']) {
-        // In Mantra mode, player can have multiple roles
-        try {
-          const roles = JSON.parse(player['Ruolo Mantra'].replace(/'/g, '"'));
-          roles.forEach(role => {
-            const mappedRole = roleMapping[role] || role;
-            if (grouped[mappedRole]) {
-              grouped[mappedRole].players.push(player);
-              grouped[mappedRole].count++;
-              grouped[mappedRole].total += player.fantamilioni || 0;
-            }
-          });
-        } catch (error) {
-          console.error('Error parsing Ruolo Mantra:', error);
-        }
-      } else {
-        // Fallback - single role
-        const role = getPlayerRole(player);
-      if (grouped[role]) {
-        grouped[role].players.push(player);
-        grouped[role].count++;
-        grouped[role].total += player.fantamilioni || 0;
-        }
-      }
-    });
-
-    // Ordina ogni gruppo per fantamilioni spesi (decrescente)
-    Object.keys(grouped).forEach(role => {
-      grouped[role].players.sort((a, b) => (b.fantamilioni || 0) - (a.fantamilioni || 0));
-    });
-
-    return grouped;
-  }, [teamPlayers, getPlayerRole, roleMapping, availableRoles]);
+  // Raggruppa giocatori per ruolo - REMOVED (not used)
 
   // Statistiche totali
   const totalPlayers = teamPlayers.length;
 
   // Gestori eventi
   const handleRemovePlayer = (playerId) => {
-    console.log('🔍 DEBUG: handleRemovePlayer called with playerId:', playerId);
-    console.log('🔍 DEBUG: selectedTeamId:', selectedTeamId);
-    console.log('🔍 DEBUG: current teams:', teams);
-    console.log('🔍 DEBUG: current playerStatus:', playerStatus);
     
     if (window.confirm('Sei sicuro di voler rimuovere questo giocatore dalla squadra?')) {
       // Remove player from team
@@ -132,9 +215,7 @@ const RosaAcquistata = ({
         // Update teams by removing the player from the selected team
         const updatedTeams = teams.map(team => {
           if (team.id === selectedTeamId) {
-            console.log('🔍 DEBUG: Team before removal:', team.players);
             const filteredPlayers = team.players.filter(player => player.id !== playerId);
-            console.log('🔍 DEBUG: Team after removal:', filteredPlayers);
             return {
               ...team,
               players: filteredPlayers
@@ -143,16 +224,13 @@ const RosaAcquistata = ({
           return team;
         });
         
-        console.log('🔍 DEBUG: Updated teams:', updatedTeams);
         
         // Update teams state
         onTeamsChange(updatedTeams);
         
         // Update player status to 'none' (available again)
-        console.log('🔍 DEBUG: Calling onPlayerStatusChange with:', playerId, 'none');
       onPlayerStatusChange(playerId, 'none');
         
-        console.log(`✅ Removed player ${playerId} from team ${selectedTeamId}`);
       }
     }
   };
@@ -176,12 +254,12 @@ const RosaAcquistata = ({
     margin: '0 0 1rem 0'
   };
 
-  const rolesGridStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-    gap: '1.5rem',
-    marginTop: '2rem'
-  };
+  // const rolesGridStyle = { // REMOVED - not used
+  //   display: 'grid',
+  //   gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+  //   gap: '1.5rem',
+  //   marginTop: '2rem'
+  // };
 
   const roleCardStyle = {
     backgroundColor: 'white',
@@ -237,7 +315,8 @@ const RosaAcquistata = ({
   const playerNameStyle = {
     fontWeight: '600',
     color: '#1f2937',
-    marginBottom: '0.25rem'
+    marginBottom: '0.25rem',
+    fontSize: '0.875rem'
   };
 
   const playerDetailsStyle = {
@@ -326,7 +405,7 @@ const RosaAcquistata = ({
     ...formationButtonStyle,
     backgroundColor: '#3b82f6',
     color: 'white',
-    borderColor: '#3b82f6'
+    border: '1px solid #3b82f6'
   };
 
   const formationDisplayStyle = {
@@ -366,7 +445,7 @@ const RosaAcquistata = ({
       'DC': '#22c55e',   // Green
       'B': '#22c55e',    // Green
       'DD': '#22c55e',   // Green
-      'DS': '#22c55e',   // Green (updated from Blue)
+      'DS': '#22c55e',   // Green
       'E': '#3b82f6',    // Blue
       'M': '#3b82f6',    // Blue
       'C': '#3b82f6',    // Blue
@@ -518,9 +597,336 @@ const RosaAcquistata = ({
   }, [formations, selectedFormation]);
 
 
-  // Organize players by their roles for the formation display
+  // Calculate stats for ALL formations only when team players change (not when formation selection changes)
+  const allFormationStats = useMemo(() => {
+    console.log('🔄 RECALCULATING allFormationStats - team players changed');
+    console.log('🔄 Team players count:', teamPlayers.length);
+    console.log('🔄 Selected team:', selectedTeam?.name);
+    if (!selectedTeam || !selectedTeam.players || !teamPlayers.length) {
+      console.log('🔄 Early return - no team or players');
+      return {};
+    }
+
+    const stats = {};
+    
+    // Calculate stats for each formation using the EXACT same logic as getPlayersByFormationRoles
+    console.log('🔄 Processing formations:', Object.keys(formations));
+    Object.keys(formations).forEach(formationName => {
+      console.log(`🔄 Processing formation: ${formationName}`);
+      const formation = formations[formationName];
+      if (!formation || !formation.positions) {
+        console.log(`🔄 Skipping formation ${formationName} - no formation or positions`);
+        stats[formationName] = { occupiedPositions: 0, unassignedPlayers: 0 };
+        return;
+      }
+      
+      console.log(`🔄 Starting calculation for ${formationName}...`);
+      console.log(`🔄 Formation positions for ${formationName}:`, formation.positions);
+
+      // Use the exact same logic as getPlayersByFormationRoles but for this specific formation
+      // Get formation roles the same way as the main function
+      const formationRoles = new Set();
+      formation.positions.forEach(positionGroup => {
+        positionGroup.forEach(role => formationRoles.add(role));
+      });
+      const formationRolesArray = Array.from(formationRoles);
+      
+      const playersByRole = {};
+      const positionAssignments = {};
+      const unassignedPlayers = [];
+      
+      // Initialize all formation roles
+      formationRolesArray.forEach(role => {
+        playersByRole[role] = [];
+      });
+      playersByRole['UNUSED'] = [];
+      
+      // Helper function to get appetibilita ranking for a role
+      const getRoleRanking = (role) => {
+        return appetibilitaData[role] || 999; // Default high value for unknown roles
+      };
+      
+      // Create position slots from formation
+      const formationPositions = formation.positions.map((positionGroup, index) => ({
+        positionIndex: index,
+        roles: positionGroup, // Array of roles that can fill this position
+        assignedPlayer: null,
+        assignedPlayerId: null
+      }));
+      
+      // Create a list of all positions with their appetibilita rankings
+      const positionAssignmentsList = [];
+      formationPositions.forEach((position, positionIndex) => {
+        const bestAppetibilita = Math.min(...position.roles.map(role => getRoleRanking(role)));
+        
+        positionAssignmentsList.push({
+          positionIndex,
+          roles: position.roles,
+          appetibilita: bestAppetibilita,
+          assigned: false,
+          assignedPlayer: null
+        });
+      });
+      
+      // Sort positions by appetibilita
+      positionAssignmentsList.sort((a, b) => {
+        if (a.appetibilita !== b.appetibilita) {
+          return a.appetibilita - b.appetibilita;
+        }
+        return a.positionIndex - b.positionIndex;
+      });
+      
+      // Get all team players with their possible roles (same structure as main function)
+      const teamPlayersWithRoles = selectedTeam.players.map(teamPlayer => {
+        if (!teamPlayer) return null;
+        
+        const playerDetail = players.find(p => p.id === teamPlayer.id);
+        if (!playerDetail) return null;
+        
+        let possibleRoles = [];
+        let unusedRoles = [];
+        
+        if (playerDetail['Ruolo Mantra']) {
+          try {
+            const roles = JSON.parse(playerDetail['Ruolo Mantra'].replace(/'/g, '"'));
+            
+            // Check each player role against each formation position
+            roles.forEach(englishRole => {
+              let roleMatched = false;
+              
+              formationPositions.forEach(position => {
+                if (position.roles.includes(roleMapping[englishRole] || englishRole)) {
+                  roleMatched = true;
+                }
+              });
+              
+              if (roleMatched) {
+                possibleRoles.push({
+                  role: roleMapping[englishRole] || englishRole,
+                  originalRole: englishRole
+                });
+              } else {
+                unusedRoles.push({
+                  role: roleMapping[englishRole] || englishRole,
+                  originalRole: englishRole
+                });
+              }
+            });
+          } catch (error) {
+            console.warn('Error parsing Ruolo Mantra for player:', playerDetail.Nome, error);
+          }
+        } else if (playerDetail.Ruolo) {
+          const mappedRole = roleMapping[playerDetail.Ruolo] || playerDetail.Ruolo;
+          
+          // Check if this role matches any formation position
+          let roleMatched = false;
+          formationPositions.forEach(position => {
+            if (position.roles.includes(mappedRole)) {
+              roleMatched = true;
+            }
+          });
+          
+          if (roleMatched) {
+            possibleRoles.push({
+              role: mappedRole,
+              originalRole: playerDetail.Ruolo
+            });
+          } else {
+            unusedRoles.push({
+              role: mappedRole,
+              originalRole: playerDetail.Ruolo
+            });
+          }
+        }
+        
+        return {
+          player: playerDetail,
+          playerId: teamPlayer.id,
+          possibleRoles,
+          unusedRoles,
+          fantamilioni: teamPlayer.price || 0,
+          timestamp: teamPlayer.timestamp || Date.now()
+        };
+      }).filter(Boolean);
+      
+      console.log(`🔄 Team players count for ${formationName}:`, teamPlayersWithRoles.length);
+      
+      // Assign players to positions (EXACT same logic as main function)
+      const availablePlayers = [...teamPlayersWithRoles];
+      const assignedPlayerIds = new Set();
+      let totalAssignedPlayers = 0;
+      const maxPlayers = 11;
+      
+      positionAssignmentsList.forEach((positionAssignment) => {
+        if (positionAssignment.assigned || totalAssignedPlayers >= maxPlayers) return;
+        
+        const position = formationPositions[positionAssignment.positionIndex];
+        if (position.assignedPlayer) return;
+        
+        // Filter available players
+        const availableForPosition = availablePlayers.filter(playerData => 
+          !assignedPlayerIds.has(playerData.playerId)
+        );
+        
+        if (availableForPosition.length === 0) return;
+        
+        // Find best player for this position
+        let bestPlayer = null;
+        let bestScore = -1;
+        let assignedRoleOption = null;
+        
+        availableForPosition.forEach(playerData => {
+          playerData.possibleRoles.forEach(roleOption => {
+            if (positionAssignment.roles.includes(roleOption.role)) {
+              const score = playerData.player['Punteggio FPEDIA'] || 0;
+              if (score > bestScore) {
+                bestScore = score;
+                bestPlayer = playerData;
+                assignedRoleOption = roleOption;
+              }
+            }
+          });
+        });
+        
+        if (bestPlayer && assignedRoleOption) {
+          position.assignedPlayer = bestPlayer.player;
+          position.assignedPlayerId = bestPlayer.playerId;
+          positionAssignment.assigned = true;
+          positionAssignment.assignedPlayer = bestPlayer.player;
+          assignedPlayerIds.add(bestPlayer.playerId);
+          totalAssignedPlayers++;
+          
+          positionAssignments[bestPlayer.playerId] = {
+            positionIndex: positionAssignment.positionIndex,
+            role: assignedRoleOption.role,
+            originalRole: assignedRoleOption.originalRole
+          };
+          
+          if (!playersByRole[assignedRoleOption.role]) {
+            playersByRole[assignedRoleOption.role] = [];
+          }
+          
+          playersByRole[assignedRoleOption.role].push({
+            ...bestPlayer.player,
+            price: bestPlayer.fantamilioni,
+            fantamilioni: bestPlayer.fantamilioni,
+            playerId: bestPlayer.playerId,
+            assignedRole: assignedRoleOption.role,
+            positionIndex: positionAssignment.positionIndex,
+            originalRoles: bestPlayer.possibleRoles.map(r => r.originalRole)
+          });
+        }
+      });
+      
+      // Count players in "Giocatori con ruoli non utilizzati" - use the actual formation box data (same as main function)
+      // This should match the main function's logic: count players with possibleRoles.length === 0
+      const playersWithNoPossibleRoles = teamPlayersWithRoles.filter(playerData => {
+        if (assignedPlayerIds.has(playerData.playerId)) return false;
+        const possibleRoles = playerData.possibleRoles || [];
+        return possibleRoles.length === 0;
+      });
+      const unusedPlayersCount = playersWithNoPossibleRoles.length;
+      
+      // Calculate occupied positions from actual formation box data (exclude UNUSED) - same as main function
+      const occupiedPositions = Object.keys(playersByRole)
+        .filter(role => role !== 'UNUSED')
+        .reduce((total, role) => total + (playersByRole[role]?.length || 0), 0);
+      
+      stats[formationName] = {
+        occupiedPositions: occupiedPositions, // Use actual formation box data
+        unassignedPlayers: unusedPlayersCount  // Use actual formation box data
+      };
+      
+      console.log(`✅ Completed calculation for ${formationName}:`, stats[formationName]);
+      console.log(`✅ Assigned players for ${formationName}:`, Array.from(assignedPlayerIds));
+      console.log(`✅ Players with no possible roles for ${formationName}:`, playersWithNoPossibleRoles.length);
+      
+      console.log(`📈 Formation ${formationName} stats:`, {
+        occupiedPositions: occupiedPositions,
+        unassignedPlayers: unusedPlayersCount,
+        totalTeamPlayers: teamPlayersWithRoles.length,
+        assignedPlayerIds: assignedPlayerIds.size,
+        formationRoles: formationRolesArray
+      });
+      
+      // Debug: Show which players are assigned and which are unused
+      console.log(`🔍 DEBUG ${formationName} - Assigned players:`, Array.from(assignedPlayerIds));
+      console.log(`🔍 DEBUG ${formationName} - Players with no possible roles:`, 
+        teamPlayersWithRoles.filter(playerData => {
+          if (assignedPlayerIds.has(playerData.playerId)) return false;
+          const possibleRoles = playerData.possibleRoles || [];
+          return possibleRoles.length === 0;
+        }).map(p => ({ name: p.player.Nome, possibleRoles: p.possibleRoles }))
+      );
+      
+      // Debug: Show all players and their roles
+      console.log(`🔍 DEBUG ${formationName} - All players and their roles:`, 
+        teamPlayersWithRoles.map(p => ({ 
+          name: p.player.Nome, 
+          possibleRoles: p.possibleRoles.map(r => r.role),
+          unusedRoles: p.unusedRoles.map(r => r.role),
+          assigned: assignedPlayerIds.has(p.playerId)
+        }))
+      );
+      
+      // DEBUG: Check what the cached calculation shows vs what the main function shows
+      console.log(`🔍 CACHED CALCULATION DEBUG ${formationName}:`);
+      try {
+        console.log(`  - Cached occupiedPositions: ${occupiedPositions}`);
+        console.log(`  - Cached unusedPlayersCount: ${unusedPlayersCount}`);
+        console.log(`  - Cached playersWithNoPossibleRoles: ${playersWithNoPossibleRoles ? playersWithNoPossibleRoles.length : 'undefined'}`);
+        console.log(`  - Cached playersByRole keys:`, Object.keys(playersByRole));
+        console.log(`  - Cached playersByRole counts:`, Object.keys(playersByRole).map(role => `${role}: ${playersByRole[role] ? playersByRole[role].length : 'undefined'}`));
+        console.log(`  - Cached assignedPlayerIds:`, Array.from(assignedPlayerIds));
+        console.log(`  - Cached teamPlayersWithRoles count:`, teamPlayersWithRoles ? teamPlayersWithRoles.length : 'undefined');
+      } catch (error) {
+        console.error(`❌ ERROR in cached calculation debug for ${formationName}:`, error);
+      }
+      
+      // DEBUG: Check if this is a "3" or "4" formation and log specific info
+      if (formationName.startsWith('3')) {
+        console.log(`🟢 FORMATION 3-* DEBUG ${formationName}:`, {
+          occupiedPositions,
+          unusedPlayersCount,
+          formationRoles: formationRolesArray,
+          teamPlayersCount: teamPlayersWithRoles.length
+        });
+      } else if (formationName.startsWith('4')) {
+        console.log(`🔴 FORMATION 4-* DEBUG ${formationName}:`, {
+          occupiedPositions,
+          unusedPlayersCount,
+          formationRoles: formationRolesArray,
+          teamPlayersCount: teamPlayersWithRoles.length
+        });
+        
+        // Extra debug for problematic 4-* formations
+        if (formationName === '4-3-3' || formationName === '4-3-1-2' || formationName === '4-4-1-1') {
+          console.log(`🚨 PROBLEMATIC FORMATION ${formationName} DETAILED DEBUG:`);
+          console.log(`  - Formation positions:`, formation.positions);
+          console.log(`  - Formation roles array:`, formationRolesArray);
+          console.log(`  - Team players with roles:`, teamPlayersWithRoles.map(p => ({
+            name: p.player.Nome,
+            possibleRoles: p.possibleRoles.map(r => r.role),
+            assigned: assignedPlayerIds.has(p.playerId)
+          })));
+          console.log(`  - Assigned player IDs:`, Array.from(assignedPlayerIds));
+          console.log(`  - Players by role counts:`, Object.keys(playersByRole).map(role => `${role}: ${playersByRole[role].length}`));
+          console.log(`  - Final stats:`, { occupiedPositions, unusedPlayersCount });
+        }
+      }
+    });
+    
+    return stats;
+  }, [selectedTeam, teamPlayers, formations, appetibilitaData, roleMapping, players]); // Only recalculate when team players change
+
+  // Get cached formation data for the selected formation (no recalculation needed)
   const getPlayersByFormationRoles = useMemo(() => {
-    if (!selectedTeam || !selectedTeam.players || !formations[selectedFormation]) return {};
+    if (!selectedTeam || !selectedTeam.players || !formations[selectedFormation]) {
+      return { playersByRole: {}, positionAssignments: {}, occupiedPositions: 0, unassignedPlayers: 0 };
+    }
+
+    // Get the cached stats for this formation
+    const cachedStats = allFormationStats[selectedFormation] || { occupiedPositions: 0, unassignedPlayers: 0 };
     
     const playersByRole = {};
     const positionAssignments = {}; // Track which player is assigned to each position
@@ -547,7 +953,6 @@ const RosaAcquistata = ({
       assignedPlayerId: null
     }));
     
-    console.log('Formation positions:', formationPositions);
     
     // Get all team players with their possible roles
     const teamPlayers = selectedTeam.players.map(teamPlayer => {
@@ -563,35 +968,40 @@ const RosaAcquistata = ({
           const mappedRoles = roles.map(role => roleMapping[role] || role);
           
           // Check each player role against each formation position
-          mappedRoles.forEach(mappedRole => {
+          roles.forEach(englishRole => {
             let roleMatched = false;
             
             formationPositions.forEach(position => {
-              // Case-insensitive matching
+              // Translate English role to Italian for matching with formation positions
+              const italianRole = translateRoleToItalian(englishRole);
+              
+              
+              // Case-insensitive matching with Italian formation roles
               const roleMatch = position.roles.some(formationRole => 
-                formationRole.toLowerCase() === mappedRole.toLowerCase()
+                formationRole.toLowerCase() === italianRole.toLowerCase()
               );
+              
               
               if (roleMatch) {
                 roleMatched = true;
-                // Normalize role key to match formation data case (uppercase)
-                const normalizedRole = position.roles.find(formationRole => 
-                  formationRole.toLowerCase() === mappedRole.toLowerCase()
+                // Use the Italian role from formation positions
+                const formationRole = position.roles.find(formationRole => 
+                  formationRole.toLowerCase() === italianRole.toLowerCase()
                 );
                 
-                if (normalizedRole) {
+                if (formationRole) {
                   possibleRoles.push({
-                    role: normalizedRole,
+                    role: formationRole, // Use Italian role for formation assignment
                     positionIndex: position.positionIndex,
-                    ranking: getRoleRanking(normalizedRole),
-                    originalRole: mappedRole
+                    ranking: getRoleRanking(formationRole),
+                    originalRole: englishRole // Keep original English role for reference
                   });
                 }
               }
             });
             
             if (!roleMatched) {
-              unusedRoles.push(mappedRole);
+              unusedRoles.push(englishRole);
             }
           });
         } catch (error) {
@@ -603,18 +1013,21 @@ const RosaAcquistata = ({
         let roleMatched = false;
         
         formationPositions.forEach(position => {
-          // Case-insensitive matching
+          // Translate English role to Italian for matching with formation positions
+          const italianRole = translateRoleToItalian(role);
+          
+          // Case-insensitive matching with Italian formation roles
           const roleMatch = position.roles.some(formationRole => 
-            formationRole.toLowerCase() === role.toLowerCase()
+            formationRole.toLowerCase() === italianRole.toLowerCase()
           );
           
           if (roleMatch) {
             roleMatched = true;
             possibleRoles.push({
-              role: role,
+              role: italianRole, // Use Italian role for formation assignment
               positionIndex: position.positionIndex,
-              ranking: getRoleRanking(role),
-              originalRole: role
+              ranking: getRoleRanking(italianRole),
+              originalRole: role // Keep original English role for reference
             });
           }
         });
@@ -633,7 +1046,6 @@ const RosaAcquistata = ({
       };
     }).filter(Boolean);
     
-    console.log('Team players with roles:', teamPlayers);
     
     // NEW ASSIGNMENT ALGORITHM: Position-based assignment following appetibilita priority
     
@@ -663,15 +1075,6 @@ const RosaAcquistata = ({
       return a.positionIndex - b.positionIndex;
     });
     
-    console.log('=== FORMATION ASSIGNMENT DEBUG ===');
-    console.log('Position assignments sorted by appetibilita:', positionAssignmentsList);
-    console.log('Total positions to fill:', positionAssignmentsList.length);
-    console.log('Available players:', teamPlayers.length);
-    
-    // Debug: Show each position and its roles
-    positionAssignmentsList.forEach((pos, index) => {
-      console.log(`Position ${pos.positionIndex}: roles [${pos.roles.join(', ')}], appetibilita: ${pos.appetibilita}`);
-    });
     
     // Step 3: For each position (in appetibilita order), find the best available player
     const availablePlayers = [...teamPlayers]; // Copy of all players
@@ -680,52 +1083,28 @@ const RosaAcquistata = ({
     const maxPlayers = 11; // Maximum 11 players in formation
     
     positionAssignmentsList.forEach((positionAssignment, assignmentIndex) => {
-      console.log(`\n--- Processing Position ${positionAssignment.positionIndex} (${assignmentIndex + 1}/${positionAssignmentsList.length}) ---`);
-      console.log(`Roles needed: [${positionAssignment.roles.join(', ')}]`);
-      console.log(`Appetibilita: ${positionAssignment.appetibilita}`);
-      
-      if (positionAssignment.assigned) {
-        console.log('❌ Position already assigned, skipping');
-        return; // Skip already assigned positions
-      }
-      if (totalAssignedPlayers >= maxPlayers) {
-        console.log('❌ Max players reached, stopping');
-        return; // Stop if we've reached max players
+      if (positionAssignment.assigned || totalAssignedPlayers >= maxPlayers) {
+        return;
       }
       
       const position = formationPositions[positionAssignment.positionIndex];
       if (position.assignedPlayer) {
-        console.log('❌ Position already has a player, skipping');
-        return; // Skip if position already has a player
+        return;
       }
-      
-      console.log(`Available players before filtering: ${availablePlayers.length}`);
-      console.log(`Already assigned player IDs: [${Array.from(assignedPlayerIds).join(', ')}]`);
       
       // Find all available players who can play ANY of the roles for this position
       const eligiblePlayers = availablePlayers.filter(playerData => {
         if (assignedPlayerIds.has(playerData.playerId)) {
-          console.log(`  ❌ ${playerData.player.Nome} already assigned`);
-          return false; // Already assigned
+          return false;
         }
         
         // Check if player can play ANY of the roles for this position
-        const canPlay = playerData.possibleRoles.some(roleOption => 
+        return playerData.possibleRoles.some(roleOption => 
           positionAssignment.roles.some(positionRole => 
             roleOption.role.toLowerCase() === positionRole.toLowerCase()
           )
         );
-        
-        if (canPlay) {
-          console.log(`  ✅ ${playerData.player.Nome} can play this position`);
-        } else {
-          console.log(`  ❌ ${playerData.player.Nome} cannot play this position`);
-        }
-        
-        return canPlay;
       });
-      
-      console.log(`Eligible players found: ${eligiblePlayers.length}`);
       
       if (eligiblePlayers.length > 0) {
         // Sort eligible players by Punteggio FPEDIA (higher is better)
@@ -735,14 +1114,7 @@ const RosaAcquistata = ({
           return bPunteggio - aPunteggio; // Higher Punteggio FPEDIA first
         });
         
-        console.log('Eligible players sorted by Punteggio FPEDIA:');
-        eligiblePlayers.forEach((player, index) => {
-          const punteggio = parseFloat(player.player['Punteggio FPEDIA'] || 0);
-          console.log(`  ${index + 1}. ${player.player.Nome} - Punteggio FPEDIA: ${punteggio}`);
-        });
-        
         const bestPlayer = eligiblePlayers[0];
-        console.log(`🎯 Selected best player: ${bestPlayer.player.Nome}`);
         
         // Find which role the player will be assigned to (prefer the one with better appetibilita)
         const assignedRoleOption = bestPlayer.possibleRoles
@@ -758,7 +1130,6 @@ const RosaAcquistata = ({
         return;
       }
       
-        console.log(`🎯 Selected role: ${assignedRoleOption.role} (appetibilita: ${assignedRoleOption.ranking})`);
         
         // Assign the best player to this position
         position.assignedPlayer = bestPlayer.player;
@@ -768,8 +1139,6 @@ const RosaAcquistata = ({
         assignedPlayerIds.add(bestPlayer.playerId);
         totalAssignedPlayers++;
         
-        console.log(`✅ ASSIGNED: ${bestPlayer.player.Nome} (ID: ${bestPlayer.playerId}) to position ${positionAssignment.positionIndex} as ${assignedRoleOption.role} with Punteggio FPEDIA ${bestPlayer.player['Punteggio FPEDIA']}`);
-        console.log(`📊 Total assigned players: ${totalAssignedPlayers}/${maxPlayers}`);
         
         // Add to positionAssignments for tracking
         positionAssignments[bestPlayer.playerId] = {
@@ -793,158 +1162,607 @@ const RosaAcquistata = ({
           originalRoles: bestPlayer.possibleRoles.map(r => r.originalRole)
         });
         
-        console.log(`📋 Added to playersByRole[${assignedRoleOption.role}]`);
-      } else {
-        console.log(`❌ No eligible players found for position ${positionAssignment.positionIndex} with roles: ${positionAssignment.roles.join(', ')}`);
       }
     });
     
-    console.log(`Total players assigned: ${totalAssignedPlayers}/${maxPlayers}`);
+    // Step 4: Add unassigned players to unused (grouped by player)
+    const unusedPlayersMap = new Map();
     
-    // Create console command for debugging
-    if (typeof window !== 'undefined') {
-      window.debugFormation = () => {
-        console.log('=== FORMATION DEBUG INFO ===');
-        console.log('Selected Formation:', selectedFormation);
-        console.log('Formation Positions:', formationPositions);
-        console.log('Position Assignments:', positionAssignments);
-        console.log('Players by Role:', playersByRole);
-        console.log('Assigned Player IDs:', Array.from(assignedPlayerIds));
-        console.log('Total Assigned Players:', totalAssignedPlayers);
-        
-        // Show each position and its assignment
-        formationPositions.forEach((position, index) => {
-          console.log(`Position ${index}:`, {
-            roles: position.roles,
-            assignedPlayer: position.assignedPlayer ? position.assignedPlayer.Nome : 'NONE',
-            assignedPlayerId: position.assignedPlayerId || 'NONE'
-          });
-        });
-        
-        // Check for duplicates
-        const playerIdCounts = {};
-        formationPositions.forEach(position => {
-          if (position.assignedPlayerId) {
-            playerIdCounts[position.assignedPlayerId] = (playerIdCounts[position.assignedPlayerId] || 0) + 1;
-          }
-        });
-        
-        const duplicates = Object.entries(playerIdCounts).filter(([id, count]) => count > 1);
-        if (duplicates.length > 0) {
-          console.error('🚨 DUPLICATE PLAYERS FOUND:', duplicates);
-        } else {
-          console.log('✅ No duplicate players found');
-        }
-        
-        return {
-          formation: selectedFormation,
-          positions: formationPositions,
-          assignments: positionAssignments,
-          playersByRole,
-          totalAssigned: totalAssignedPlayers,
-          duplicates
-        };
-      };
-      
-      console.log('🔧 Debug command available: window.debugFormation()');
-    }
-    
-    // Step 4: Add unassigned players to unused
     teamPlayers.forEach(playerData => {
       if (!assignedPlayerIds.has(playerData.playerId)) {
         // Player was not assigned to any position
         if (playerData.possibleRoles.length === 0) {
-          // Player has no matching roles
-          playerData.unusedRoles.forEach(unusedRole => {
-            unassignedPlayers.push({
-              ...playerData.player,
-              price: playerData.teamPlayer.price,
-              fantamilioni: playerData.teamPlayer.price,
-              originalRole: unusedRole,
-              playerId: playerData.playerId
-            });
-          });
-        } else {
-          // Player has matching roles but wasn't assigned (all positions taken)
-        playerData.unusedRoles.forEach(unusedRole => {
-          unassignedPlayers.push({
+          // Player has NO matching roles - ALL their roles are unused
+          // Only add to UNUSED if they have no roles that fit the formation
+          if (!unusedPlayersMap.has(playerData.playerId)) {
+            unusedPlayersMap.set(playerData.playerId, {
             ...playerData.player,
             price: playerData.teamPlayer.price,
-            originalRole: unusedRole,
-            playerId: playerData.playerId
+              fantamilioni: playerData.teamPlayer.price,
+            playerId: playerData.playerId,
+              unusedRoles: []
           });
+          }
+          // Add all unused roles to this player
+          playerData.unusedRoles.forEach(unusedRole => {
+            unusedPlayersMap.get(playerData.playerId).unusedRoles.push(unusedRole);
         });
         }
+        // If player has matching roles (possibleRoles.length > 0), 
+        // they should NOT be in the UNUSED box even if not assigned
+        // because at least one of their roles fits the formation
       }
     });
     
+    // Convert map to array for display
+    const unusedPlayersArray = Array.from(unusedPlayersMap.values());
+    
     // Add unassigned players to unused box
-    playersByRole['UNUSED'] = unassignedPlayers;
+    playersByRole['UNUSED'] = unusedPlayersArray;
     
-    console.log('\n=== ASSIGNMENT SUMMARY ===');
-    console.log('Final position assignments:', positionAssignments);
-    console.log('Unassigned players:', unassignedPlayers.length);
-    console.log('Players by role summary:');
-    Object.entries(playersByRole).forEach(([role, players]) => {
-      console.log(`  ${role}: ${players.length} players`);
-    });
-    console.log('=== END ASSIGNMENT DEBUG ===\n');
+    // Count players in "Giocatori con ruoli non utilizzati" - use the actual formation box data
+    const unusedPlayersCount = playersByRole['UNUSED'] ? playersByRole['UNUSED'].length : 0;
     
-    return { playersByRole, positionAssignments };
-  }, [selectedTeam, players, getFormationRoles, roleMapping, getPlayerRole, formations, selectedFormation, appetibilitaData]);
+    console.log('=== MAIN FUNCTION STATS ===');
+    console.log('Total assigned players:', totalAssignedPlayers);
+    console.log('Unused players count:', unusedPlayersCount);
+    console.log('Total team players:', teamPlayers.length);
+    console.log('Assigned player IDs:', assignedPlayerIds.size);
+    console.log('=== MAIN FUNCTION DEBUG ===');
+    console.log('🔍 MAIN - Assigned players:', Array.from(assignedPlayerIds));
+    console.log('🔍 MAIN - Players with no possible roles:', 
+      teamPlayers.filter(playerData => {
+        if (assignedPlayerIds.has(playerData.playerId)) return false;
+        const possibleRoles = playerData.possibleRoles || [];
+        return possibleRoles.length === 0;
+      }).map(p => ({ name: p.player.Nome, possibleRoles: p.possibleRoles }))
+    );
+    
+    // DEBUG: Check what the formation box actually shows vs what we calculate
+    console.log('🔍 FORMATION BOX DEBUG:');
+    console.log('  - Formation box shows players by role:', Object.keys(playersByRole).map(role => `${role}: ${playersByRole[role].length}`));
+    console.log('  - Formation box shows unused players:', playersByRole['UNUSED']?.length || 0);
+    console.log('  - Our calculated totalAssignedPlayers:', totalAssignedPlayers);
+    console.log('  - Our calculated unusedPlayersCount:', unusedPlayersCount);
+    console.log('  - Cached stats (what buttons show):', cachedStats);
+    
+    // Calculate occupied positions from actual formation box data (exclude UNUSED)
+    const occupiedPositions = Object.keys(playersByRole)
+      .filter(role => role !== 'UNUSED')
+      .reduce((total, role) => total + (playersByRole[role]?.length || 0), 0);
+    
+    console.log('🔍 CALCULATION COMPARISON:');
+    console.log('  - OLD: totalAssignedPlayers =', totalAssignedPlayers);
+    console.log('  - NEW: occupiedPositions from playersByRole =', occupiedPositions);
+    console.log('  - OLD: unusedPlayersCount =', unusedPlayersCount);
+    console.log('  - NEW: unusedPlayersCount from playersByRole =', playersByRole['UNUSED']?.length || 0);
+    
+    const result = {
+      playersByRole,
+      positionAssignments,
+      occupiedPositions: occupiedPositions, // Use actual formation box data
+      unassignedPlayers: unusedPlayersCount  // Use actual formation box data
+    };
+    
+    return result;
+  }, [selectedTeam, players, getFormationRoles, roleMapping, getPlayerRole, formations, selectedFormation, appetibilitaData, translateRoleToItalian, allFormationStats]);
 
-  // Get reserve players (not assigned to formation) sorted by roles.csv order
+  // Helper function to get formation stats for any formation using the same logic as formation box
+  const getFormationStats = useCallback((formationName) => {
+    if (!selectedTeam || !selectedTeam.players || !formations[formationName]) {
+      return { occupiedPositions: 0, unassignedPlayers: 0 };
+    }
+
+    // Use the same calculation logic as getPlayersByFormationRoles but for any formation
+    const formation = formations[formationName];
+    const formationRoles = new Set();
+    formation.positions.forEach(positionGroup => {
+      positionGroup.forEach(role => formationRoles.add(role));
+    });
+    const formationRolesArray = Array.from(formationRoles);
+    
+    const playersByRole = {};
+    const positionAssignments = {};
+    const unassignedPlayers = [];
+    
+    // Initialize all formation roles
+    formationRolesArray.forEach(role => {
+      playersByRole[role] = [];
+    });
+    playersByRole['UNUSED'] = [];
+    
+    // Helper function to get appetibilita ranking for a role
+    const getRoleRanking = (role) => {
+      return appetibilitaData[role] || 999;
+    };
+    
+    // Create position slots from formation
+    const formationPositions = formation.positions.map((positionGroup, index) => ({
+      positionIndex: index,
+      roles: positionGroup,
+      assignedPlayer: null,
+      assignedPlayerId: null
+    }));
+    
+    // Get all team players with their possible roles (same logic as main function)
+    const teamPlayersWithRoles = selectedTeam.players.map(teamPlayer => {
+      if (!teamPlayer) return null;
+      
+      const playerDetail = players.find(p => p.id === teamPlayer.id);
+      if (!playerDetail) return null;
+      
+      let possibleRoles = [];
+      let unusedRoles = [];
+      
+      if (playerDetail['Ruolo Mantra']) {
+        try {
+          const roles = JSON.parse(playerDetail['Ruolo Mantra'].replace(/'/g, '"'));
+          
+          roles.forEach(englishRole => {
+            let roleMatched = false;
+            
+            formationPositions.forEach(position => {
+              const italianRole = translateRoleToItalian(englishRole);
+              const roleMatch = position.roles.some(formationRole => 
+                formationRole.toLowerCase() === italianRole.toLowerCase()
+              );
+              
+              if (roleMatch) {
+                roleMatched = true;
+                const formationRole = position.roles.find(formationRole => 
+                  formationRole.toLowerCase() === italianRole.toLowerCase()
+                );
+                
+                if (formationRole) {
+                  possibleRoles.push({
+                    role: formationRole,
+                    positionIndex: position.positionIndex,
+                    ranking: getRoleRanking(formationRole),
+                    originalRole: englishRole
+                  });
+                }
+              }
+            });
+            
+            if (!roleMatched) {
+              unusedRoles.push(englishRole);
+            }
+          });
+        } catch (error) {
+          console.warn('Error parsing Ruolo Mantra for player:', playerDetail.Nome, error);
+        }
+      } else if (playerDetail.Ruolo) {
+        const role = getPlayerRole(playerDetail);
+        let roleMatched = false;
+        
+        formationPositions.forEach(position => {
+          const italianRole = translateRoleToItalian(role);
+          const roleMatch = position.roles.some(formationRole => 
+            formationRole.toLowerCase() === italianRole.toLowerCase()
+          );
+          
+          if (roleMatch) {
+            roleMatched = true;
+            possibleRoles.push({
+              role: italianRole,
+              positionIndex: position.positionIndex,
+              ranking: getRoleRanking(italianRole),
+              originalRole: role
+            });
+          }
+        });
+        
+        if (!roleMatched) {
+          unusedRoles.push(role);
+        }
+      }
+      
+      return {
+        player: playerDetail,
+        playerId: teamPlayer.id,
+        possibleRoles,
+        unusedRoles,
+        fantamilioni: teamPlayer.price || 0,
+        timestamp: teamPlayer.timestamp || Date.now()
+      };
+    }).filter(Boolean);
+    
+    // Create position assignments list (same logic as main function)
+    const positionAssignmentsList = [];
+    formationPositions.forEach((position, positionIndex) => {
+      const bestAppetibilita = Math.min(...position.roles.map(role => getRoleRanking(role)));
+      
+      positionAssignmentsList.push({
+        positionIndex,
+        roles: position.roles,
+        appetibilita: bestAppetibilita,
+        assigned: false,
+        assignedPlayer: null
+      });
+    });
+    
+    // Sort positions by appetibilita (same as main function)
+    positionAssignmentsList.sort((a, b) => {
+      if (a.appetibilita !== b.appetibilita) {
+        return a.appetibilita - b.appetibilita;
+      }
+      return a.positionIndex - b.positionIndex;
+    });
+    
+    // Assign players to positions (same logic as main function)
+    const availablePlayers = [...teamPlayersWithRoles];
+    const assignedPlayerIds = new Set();
+    let totalAssignedPlayers = 0;
+    const maxPlayers = 11;
+    
+    positionAssignmentsList.forEach((positionAssignment) => {
+      if (positionAssignment.assigned || totalAssignedPlayers >= maxPlayers) return;
+      
+      const position = formationPositions[positionAssignment.positionIndex];
+      if (position.assignedPlayer) return;
+      
+      const availableForPosition = availablePlayers.filter(playerData => 
+        !assignedPlayerIds.has(playerData.playerId)
+      );
+      
+      if (availableForPosition.length === 0) return;
+      
+      let bestPlayer = null;
+      let bestScore = -1;
+      let assignedRoleOption = null;
+      
+      availableForPosition.forEach(playerData => {
+        playerData.possibleRoles.forEach(roleOption => {
+          if (positionAssignment.roles.includes(roleOption.role)) {
+            const score = playerData.player['Punteggio FPEDIA'] || 0;
+            if (score > bestScore) {
+              bestScore = score;
+              bestPlayer = playerData;
+              assignedRoleOption = roleOption;
+            }
+          }
+        });
+      });
+      
+      if (bestPlayer && assignedRoleOption) {
+        position.assignedPlayer = bestPlayer.player;
+        position.assignedPlayerId = bestPlayer.playerId;
+        positionAssignment.assigned = true;
+        positionAssignment.assignedPlayer = bestPlayer.player;
+        assignedPlayerIds.add(bestPlayer.playerId);
+        totalAssignedPlayers++;
+        
+        positionAssignments[bestPlayer.playerId] = {
+          positionIndex: positionAssignment.positionIndex,
+          role: assignedRoleOption.role,
+          originalRole: assignedRoleOption.originalRole
+        };
+        
+        if (!playersByRole[assignedRoleOption.role]) {
+          playersByRole[assignedRoleOption.role] = [];
+        }
+        
+        playersByRole[assignedRoleOption.role].push({
+          ...bestPlayer.player,
+          price: bestPlayer.fantamilioni,
+          fantamilioni: bestPlayer.fantamilioni,
+          playerId: bestPlayer.playerId,
+          assignedRole: assignedRoleOption.role,
+          positionIndex: positionAssignment.positionIndex,
+          originalRoles: bestPlayer.possibleRoles.map(r => r.originalRole)
+        });
+      }
+    });
+    
+    // Count players with no possible roles (same logic as main function)
+    const playersWithNoPossibleRoles = teamPlayersWithRoles.filter(playerData => {
+      if (assignedPlayerIds.has(playerData.playerId)) return false;
+      const possibleRoles = playerData.possibleRoles || [];
+      return possibleRoles.length === 0;
+    });
+    const unusedPlayersCount = playersWithNoPossibleRoles.length;
+    
+    // Calculate occupied positions from actual formation box data (exclude UNUSED)
+    const occupiedPositions = Object.keys(playersByRole)
+      .filter(role => role !== 'UNUSED')
+      .reduce((total, role) => total + (playersByRole[role]?.length || 0), 0);
+    
+    return {
+      occupiedPositions: occupiedPositions,
+      unassignedPlayers: unusedPlayersCount
+    };
+  }, [selectedTeam, players, formations, appetibilitaData, roleMapping, getPlayerRole, translateRoleToItalian]);
+
+  // Get reserve players with formation assignment logic (same as main formation but with unassigned players)
   const getReservePlayers = useMemo(() => {
-    if (!selectedTeam || !selectedTeam.players || !formations[selectedFormation]) return [];
+    if (!selectedTeam || !selectedTeam.players || !formations[selectedFormation]) return { playersByRole: {}, positionAssignments: {} };
     
     const assignedPlayerIds = new Set();
     
-    // Get all assigned player IDs from the formation assignment results
+    // Get all assigned player IDs from the main formation
     if (getPlayersByFormationRoles && getPlayersByFormationRoles.positionAssignments) {
-      // The player IDs are the keys of the positionAssignments object
       Object.keys(getPlayersByFormationRoles.positionAssignments).forEach(playerId => {
         assignedPlayerIds.add(parseInt(playerId));
       });
     }
     
-    console.log('🔍 DEBUG: Reserve players calculation:');
-    console.log('  Total team players:', selectedTeam.players.length);
-    console.log('  Assigned player IDs from positionAssignments:', Array.from(assignedPlayerIds));
-    console.log('  getPlayersByFormationRoles:', getPlayersByFormationRoles);
-    console.log('  positionAssignments keys:', getPlayersByFormationRoles?.positionAssignments ? Object.keys(getPlayersByFormationRoles.positionAssignments) : 'none');
-    console.log('  positionAssignments values:', getPlayersByFormationRoles?.positionAssignments ? Object.values(getPlayersByFormationRoles.positionAssignments) : 'none');
+    // Get unassigned players (these will be our reserve pool)
+    const unassignedTeamPlayers = selectedTeam.players.filter(player => {
+      return !assignedPlayerIds.has(player.player_id);
+    });
     
-    // Get unassigned players from the team
-    const reservePlayers = selectedTeam.players.filter(player => {
-      const isAssigned = assignedPlayerIds.has(player.player_id);
-      if (isAssigned) {
-        console.log(`  ❌ Player ${player.Nome} (ID: ${player.player_id}) is assigned to formation`);
-      } else {
-        console.log(`  ✅ Player ${player.Nome} (ID: ${player.player_id}) is available for reserves`);
+    
+    // Initialize reserve players by role (same structure as main formation)
+    const reservePlayersByRole = {};
+    const getFormationRoles = formations[selectedFormation] ? formations[selectedFormation].positions.flat() : [];
+    
+    // Initialize all formation roles for reserve
+    getFormationRoles.forEach(role => {
+      reservePlayersByRole[role] = [];
+    });
+    
+    // Helper function to get appetibilita ranking for a role
+    const getRoleRanking = (role) => {
+      return appetibilitaData[role] || 999;
+    };
+    
+    // Create position slots from formation (same as main formation)
+    const formationPositions = formations[selectedFormation].positions.map((positionGroup, index) => ({
+      positionIndex: index,
+      roles: positionGroup,
+      assignedPlayer: null,
+      assignedPlayerId: null
+    }));
+    
+    // Process unassigned players with same logic as main formation
+    const reservePlayerData = unassignedTeamPlayers.map(teamPlayer => {
+      const playerDetail = players.find(p => p.id === teamPlayer.id);
+      if (!playerDetail) return null;
+      
+      let possibleRoles = [];
+      let unusedRoles = [];
+      
+      if (playerDetail['Ruolo Mantra']) {
+        try {
+          const roles = JSON.parse(playerDetail['Ruolo Mantra'].replace(/'/g, '"'));
+          const mappedRoles = roles.map(role => roleMapping[role] || role);
+          
+          // Check each player role against each formation position
+          mappedRoles.forEach(mappedRole => {
+            let roleMatched = false;
+            
+            formationPositions.forEach(position => {
+              const roleMatch = position.roles.some(formationRole => 
+                formationRole.toLowerCase() === mappedRole.toLowerCase()
+              );
+              
+              if (roleMatch) {
+                roleMatched = true;
+                if (!possibleRoles.includes(mappedRole)) {
+                  possibleRoles.push(mappedRole);
+                }
+              }
+            });
+            
+            if (!roleMatched) {
+              unusedRoles.push(mappedRole);
+            }
+          });
+        } catch (error) {
+          console.error('Error parsing Ruolo Mantra for reserve:', error);
+        }
       }
-      return !isAssigned;
+      
+      return {
+        playerId: teamPlayer.id,
+        player: playerDetail,
+        teamPlayer: teamPlayer,
+        possibleRoles: possibleRoles,
+        unusedRoles: unusedRoles
+      };
+    }).filter(Boolean);
+    
+    // RESERVE ASSIGNMENT ALGORITHM (same as main formation)
+    const positionAssignmentsList = [];
+    formationPositions.forEach((position, positionIndex) => {
+      const bestAppetibilita = Math.min(...position.roles.map(role => getRoleRanking(role)));
+      
+      positionAssignmentsList.push({
+        positionIndex,
+        roles: position.roles,
+        bestAppetibilita,
+        assignedPlayer: null,
+        assignedPlayerId: null
+      });
     });
     
-    console.log('  Reserve players count:', reservePlayers.length);
-    console.log('  Reserve players:', reservePlayers.map(p => `${p.Nome} (ID: ${p.player_id})`));
+    // Sort positions by appetibilita (same as main formation)
+    positionAssignmentsList.sort((a, b) => a.bestAppetibilita - b.bestAppetibilita);
     
-    // Sort by roles.csv order
-    const roleOrder = ['G', 'CB', 'LA', 'RB', 'LB', 'E', 'DM', 'M', 'W', 'OM', 'F', 'CF'];
+    const reservePositionAssignments = {};
+    const assignedReservePlayerIds = new Set();
     
-    return reservePlayers.sort((a, b) => {
-      const aRole = a['Ruolo Mantra'] ? (Array.isArray(a['Ruolo Mantra']) ? a['Ruolo Mantra'][0] : a['Ruolo Mantra']) : '';
-      const bRole = b['Ruolo Mantra'] ? (Array.isArray(b['Ruolo Mantra']) ? b['Ruolo Mantra'][0] : b['Ruolo Mantra']) : '';
+    // Assign players to reserve positions (same logic as main formation)
+    positionAssignmentsList.forEach(position => {
+      let bestPlayer = null;
+      let bestScore = -1;
       
-      const aIndex = roleOrder.indexOf(aRole);
-      const bIndex = roleOrder.indexOf(bRole);
+      reservePlayerData.forEach(playerData => {
+        if (assignedReservePlayerIds.has(playerData.playerId)) return;
+        
+        // Check if player can fill this position
+        const canFillPosition = position.roles.some(role => 
+          playerData.possibleRoles.some(playerRole => 
+            playerRole.toLowerCase() === role.toLowerCase()
+          )
+        );
+        
+        if (canFillPosition) {
+          // Use Punteggio FPEDIA for selection
+          const score = parseFloat(playerData.player['Punteggio FPEDIA']) || 0;
+          
+          if (score > bestScore) {
+            bestScore = score;
+            bestPlayer = playerData;
+          }
+        }
+      });
       
-      if (aIndex === -1 && bIndex === -1) return 0;
-      if (aIndex === -1) return 1;
-      if (bIndex === -1) return -1;
-      
-      return aIndex - bIndex;
+      if (bestPlayer) {
+        // Find the matching role for this position
+        const matchingRole = position.roles.find(role => 
+          bestPlayer.possibleRoles.some(playerRole => 
+            playerRole.toLowerCase() === role.toLowerCase()
+          )
+        );
+        
+        if (matchingRole) {
+          reservePositionAssignments[bestPlayer.playerId] = {
+            positionIndex: position.positionIndex,
+            role: matchingRole,
+            originalRole: matchingRole
+          };
+          
+          assignedReservePlayerIds.add(bestPlayer.playerId);
+          
+          // Add to reserve players by role
+          if (!reservePlayersByRole[matchingRole]) {
+            reservePlayersByRole[matchingRole] = [];
+          }
+          reservePlayersByRole[matchingRole].push({
+            ...bestPlayer.player,
+            price: bestPlayer.teamPlayer.price,
+            fantamilioni: bestPlayer.teamPlayer.price
+          });
+        }
+      }
     });
-  }, [selectedTeam, formations, selectedFormation, getPlayersByFormationRoles]);
+    
+    
+    return { 
+      playersByRole: reservePlayersByRole, 
+      positionAssignments: reservePositionAssignments 
+    };
+  }, [selectedTeam, formations, selectedFormation, getPlayersByFormationRoles, players, roleMapping, appetibilitaData]);
+
+  // Filter team players for the table
+  const filteredTeamPlayers = useMemo(() => {
+    if (!selectedTeam || !selectedTeam.players) return [];
+    
+    // Get all team players with their full details
+    const teamPlayersWithDetails = selectedTeam.players.map(teamPlayer => {
+      const playerDetail = players.find(p => p.id === teamPlayer.id);
+      return playerDetail ? {
+        ...playerDetail,
+        fantamilioni: teamPlayer.price
+      } : null;
+    }).filter(Boolean);
+    
+    // Apply search filter
+    let filtered = teamPlayersWithDetails.filter(player => {
+      const matchesSearch = !searchTerm || 
+        player.Nome?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        player.Squadra?.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesRole = selectedRoles.length === 0 || (() => {
+        // Parse the Ruolo Mantra field for filtering
+        let playerRoles = [];
+        if (player['Ruolo Mantra']) {
+          if (Array.isArray(player['Ruolo Mantra'])) {
+            playerRoles = player['Ruolo Mantra'];
+          } else if (typeof player['Ruolo Mantra'] === 'string') {
+            try {
+              const jsonString = player['Ruolo Mantra'].replace(/'/g, '"');
+              playerRoles = JSON.parse(jsonString);
+            } catch (e) {
+              playerRoles = [player['Ruolo Mantra']];
+            }
+          } else {
+            playerRoles = [player['Ruolo Mantra']];
+          }
+        }
+        
+        // Check if player has any of the selected roles
+        return selectedRoles.some(selectedRole => playerRoles.includes(selectedRole));
+      })();
+      
+      return matchesSearch && matchesRole;
+    });
+    
+    // Apply sorting
+    if (sortConfig.key) {
+      filtered.sort((a, b) => {
+        let aValue, bValue;
+        
+        switch (sortConfig.key) {
+          case 'Squadra':
+            aValue = a.Squadra || '';
+            bValue = b.Squadra || '';
+            break;
+          case 'Prezzo':
+            aValue = parseFloat(a.fantamilioni) || 0;
+            bValue = parseFloat(b.fantamilioni) || 0;
+            break;
+          case 'Ruolo':
+            // Get primary role for sorting (first role in Ruolo Mantra)
+            let aRoles = [];
+            let bRoles = [];
+            
+            if (a['Ruolo Mantra']) {
+              if (Array.isArray(a['Ruolo Mantra'])) {
+                aRoles = a['Ruolo Mantra'];
+              } else if (typeof a['Ruolo Mantra'] === 'string') {
+                try {
+                  const jsonString = a['Ruolo Mantra'].replace(/'/g, '"');
+                  aRoles = JSON.parse(jsonString);
+                } catch (e) {
+                  aRoles = [a['Ruolo Mantra']];
+                }
+              } else {
+                aRoles = [a['Ruolo Mantra']];
+              }
+            }
+            
+            if (b['Ruolo Mantra']) {
+              if (Array.isArray(b['Ruolo Mantra'])) {
+                bRoles = b['Ruolo Mantra'];
+              } else if (typeof b['Ruolo Mantra'] === 'string') {
+                try {
+                  const jsonString = b['Ruolo Mantra'].replace(/'/g, '"');
+                  bRoles = JSON.parse(jsonString);
+                } catch (e) {
+                  bRoles = [b['Ruolo Mantra']];
+                }
+              } else {
+                bRoles = [b['Ruolo Mantra']];
+              }
+            }
+            
+            // Role sorting order: P, Dc, Dd, Ds, E, M, C, T, W, A, Pc
+            const roleOrder = ['P', 'DC', 'DD', 'DS', 'E', 'M', 'C', 'T', 'W', 'A', 'PC'];
+            const aRoleIndex = roleOrder.indexOf(aRoles[0] || '');
+            const bRoleIndex = roleOrder.indexOf(bRoles[0] || '');
+            
+            aValue = aRoleIndex === -1 ? 999 : aRoleIndex;
+            bValue = bRoleIndex === -1 ? 999 : bRoleIndex;
+            break;
+          default:
+            aValue = a[sortConfig.key] || '';
+            bValue = b[sortConfig.key] || '';
+        }
+        
+        if (aValue < bValue) {
+          return sortConfig.direction === 'asc' ? -1 : 1;
+        }
+        if (aValue > bValue) {
+          return sortConfig.direction === 'asc' ? 1 : -1;
+        }
+        return 0;
+      });
+    }
+    
+    return filtered;
+  }, [selectedTeam, players, searchTerm, selectedRoles, sortConfig]);
 
   if (totalPlayers === 0) {
     return (
@@ -977,15 +1795,31 @@ const RosaAcquistata = ({
         {Object.keys(formations).length > 0 && (
           <div style={formationSelectorStyle}>
             <span style={teamSelectorLabelStyle}>Formazione:</span>
-            {Object.keys(formations).map(formation => (
+            {Object.keys(formations).map(formation => {
+              // Use the same calculation logic for ALL formations to ensure consistency
+              const stats = getFormationStats(formation);
+              console.log(`📊 FORMATION ${formation} stats:`, stats);
+              
+              return (
               <button
                 key={formation}
                 onClick={() => setSelectedFormation(formation)}
                 style={selectedFormation === formation ? formationButtonActiveStyle : formationButtonStyle}
               >
-                {formation}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                    <span>{formation}</span>
+                    <div style={{ display: 'flex', gap: '8px', fontSize: '0.75rem' }}>
+                      <span style={{ color: '#22c55e', fontWeight: 'bold' }}>
+                        {stats.occupiedPositions}
+                      </span>
+                      <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
+                        {stats.unassignedPlayers}
+                      </span>
+                    </div>
+                  </div>
               </button>
-            ))}
+              );
+            })}
           </div>
         )}
 
@@ -997,6 +1831,14 @@ const RosaAcquistata = ({
             </h3>
             <div style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '0.75rem', color: '#6b7280' }}>
               {getTotalPositions} posizioni totali
+            </div>
+                <div style={{ textAlign: 'center', marginBottom: '1rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+                  <span style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '0.875rem' }}>
+                    {getPlayersByFormationRoles.occupiedPositions}/11 posizioni occupate
+                  </span>
+                  <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.875rem' }}>
+                    {getPlayersByFormationRoles.unassignedPlayers} giocatori non utilizzabili
+                  </span>
             </div>
             
             {/* P Line */}
@@ -1132,7 +1974,7 @@ const RosaAcquistata = ({
                 </div>
                 {getPlayersByFormationRoles.playersByRole['UNUSED'].map((player, index) => (
                   <div key={index} style={unusedPlayerStyle}>
-                    {player.Nome} - {player.originalRole} ({player.fantamilioni} FM)
+                    {player.Nome} - {player.unusedRoles ? player.unusedRoles.join(', ') : player.originalRole}
                   </div>
                 ))}
               </div>
@@ -1201,21 +2043,37 @@ const RosaAcquistata = ({
       {Object.keys(formations).length > 0 && (
         <div style={formationSelectorStyle}>
           <span style={teamSelectorLabelStyle}>Formazione:</span>
-          {Object.keys(formations).map(formation => (
+            {Object.keys(formations).map(formation => {
+              // Use the same calculation logic for ALL formations to ensure consistency
+              const stats = getFormationStats(formation);
+              console.log(`📊 FORMATION ${formation} stats:`, stats);
+              
+              return (
             <button
               key={formation}
               onClick={() => setSelectedFormation(formation)}
               style={selectedFormation === formation ? formationButtonActiveStyle : formationButtonStyle}
             >
-              {formation}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                    <span>{formation}</span>
+                    <div style={{ display: 'flex', gap: '8px', fontSize: '0.75rem' }}>
+                      <span style={{ color: '#22c55e', fontWeight: 'bold' }}>
+                        {stats.occupiedPositions}
+                      </span>
+                      <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
+                        {stats.unassignedPlayers}
+                      </span>
+                    </div>
+                  </div>
             </button>
-          ))}
+              );
+            })}
         </div>
       )}
 
       {/* Formation Display */}
       {formations[selectedFormation] && (
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', minHeight: '600px' }}>
+        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', minHeight: '700px' }}>
           {/* Riserve Column */}
           <div style={{ 
             minWidth: '280px', 
@@ -1224,7 +2082,8 @@ const RosaAcquistata = ({
             borderRadius: '0.5rem', 
             padding: '1rem',
             border: '1px solid #e2e8f0',
-            height: 'fit-content'
+            height: '700px',
+            overflowY: 'auto'
           }}>
             <h3 style={{ 
               textAlign: 'center', 
@@ -1233,65 +2092,84 @@ const RosaAcquistata = ({
               fontWeight: '600', 
               color: '#374151' 
             }}>
-              Riserve ({getReservePlayers.length})
+              Riserve ({Object.keys(getReservePlayers.positionAssignments || {}).length})
           </h3>
             
-            {getReservePlayers.length > 0 ? (
+            {getReservePlayers.playersByRole && Object.keys(getReservePlayers.playersByRole).length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                {getReservePlayers.map((player, index) => {
+                {Object.entries(getReservePlayers.playersByRole).map(([role, players]) => {
+                  if (players.length === 0) return null;
+                  
+                  
                   // Convert role to Italian and get color using roles.csv mapping
                   const roleToItalianAndColor = (role) => {
-                    const roleMap = {
-                      'G': { italian: 'P', color: 'Orange' }, 
-                      'CB': { italian: 'DC', color: 'Green' }, 
-                      'LA': { italian: 'B', color: 'Green' }, 
-                      'RB': { italian: 'DD', color: 'Green' }, 
-                      'LB': { italian: 'DS', color: 'Green' }, // Updated from Blue to Green
-                      'E': { italian: 'E', color: 'Blue' }, 
-                      'DM': { italian: 'M', color: 'Blue' }, 
-                      'M': { italian: 'C', color: 'Blue' }, 
-                      'W': { italian: 'W', color: 'Purple' }, 
-                      'OM': { italian: 'T', color: 'Purple' }, 
-                      'F': { italian: 'A', color: 'Red' }, 
-                      'CF': { italian: 'PC', color: 'Red' }
+                    // Use the actual roleMapping from roles.csv
+                    // Handle formation role mapping to Italian
+                    let italianRole = roleMapping[role];
+                    if (!italianRole) {
+                      // Map formation roles to Italian translations
+                      const formationToItalian = {
+                        'P': 'P',      // Goalkeeper
+                        'DC': 'Dc',    // Center Back
+                        'B': 'B',      // Full Back
+                        'E': 'E',      // Wing Back
+                        'M': 'M',      // Midfielder
+                        'C': 'C',      // Central Midfielder
+                        'W': 'W',      // Winger
+                        'A': 'A',      // Attacker/Forward
+                        'PC': 'Pc',    // Center Forward
+                        'T': 'T',      // Trequartista
+                        'Dd': 'Dd',    // Right Back
+                        'Ds': 'Ds',    // Left Back
+                        'DD': 'DD',    // Right Wing Back
+                        'DS': 'DS'     // Left Wing Back
+                      };
+                      italianRole = formationToItalian[role] || role;
+                    }
+                    
+                    // Get color from roles.csv data with fallback
+                    const getColorFromRole = (englishRole) => {
+                      // Find the color from roles.csv directly
+                      const rolesCsvData = roles.find(r => r.Role === englishRole);
+                      if (rolesCsvData && rolesCsvData.Color) {
+                        return rolesCsvData.Color;
+                      }
+                      
+                      // Fallback color mapping
+                      const fallbackColors = {
+                        'G': 'Orange', 'CB': 'Green', 'LA': 'Green', 'RB': 'Green', 'LB': 'Green',
+                        'E': 'Blue', 'DM': 'Blue', 'M': 'Blue', 'W': 'Purple', 'OM': 'Purple',
+                        'F': 'Red', 'CF': 'Red', 'P': 'Orange', 'DC': 'Green', 'DD': 'Blue',
+                        'DS': 'Blue', 'B': 'Green', 'C': 'Blue', 'T': 'Purple', 'A': 'Red', 'PC': 'Red'
+                      };
+                      
+                      return fallbackColors[englishRole] || 'Gray';
                     };
-                    return roleMap[role] || { italian: role, color: 'Gray' };
+                    
+                    return { 
+                      italian: italianRole, 
+                      color: getColorFromRole(role) 
+                    };
                   };
                   
-                  // Parse the Ruolo Mantra field properly
-                  let playerRoles = [];
-                  if (player['Ruolo Mantra']) {
-                    if (Array.isArray(player['Ruolo Mantra'])) {
-                      // It's already an array
-                      playerRoles = player['Ruolo Mantra'];
-                    } else if (typeof player['Ruolo Mantra'] === 'string') {
-                      // It's a string that needs to be parsed
-                      try {
-                        // Replace single quotes with double quotes and parse as JSON
-                        const jsonString = player['Ruolo Mantra'].replace(/'/g, '"');
-                        playerRoles = JSON.parse(jsonString);
-                      } catch (e) {
-                        // If parsing fails, treat as single role
-                        playerRoles = [player['Ruolo Mantra']];
-                      }
-                    } else {
-                      // Fallback for other types
-                      playerRoles = [player['Ruolo Mantra']];
-                    }
-                  }
+                  const roleInfo = roleToItalianAndColor(role);
                   
-                  // Debug logging
-                  console.log('🔍 DEBUG: Player roles for', player.Nome, ':', {
-                    original: player['Ruolo Mantra'],
-                    parsed: playerRoles,
-                    type: typeof player['Ruolo Mantra']
-                  });
                   
-                  // Convert each role to Italian and get color
-                  const roleData = playerRoles.map(roleToItalianAndColor);
+                  // Convert color name to hex
+                  const getColorHex = (colorName) => {
+                    const colorMap = {
+                      'Orange': '#f97316',
+                      'Green': '#22c55e', 
+                      'Blue': '#3b82f6',
+                      'Purple': '#a855f7',
+                      'Red': '#ef4444',
+                      'Gray': '#6b7280'
+                    };
+                    return colorMap[colorName] || '#6b7280';
+                  };
                   
-                  return (
-                    <div key={player.player_id} style={{
+                  return players.map((player, index) => (
+                    <div key={`${role}-${index}`} style={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
@@ -1302,47 +2180,30 @@ const RosaAcquistata = ({
                       fontSize: '0.75rem'
                     }}>
                       <div>
-                        <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '0.75rem' }}>
+                        <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '0.875rem' }}>
                           {player.Nome}
-          </div>
-                        <div style={{ fontSize: '0.625rem', color: '#6b7280' }}>
+                        </div>
+                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
                           {player.Squadra}
                         </div>
                       </div>
                       <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                        {roleData.map((roleInfo, roleIndex) => {
-                          // Convert color name to hex
-                          const getColorHex = (colorName) => {
-                            const colorMap = {
-                              'Orange': '#f97316',
-                              'Green': '#22c55e', 
-                              'Blue': '#3b82f6',
-                              'Purple': '#a855f7',
-                              'Red': '#ef4444',
-                              'Gray': '#6b7280'
-                            };
-                            return colorMap[colorName] || '#6b7280';
-                          };
-                          
-                          return (
-                            <span key={roleIndex} style={{
-                              padding: '0.125rem 0.375rem',
-                              backgroundColor: getColorHex(roleInfo.color),
-                              color: 'white',
-                              borderRadius: '0.25rem',
-                              fontSize: '0.625rem',
-                              fontWeight: '600',
-                              minWidth: '1.5rem',
-                              textAlign: 'center'
-                            }}>
-                              {roleInfo.italian}
-                            </span>
-                          );
-                        })}
+                        <span style={{
+                          padding: '0.125rem 0.375rem',
+                          backgroundColor: getColorHex(roleInfo.color),
+                          color: 'white',
+                          borderRadius: '0.25rem',
+                          fontSize: '0.625rem',
+                          fontWeight: '600',
+                          minWidth: '1.5rem',
+                          textAlign: 'center'
+                        }}>
+                          {roleInfo.italian}
+                        </span>
                       </div>
                     </div>
-                  );
-                })}
+                  ));
+                }).filter(Boolean).flat()}
               </div>
             ) : (
               <div style={{ 
@@ -1360,13 +2221,22 @@ const RosaAcquistata = ({
           <div style={{
             ...formationDisplayStyle,
             flex: 1,
-            minHeight: '600px',
+            height: '700px',
             display: 'flex',
-            flexDirection: 'column'
+            flexDirection: 'column',
+            overflowY: 'auto'
           }}>
-            <h3 style={{ textAlign: 'center', marginBottom: '1.5rem', fontSize: '1.125rem', fontWeight: '600', color: '#374151' }}>
-              Formazione {selectedFormation}
-            </h3>
+            <h3 style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.125rem', fontWeight: '600', color: '#374151' }}>
+            Formazione {selectedFormation}
+          </h3>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+              <span style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '0.875rem' }}>
+                {getPlayersByFormationRoles.occupiedPositions}/11 posizioni occupate
+              </span>
+              <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.875rem' }}>
+                {getPlayersByFormationRoles.unassignedPlayers} giocatori non utilizzabili
+              </span>
+          </div>
           
           {/* P Line */}
           <div style={formationLineStyle}>
@@ -1497,7 +2367,7 @@ const RosaAcquistata = ({
               </div>
               {getPlayersByFormationRoles.playersByRole['UNUSED'].map((player, index) => (
                 <div key={index} style={unusedPlayerStyle}>
-                  {player.Nome} - {player.originalRole} ({player.price} FM)
+                  {player.Nome} - {player.unusedRoles ? player.unusedRoles.join(', ') : player.originalRole}
                 </div>
               ))}
             </div>
@@ -1506,39 +2376,161 @@ const RosaAcquistata = ({
         </div>
       )}
 
-      {/* Griglia ruoli */}
-      <div style={rolesGridStyle}>
-        {Object.entries(roleInfo).map(([roleKey, roleData]) => {
-          const roleStats = playersByRole[roleKey];
+      {/* Team Players Table - Full Featured */}
+      {totalPlayers > 0 && (
+        <div style={{ marginTop: '2rem' }}>
+          <h3 style={{ 
+            fontSize: '1.25rem', 
+            fontWeight: '600', 
+            color: '#374151', 
+            marginBottom: '1rem' 
+          }}>
+            Giocatori Acquistati ({totalPlayers})
+          </h3>
+          
+          {/* Search and Filters */}
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            alignItems: 'center', 
+            gap: '1rem', 
+            marginBottom: '1rem' 
+          }}>
+            {/* Search Box */}
+            <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', justifyContent: 'center' }}>
+              <input
+                type="text"
+                placeholder="Cerca per giocatore..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  padding: '0.5rem 1rem',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.375rem',
+                  fontSize: '0.875rem',
+                  minWidth: '200px'
+                }}
+              />
+            </div>
+            
+            {/* Role Filter Buttons */}
+            <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
+              {availableRolesForFilter.map(englishRole => {
+                const isSelected = selectedRoles.includes(englishRole);
+                const roleColor = roleColorMapping[englishRole] || '#6b7280';
+                const italianRole = enhancedRoleMapping[englishRole] || englishRole;
+                
           
           return (
-            <div key={roleKey} style={roleCardStyle}>
-              {/* Header ruolo */}
-              <div style={roleHeaderStyle}>
-                <div style={roleTitleStyle}>
-                  {roleData.name}
-                </div>
-                <div style={roleStatsStyle}>
-                  <span>{roleStats.count} giocatori</span>
-                  {roleStats.total > 0 && (
-                    <span>• {roleStats.total} FM</span>
-                  )}
+                  <button
+                    key={englishRole}
+                    onClick={() => toggleRole(englishRole)}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      fontSize: '0.875rem',
+                      fontWeight: '600',
+                      border: `2px solid ${roleColor}`,
+                      borderRadius: '0.375rem',
+                      backgroundColor: isSelected ? roleColor : 'white',
+                      color: isSelected ? 'white' : roleColor,
+                      cursor: 'pointer',
+                      transition: 'all 0.2s',
+                      minWidth: '40px',
+                      textAlign: 'center'
+                    }}
+                    title={`${italianRole} - ${englishRole}`}
+                  >
+                    {italianRole}
+                  </button>
+                );
+              })}
+              <span style={{ fontSize: '0.875rem', color: '#6b7280', marginLeft: '1rem' }}>
+                {filteredTeamPlayers.length} giocatori trovati
+              </span>
                 </div>
               </div>
 
-              {/* Lista giocatori */}
-              <div style={playersListStyle}>
-                {roleStats.players.length === 0 ? (
-                  <div style={emptyRoleStyle}>
-                    Nessun {roleData.name.toLowerCase()} acquistato
-                  </div>
-                ) : (
-                  roleStats.players.map((player, index) => (
-                    <div 
+          {/* Table */}
+          <div style={{
+            backgroundColor: 'white',
+            borderRadius: '0.5rem',
+            border: '1px solid #e5e7eb',
+            overflow: 'hidden'
+          }}>
+            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+              <thead>
+                <tr style={{ backgroundColor: '#f8fafc' }}>
+                  <th style={{ 
+                    padding: '0.75rem', 
+                    textAlign: 'left', 
+                    fontWeight: '600', 
+                    color: '#374151',
+                    borderBottom: '1px solid #e5e7eb'
+                  }}>
+                    Azioni
+                  </th>
+                  <th style={{ 
+                    padding: '0.75rem', 
+                    textAlign: 'left', 
+                    fontWeight: '600', 
+                    color: '#374151',
+                    borderBottom: '1px solid #e5e7eb'
+                  }}>
+                    Nome
+                  </th>
+                  <th 
+                    style={{ 
+                      padding: '0.75rem', 
+                      textAlign: 'left', 
+                      fontWeight: '600', 
+                      color: '#374151',
+                      borderBottom: '1px solid #e5e7eb',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                    onClick={() => handleSort('Squadra')}
+                    title="Clicca per ordinare per squadra"
+                  >
+                    Squadra {getSortIcon('Squadra')}
+                  </th>
+                  <th 
+                    style={{ 
+                      padding: '0.75rem', 
+                      textAlign: 'left', 
+                      fontWeight: '600', 
+                      color: '#374151',
+                      borderBottom: '1px solid #e5e7eb',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                    onClick={() => handleSort('Ruolo')}
+                    title="Clicca per ordinare per ruolo"
+                  >
+                    Ruolo Mantra {getSortIcon('Ruolo')}
+                  </th>
+                  <th 
+                    style={{ 
+                      padding: '0.75rem', 
+                      textAlign: 'right', 
+                      fontWeight: '600', 
+                      color: '#374151',
+                      borderBottom: '1px solid #e5e7eb',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                    onClick={() => handleSort('Prezzo')}
+                    title="Clicca per ordinare per prezzo"
+                  >
+                    Prezzo {getSortIcon('Prezzo')}
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredTeamPlayers.map((player, index) => (
+                  <tr 
                       key={player.id} 
                       style={{
-                        ...playerItemStyle,
-                        ...(index === roleStats.players.length - 1 ? { borderBottom: 'none' } : {})
+                      borderBottom: index === filteredTeamPlayers.length - 1 ? 'none' : '1px solid #f3f4f6'
                       }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = '#f8fafc';
@@ -1547,28 +2539,20 @@ const RosaAcquistata = ({
                         e.currentTarget.style.backgroundColor = 'transparent';
                       }}
                     >
-                      <div style={playerInfoStyle}>
-                        <div style={playerNameStyle}>
-                          {player.Nome}
-                        </div>
-                        <div style={playerDetailsStyle}>
-                          {player.Squadra} 
-                          {player.convenienza && (
-                            <span> • Conv: {player.convenienza.toFixed(1)}</span>
-                          )}
-                          {player.Fanta_Voto && (
-                            <span> • Voto: {player.Fanta_Voto}</span>
-                          )}
-                        </div>
-                      </div>
-                      
-                      <div style={playerPriceStyle}>
-                        {player.fantamilioni} FM
-                      </div>
-                      
+                    <td style={{ padding: '0.75rem', textAlign: 'center' }}>
                       <button
                         onClick={() => handleRemovePlayer(player.id)}
-                        style={removeButtonStyle}
+                        style={{
+                          padding: '0.25rem 0.5rem',
+                          backgroundColor: 'transparent',
+                          border: '1px solid #ef4444',
+                          borderRadius: '0.25rem',
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                          fontSize: '0.75rem',
+                          fontWeight: '500',
+                          transition: 'all 0.2s'
+                        }}
                         onMouseEnter={(e) => {
                           e.target.style.backgroundColor = '#ef4444';
                           e.target.style.color = 'white';
@@ -1579,16 +2563,71 @@ const RosaAcquistata = ({
                         }}
                         title="Rimuovi dalla rosa"
                       >
-                        ✕
+                        Rimuovi
                       </button>
+                    </td>
+                    <td style={{ padding: '0.75rem', fontWeight: '500', color: '#1f2937' }}>
+                      {player.Nome}
+                    </td>
+                    <td style={{ padding: '0.75rem', color: '#6b7280' }}>
+                      {player.Squadra}
+                    </td>
+                    <td style={{ padding: '0.75rem' }}>
+                      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                        {(() => {
+                          // Parse the Ruolo Mantra field
+                          let playerRoles = [];
+                          if (player['Ruolo Mantra']) {
+                            if (Array.isArray(player['Ruolo Mantra'])) {
+                              playerRoles = player['Ruolo Mantra'];
+                            } else if (typeof player['Ruolo Mantra'] === 'string') {
+                              try {
+                                const jsonString = player['Ruolo Mantra'].replace(/'/g, '"');
+                                playerRoles = JSON.parse(jsonString);
+                              } catch (e) {
+                                playerRoles = [player['Ruolo Mantra']];
+                              }
+                            } else {
+                              playerRoles = [player['Ruolo Mantra']];
+                            }
+                          }
+                          
+                          return playerRoles.map((englishRole, roleIndex) => {
+                            const italianRole = enhancedRoleMapping[englishRole] || englishRole;
+                            const roleColor = roleColorMapping[englishRole] || '#6b7280';
+                            
+                            
+                            return (
+                              <span
+                                key={roleIndex}
+                                style={{
+                                  padding: '0.125rem 0.375rem',
+                                  backgroundColor: roleColor,
+                                  color: 'white',
+                                  borderRadius: '0.25rem',
+                                  fontSize: '0.625rem',
+                                  fontWeight: '600',
+                                  minWidth: '1.5rem',
+                                  textAlign: 'center'
+                                }}
+                              >
+                                {italianRole}
+                              </span>
+                            );
+                          });
+                        })()}
                     </div>
-                  ))
-                )}
+                    </td>
+                    <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '500', color: '#1f2937' }}>
+                      {player.fantamilioni} FM
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
               </div>
             </div>
-          );
-        })}
-      </div>
+      )}
     </div>
   );
 };
