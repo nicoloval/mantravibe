@@ -2553,6 +2553,16 @@ const RosaAcquistata = ({
                   <th 
                     style={{ 
                       padding: '0.75rem', 
+                      fontWeight: '600', 
+                      color: '#374151',
+                      borderBottom: '1px solid #e5e7eb'
+                    }}
+                  >
+                    Skills
+                  </th>
+                  <th 
+                    style={{ 
+                      padding: '0.75rem', 
                       textAlign: 'right', 
                       fontWeight: '600', 
                       color: '#374151',
@@ -2659,6 +2669,69 @@ const RosaAcquistata = ({
                           });
                         })()}
                     </div>
+                    </td>
+                    <td style={{ padding: '0.75rem' }}>
+                      {(() => {
+                        // Parse the Skills field for display
+                        let skills = [];
+                        if (player.Skills) {
+                          if (Array.isArray(player.Skills)) {
+                            skills = player.Skills;
+                          } else if (typeof player.Skills === 'string') {
+                            try {
+                              const jsonString = player.Skills.replace(/'/g, '"');
+                              skills = JSON.parse(jsonString);
+                            } catch (e) {
+                              skills = [player.Skills];
+                            }
+                          } else {
+                            skills = [player.Skills];
+                          }
+                        }
+                        
+                        return skills.length > 0 ? (
+                          <div style={{ display: 'flex', gap: '0.125rem', flexWrap: 'wrap' }}>
+                            {skills.map((skill, idx) => {
+                              // Define skill colors (same as Giocatori tab)
+                              const getSkillColor = (skill) => {
+                                const skillColorMap = {
+                                  'Outsider': '#e11d48',      // Rose-600
+                                  'Titolare': '#059669',      // Emerald-600
+                                  'Buona Media': '#0ea5e9',   // Sky-500
+                                  'Assistman': '#7c3aed',     // Violet-600
+                                  'Goleador': '#dc2626',      // Red-600
+                                  'Difensore': '#64748b',     // Slate-500
+                                  'Portiere': '#ea580c',      // Orange-600
+                                  'Centrocampista': '#0891b2', // Cyan-600
+                                  'Attaccante': '#be185d',    // Pink-700
+                                  'Falloso': '#f59e0b',       // Amber-500
+                                  'Fuoriclasse': '#8b5cf6',   // Violet-500
+                                  'Giovane talento': '#10b981', // Emerald-500
+                                  'Panchinaro': '#6b7280',    // Slate-500
+                                  'Piazzati': '#f97316',      // Orange-500
+                                  'Rigorista': '#ef4444'      // Red-500
+                                };
+                                return skillColorMap[skill] || '#6b7280';
+                              };
+                              
+                              return (
+                                <span key={idx} style={{
+                                  padding: '0.125rem 0.25rem',
+                                  backgroundColor: getSkillColor(skill),
+                                  borderRadius: '0.125rem',
+                                  fontSize: '0.5rem',
+                                  color: 'white',
+                                  fontWeight: '600'
+                                }}>
+                                  {skill}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#9ca3af' }}>-</span>
+                        );
+                      })()}
                     </td>
                     <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '500', color: '#1f2937' }}>
                       {player.fantamilioni} FM
