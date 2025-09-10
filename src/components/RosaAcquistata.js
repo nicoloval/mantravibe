@@ -832,9 +832,19 @@ const RosaAcquistata = ({
         .filter(role => role !== 'UNUSED')
         .reduce((total, role) => total + (playersByRole[role]?.length || 0), 0);
       
+      // Calculate total usable players (occupied positions + reserve players)
+      // Reserve players are those who have possible roles but weren't assigned to positions
+      const reservePlayers = teamPlayersWithRoles.filter(playerData => {
+        if (assignedPlayerIds.has(playerData.playerId)) return false; // Not assigned to formation
+        const possibleRoles = playerData.possibleRoles || [];
+        return possibleRoles.length > 0; // Has roles that fit the formation
+      });
+      const totalUsablePlayers = occupiedPositions + reservePlayers.length;
+      
       stats[formationName] = {
         occupiedPositions: occupiedPositions, // Use actual formation box data
-        unassignedPlayers: unusedPlayersCount  // Use actual formation box data
+        unassignedPlayers: unusedPlayersCount,  // Use actual formation box data
+        totalUsablePlayers: totalUsablePlayers
       };
       
       console.log(`✅ Completed calculation for ${formationName}:`, stats[formationName]);
@@ -1237,11 +1247,21 @@ const RosaAcquistata = ({
     console.log('  - OLD: unusedPlayersCount =', unusedPlayersCount);
     console.log('  - NEW: unusedPlayersCount from playersByRole =', playersByRole['UNUSED']?.length || 0);
     
+    // Calculate total usable players (occupied positions + reserve players)
+    // Reserve players are those who have possible roles but weren't assigned to positions
+    const reservePlayers = teamPlayers.filter(playerData => {
+      if (assignedPlayerIds.has(playerData.playerId)) return false; // Not assigned to formation
+      const possibleRoles = playerData.possibleRoles || [];
+      return possibleRoles.length > 0; // Has roles that fit the formation
+    });
+    const totalUsablePlayers = occupiedPositions + reservePlayers.length;
+    
     const result = {
       playersByRole,
       positionAssignments,
       occupiedPositions: occupiedPositions, // Use actual formation box data
-      unassignedPlayers: unusedPlayersCount  // Use actual formation box data
+      unassignedPlayers: unusedPlayersCount,  // Use actual formation box data
+      totalUsablePlayers: totalUsablePlayers
     };
     
     return result;
@@ -1467,9 +1487,19 @@ const RosaAcquistata = ({
       .filter(role => role !== 'UNUSED')
       .reduce((total, role) => total + (playersByRole[role]?.length || 0), 0);
     
+    // Calculate total usable players (occupied positions + reserve players)
+    // Reserve players are those who have possible roles but weren't assigned to positions
+    const reservePlayers = teamPlayersWithRoles.filter(playerData => {
+      if (assignedPlayerIds.has(playerData.playerId)) return false; // Not assigned to formation
+      const possibleRoles = playerData.possibleRoles || [];
+      return possibleRoles.length > 0; // Has roles that fit the formation
+    });
+    const totalUsablePlayers = occupiedPositions + reservePlayers.length;
+    
     return {
       occupiedPositions: occupiedPositions,
-      unassignedPlayers: unusedPlayersCount
+      unassignedPlayers: unusedPlayersCount,
+      totalUsablePlayers: totalUsablePlayers
     };
   }, [selectedTeam, players, formations, appetibilitaData, roleMapping, getPlayerRole, translateRoleToItalian]);
 
@@ -1815,6 +1845,9 @@ const RosaAcquistata = ({
                       <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
                         {stats.unassignedPlayers}
                       </span>
+                      <span style={{ color: '#000000', fontWeight: 'bold' }}>
+                        {stats.totalUsablePlayers}
+                      </span>
                     </div>
                   </div>
               </button>
@@ -1838,6 +1871,9 @@ const RosaAcquistata = ({
                   </span>
                   <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.875rem' }}>
                     {getPlayersByFormationRoles.unassignedPlayers} giocatori non utilizzabili
+                  </span>
+                  <span style={{ color: '#000000', fontWeight: 'bold', fontSize: '0.875rem' }}>
+                    {getPlayersByFormationRoles.totalUsablePlayers} giocatori utilizzabili
                   </span>
             </div>
             
@@ -2063,6 +2099,9 @@ const RosaAcquistata = ({
                       <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
                         {stats.unassignedPlayers}
                       </span>
+                      <span style={{ color: '#000000', fontWeight: 'bold' }}>
+                        {stats.totalUsablePlayers}
+                      </span>
                     </div>
                   </div>
             </button>
@@ -2235,6 +2274,9 @@ const RosaAcquistata = ({
               </span>
               <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.875rem' }}>
                 {getPlayersByFormationRoles.unassignedPlayers} giocatori non utilizzabili
+              </span>
+              <span style={{ color: '#000000', fontWeight: 'bold', fontSize: '0.875rem' }}>
+                {getPlayersByFormationRoles.totalUsablePlayers} giocatori utilizzabili
               </span>
           </div>
           
