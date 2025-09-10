@@ -638,31 +638,298 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               ALL
             </button>
             
-            {/* Individual column buttons */}
-            {getColumns().map(column => (
-              <button
-                key={column}
-                onClick={() => toggleColumn(column)}
-                style={{
-                  padding: '0.25rem 0.5rem',
-                  fontSize: '0.75rem',
-                  fontWeight: '500',
-                  border: '1px solid #d1d5db',
-                  borderRadius: '0.25rem',
-                  backgroundColor: visibleColumns.has(column) ? '#10b981' : '#f3f4f6',
-                  color: visibleColumns.has(column) ? 'white' : '#374151',
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  maxWidth: '120px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap'
-                }}
-                title={column}
-              >
-                {column.length > 15 ? column.substring(0, 15) + '...' : column}
-              </button>
-            ))}
+          </div>
+          
+          {/* Sectioned Column Controls */}
+          <div style={{ 
+            display: 'flex', 
+            flexDirection: 'column', 
+            gap: '1rem',
+            marginTop: '1rem'
+          }}>
+            {/* 2025-2026 Section */}
+            <div>
+              <div style={{ 
+                fontSize: '0.875rem', 
+                fontWeight: '600', 
+                color: '#1f2937',
+                marginBottom: '0.5rem',
+                padding: '0.25rem 0.5rem',
+                backgroundColor: '#dbeafe',
+                borderRadius: '0.25rem',
+                border: '1px solid #3b82f6'
+              }}>
+                2025-2026
+              </div>
+              <div style={{ 
+                display: 'flex', 
+                gap: '0.5rem', 
+                flexWrap: 'wrap', 
+                alignItems: 'center'
+              }}>
+                {getColumns().filter(column => 
+                  column.includes('2025-2026') && 
+                  !column.includes('Convenienza Potenziale FSTATS') &&
+                  !column.includes('Convenienza FSTATS') &&
+                  !column.includes('Fantaindex')
+                ).map(column => (
+                  <button
+                    key={column}
+                    onClick={() => toggleColumn(column)}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      fontSize: '0.75rem',
+                      fontWeight: '500',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '0.25rem',
+                      backgroundColor: visibleColumns.has(column) ? '#10b981' : '#f3f4f6',
+                      color: visibleColumns.has(column) ? 'white' : '#374151',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    title={`Toggle ${column}`}
+                  >
+                    {column.replace(' 2025-2026', '')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* 2024-2025 Section */}
+            <div>
+              <div style={{ 
+                fontSize: '0.875rem', 
+                fontWeight: '600', 
+                color: '#1f2937',
+                marginBottom: '0.5rem',
+                padding: '0.25rem 0.5rem',
+                backgroundColor: '#fef3c7',
+                borderRadius: '0.25rem',
+                border: '1px solid #f59e0b'
+              }}>
+                2024-2025
+              </div>
+              <div style={{ 
+                display: 'flex', 
+                gap: '0.5rem', 
+                flexWrap: 'wrap', 
+                alignItems: 'center'
+              }}>
+                {getColumns().filter(column => column.includes('2024-2025') || column === 'Gol 2024').map(column => (
+                  <button
+                    key={column}
+                    onClick={() => toggleColumn(column)}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      fontSize: '0.75rem',
+                      fontWeight: '500',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '0.25rem',
+                      backgroundColor: visibleColumns.has(column) ? '#10b981' : '#f3f4f6',
+                      color: visibleColumns.has(column) ? 'white' : '#374151',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    title={`Toggle ${column}`}
+                  >
+                    {column === 'Gol 2024' ? 'Gol' : column.replace(' 2024-2025', '')}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Prediction Section */}
+            <div>
+              <div style={{ 
+                fontSize: '0.875rem', 
+                fontWeight: '600', 
+                color: '#1f2937',
+                marginBottom: '0.5rem',
+                padding: '0.25rem 0.5rem',
+                backgroundColor: '#d1fae5',
+                borderRadius: '0.25rem',
+                border: '1px solid #10b981'
+              }}>
+                Prediction
+              </div>
+              
+              {/* FPEDIA Line */}
+              <div style={{ marginBottom: '0.5rem' }}>
+                <div style={{ 
+                  fontSize: '0.75rem', 
+                  fontWeight: '500', 
+                  color: '#059669',
+                  marginBottom: '0.25rem'
+                }}>
+                  FPEDIA:
+                </div>
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '0.5rem', 
+                  flexWrap: 'wrap', 
+                  alignItems: 'center'
+                }}>
+                  {getColumns().filter(column => 
+                    column.includes('Punteggio FPEDIA') ||
+                    column.includes('Convenienza Potenziale FPEDIA') ||
+                    column.includes('Convenienza FPEDIA')
+                  ).map(column => (
+                    <button
+                      key={column}
+                      onClick={() => toggleColumn(column)}
+                      style={{
+                        padding: '0.25rem 0.5rem',
+                        fontSize: '0.75rem',
+                        fontWeight: '500',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.25rem',
+                        backgroundColor: visibleColumns.has(column) ? '#10b981' : '#f3f4f6',
+                        color: visibleColumns.has(column) ? 'white' : '#374151',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      title={`Toggle ${column}`}
+                    >
+                      {column}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* FSTATS Line */}
+              <div style={{ marginBottom: '0.5rem' }}>
+                <div style={{ 
+                  fontSize: '0.75rem', 
+                  fontWeight: '500', 
+                  color: '#059669',
+                  marginBottom: '0.25rem'
+                }}>
+                  FSTATS:
+                </div>
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '0.5rem', 
+                  flexWrap: 'wrap', 
+                  alignItems: 'center'
+                }}>
+                  {getColumns().filter(column => 
+                    column.includes('Convenienza Potenziale FSTATS') ||
+                    column.includes('Convenienza FSTATS') ||
+                    column.includes('Fantaindex')
+                  ).map(column => (
+                    <button
+                      key={column}
+                      onClick={() => toggleColumn(column)}
+                      style={{
+                        padding: '0.25rem 0.5rem',
+                        fontSize: '0.75rem',
+                        fontWeight: '500',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.25rem',
+                        backgroundColor: visibleColumns.has(column) ? '#10b981' : '#f3f4f6',
+                        color: visibleColumns.has(column) ? 'white' : '#374151',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      title={`Toggle ${column}`}
+                    >
+                      {column}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Predicted Stats Line */}
+              <div>
+                <div style={{ 
+                  fontSize: '0.75rem', 
+                  fontWeight: '500', 
+                  color: '#059669',
+                  marginBottom: '0.25rem'
+                }}>
+                  Predicted Stats:
+                </div>
+                <div style={{ 
+                  display: 'flex', 
+                  gap: '0.5rem', 
+                  flexWrap: 'wrap', 
+                  alignItems: 'center'
+                }}>
+                  {getColumns().filter(column => 
+                    column.includes('Previst')
+                  ).map(column => (
+                    <button
+                      key={column}
+                      onClick={() => toggleColumn(column)}
+                      style={{
+                        padding: '0.25rem 0.5rem',
+                        fontSize: '0.75rem',
+                        fontWeight: '500',
+                        border: '1px solid #d1d5db',
+                        borderRadius: '0.25rem',
+                        backgroundColor: visibleColumns.has(column) ? '#10b981' : '#f3f4f6',
+                        color: visibleColumns.has(column) ? 'white' : '#374151',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s'
+                      }}
+                      title={`Toggle ${column}`}
+                    >
+                      {column}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Qualitative Section */}
+            <div>
+              <div style={{ 
+                fontSize: '0.875rem', 
+                fontWeight: '600', 
+                color: '#1f2937',
+                marginBottom: '0.5rem',
+                padding: '0.25rem 0.5rem',
+                backgroundColor: '#e0e7ff',
+                borderRadius: '0.25rem',
+                border: '1px solid #6366f1'
+              }}>
+                Qualitative
+              </div>
+              <div style={{ 
+                display: 'flex', 
+                gap: '0.5rem', 
+                flexWrap: 'wrap', 
+                alignItems: 'center'
+              }}>
+                {getColumns().filter(column => 
+                  column.includes('Trend') ||
+                  column.includes('Skills') ||
+                  column.includes('Buon Investimento') ||
+                  column.includes('Resistenza Infortuni') ||
+                  column.includes('Infortunato') ||
+                  column.includes('Nuovo Acquisto')
+                ).map(column => (
+                  <button
+                    key={column}
+                    onClick={() => toggleColumn(column)}
+                    style={{
+                      padding: '0.25rem 0.5rem',
+                      fontSize: '0.75rem',
+                      fontWeight: '500',
+                      border: '1px solid #d1d5db',
+                      borderRadius: '0.25rem',
+                      backgroundColor: visibleColumns.has(column) ? '#10b981' : '#f3f4f6',
+                      color: visibleColumns.has(column) ? 'white' : '#374151',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s'
+                    }}
+                    title={`Toggle ${column}`}
+                  >
+                    {column}
+                  </button>
+                ))}
+              </div>
+            </div>
           </div>
         </div>
       )}
