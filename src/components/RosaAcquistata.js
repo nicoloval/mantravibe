@@ -26,6 +26,21 @@ const RosaAcquistata = ({
   // Sorting state
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
 
+  // Window width state for responsive design
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
+  // Window resize listener for responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
+
   // Load formations data
   useEffect(() => {
     const loadFormations = async () => {
@@ -357,13 +372,6 @@ const RosaAcquistata = ({
     fontStyle: 'italic'
   };
 
-  const teamSelectorStyle = {
-    marginBottom: '2rem',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1rem',
-    justifyContent: 'center'
-  };
 
   const teamSelectorLabelStyle = {
     fontSize: '1rem',
@@ -388,22 +396,22 @@ const RosaAcquistata = ({
   };
 
   const teamButtonStyle = {
-    padding: '0.75rem 1rem',
+    padding: windowWidth <= 768 ? '0.375rem 0.75rem' : '0.5rem 1rem',
     border: '2px solid #e5e7eb',
     borderRadius: '0.375rem',
+    fontSize: windowWidth <= 768 ? '0.75rem' : '0.875rem',
     backgroundColor: 'white',
+    color: '#374151',
     cursor: 'pointer',
     transition: 'all 0.2s',
-    minWidth: '140px',
-    textAlign: 'center',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+    fontWeight: '500'
   };
 
   const teamButtonSelectedStyle = {
     ...teamButtonStyle,
     borderColor: '#3b82f6',
     backgroundColor: '#eff6ff',
-    boxShadow: '0 4px 6px rgba(59, 130, 246, 0.1)'
+    color: '#3b82f6'
   };
 
   const teamButtonOrangeStyle = {
@@ -420,54 +428,30 @@ const RosaAcquistata = ({
     boxShadow: '0 1px 3px rgba(220, 38, 38, 0.1)'
   };
 
-  const teamNameStyle = {
-    fontSize: '1rem',
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: '0.25rem'
-  };
 
-  const teamStatsStyle = {
-    fontSize: '0.75rem',
-    color: '#6b7280',
-    lineHeight: '1.2',
-    marginBottom: '0.125rem'
-  };
-
-  const budgetStyle = {
-    fontSize: '0.75rem',
-    fontWeight: '600'
-  };
-
-  const budgetPositiveStyle = {
-    ...budgetStyle,
-    color: '#059669'
-  };
-
-  const budgetNegativeStyle = {
-    ...budgetStyle,
-    color: '#dc2626'
-  };
-
-  const budgetOrangeStyle = {
-    ...budgetStyle,
-    color: '#f97316'
+  const teamSelectorStyle = {
+    marginBottom: '2rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: windowWidth <= 768 ? '0.5rem' : '1rem',
+    justifyContent: windowWidth <= 768 ? 'flex-start' : 'center',
+    flexWrap: 'wrap'
   };
 
   const formationSelectorStyle = {
     marginBottom: '2rem',
     display: 'flex',
     alignItems: 'center',
-    gap: '1rem',
-    justifyContent: 'center',
+    gap: windowWidth <= 768 ? '0.5rem' : '1rem',
+    justifyContent: windowWidth <= 768 ? 'flex-start' : 'center',
     flexWrap: 'wrap'
   };
 
   const formationButtonStyle = {
-    padding: '0.5rem 1rem',
+    padding: windowWidth <= 768 ? '0.375rem 0.75rem' : '0.5rem 1rem',
     border: '1px solid #d1d5db',
     borderRadius: '0.375rem',
-    fontSize: '0.875rem',
+    fontSize: windowWidth <= 768 ? '0.75rem' : '0.875rem',
     backgroundColor: 'white',
     color: '#374151',
     cursor: 'pointer',
@@ -1935,15 +1919,7 @@ const RosaAcquistata = ({
         
         {/* Team Selector */}
         {teams.length > 0 && (
-          <div style={{ 
-            marginBottom: '2rem', 
-            display: 'flex', 
-            gap: '0.5rem', 
-            flexWrap: 'nowrap', 
-            justifyContent: 'center',
-            overflowX: 'auto',
-            padding: '0.5rem 0'
-          }}>
+          <div style={teamSelectorStyle}>
             {teams.map(team => {
               const isSelected = selectedTeamId === team.id;
               const remainingBudget = calculateRemainingBudget(team);
@@ -1961,11 +1937,6 @@ const RosaAcquistata = ({
                 color: isSelected ? '#3b82f6' : colorCoding.colors.text
               };
               
-              let budgetTextStyle = {
-                ...budgetPositiveStyle,
-                color: colorCoding.colors.budget,
-                ...colorCoding.budgetHighlight
-              };
               
               return (
                 <button
@@ -1973,12 +1944,19 @@ const RosaAcquistata = ({
                   onClick={() => setSelectedTeamId(team.id)}
                   style={buttonStyle}
                 >
-                  <div style={teamNameStyle}>{team.name}</div>
-                  <div style={teamStatsStyle}>
-                    {playerCount}/{maxPlayers}
-                  </div>
-                  <div style={budgetTextStyle}>
-                    {remainingBudget.toLocaleString()} FM
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                    <span>{team.name}</span>
+                    <div style={{ display: 'flex', gap: '8px', fontSize: '0.75rem' }}>
+                      <span style={{ color: '#22c55e', fontWeight: 'bold' }}>
+                        {playerCount}
+                      </span>
+                      <span style={{ 
+                        color: remainingBudget <= 0 || playerCount >= maxPlayers ? '#ef4444' : '#000000', 
+                        fontWeight: 'bold' 
+                      }}>
+                        {remainingBudget} FM
+                      </span>
+                    </div>
                   </div>
                 </button>
               );
@@ -2210,15 +2188,7 @@ const RosaAcquistata = ({
 
       {/* Team Selector */}
       {teams.length > 0 && (
-        <div style={{ 
-          marginBottom: '2rem', 
-          display: 'flex', 
-          gap: '0.5rem', 
-          flexWrap: 'nowrap', 
-          justifyContent: 'center',
-          overflowX: 'auto',
-          padding: '0.5rem 0'
-        }}>
+        <div style={teamSelectorStyle}>
           {teams.map(team => {
             const isSelected = selectedTeamId === team.id;
             const remainingBudget = calculateRemainingBudget(team);
@@ -2236,24 +2206,25 @@ const RosaAcquistata = ({
               color: isSelected ? '#3b82f6' : colorCoding.colors.text
             };
             
-            let budgetTextStyle = {
-              ...budgetPositiveStyle,
-              color: colorCoding.colors.budget,
-              ...colorCoding.budgetHighlight
-            };
-            
             return (
               <button
                 key={team.id}
                 onClick={() => setSelectedTeamId(team.id)}
                 style={buttonStyle}
               >
-                <div style={teamNameStyle}>{team.name}</div>
-                <div style={teamStatsStyle}>
-                  {playerCount}/{maxPlayers}
-                </div>
-                <div style={budgetTextStyle}>
-                  {remainingBudget.toLocaleString()} FM
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                  <span>{team.name}</span>
+                  <div style={{ display: 'flex', gap: '8px', fontSize: '0.75rem' }}>
+                    <span style={{ color: '#22c55e', fontWeight: 'bold' }}>
+                      {playerCount}
+                    </span>
+                    <span style={{ 
+                      color: remainingBudget <= 0 || playerCount >= maxPlayers ? '#ef4444' : '#000000', 
+                      fontWeight: 'bold' 
+                    }}>
+                      {remainingBudget} FM
+                    </span>
+                  </div>
                 </div>
               </button>
             );
@@ -2298,16 +2269,22 @@ const RosaAcquistata = ({
 
       {/* Formation Display */}
       {formations[selectedFormation] && (
-        <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'flex-start', minHeight: '700px' }}>
+        <div style={{ 
+          display: 'flex', 
+          gap: '1.5rem', 
+          alignItems: 'flex-start', 
+          minHeight: '700px',
+          flexDirection: windowWidth <= 768 ? 'column' : 'row'
+        }}>
           {/* Riserve Column */}
           <div style={{ 
-            minWidth: '280px', 
-            maxWidth: '300px',
+            minWidth: windowWidth <= 768 ? '100%' : '280px', 
+            maxWidth: windowWidth <= 768 ? '100%' : '300px',
             backgroundColor: '#f8fafc', 
             borderRadius: '0.5rem', 
             padding: '1rem',
             border: '1px solid #e2e8f0',
-            height: '700px',
+            height: windowWidth <= 768 ? 'auto' : '700px',
             overflowY: 'auto'
           }}>
             <h3 style={{ 
@@ -2446,10 +2423,11 @@ const RosaAcquistata = ({
           <div style={{
             ...formationDisplayStyle,
             flex: 1,
-            height: '700px',
+            height: windowWidth <= 768 ? 'auto' : '700px',
             display: 'flex',
             flexDirection: 'column',
-            overflowY: 'auto'
+            overflowY: 'auto',
+            width: windowWidth <= 768 ? '100%' : 'auto'
           }}>
             <h3 style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.125rem', fontWeight: '600', color: '#374151' }}>
             Formazione {selectedFormation}
@@ -2688,73 +2666,82 @@ const RosaAcquistata = ({
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
                 <tr style={{ backgroundColor: '#f8fafc' }}>
+                  {windowWidth > 768 && (
+                    <th style={{ 
+                      padding: '0.75rem', 
+                      textAlign: 'left', 
+                      fontWeight: '600', 
+                      color: '#374151',
+                      borderBottom: '1px solid #e5e7eb'
+                    }}>
+                      Azioni
+                    </th>
+                  )}
                   <th style={{ 
-                    padding: '0.75rem', 
+                    padding: windowWidth <= 768 ? '0.5rem' : '0.75rem', 
                     textAlign: 'left', 
                     fontWeight: '600', 
                     color: '#374151',
-                    borderBottom: '1px solid #e5e7eb'
-                  }}>
-                    Azioni
-                  </th>
-                  <th style={{ 
-                    padding: '0.75rem', 
-                    textAlign: 'left', 
-                    fontWeight: '600', 
-                    color: '#374151',
-                    borderBottom: '1px solid #e5e7eb'
+                    borderBottom: '1px solid #e5e7eb',
+                    fontSize: windowWidth <= 768 ? '0.75rem' : '1rem'
                   }}>
                     Nome
                   </th>
+                  {windowWidth > 768 && (
+                    <th 
+                      style={{ 
+                        padding: '0.75rem', 
+                        textAlign: 'left', 
+                        fontWeight: '600', 
+                        color: '#374151',
+                        borderBottom: '1px solid #e5e7eb',
+                        cursor: 'pointer',
+                        userSelect: 'none'
+                      }}
+                      onClick={() => handleSort('Squadra')}
+                      title="Clicca per ordinare per squadra"
+                    >
+                      Squadra {getSortIcon('Squadra')}
+                    </th>
+                  )}
                   <th 
                     style={{ 
-                      padding: '0.75rem', 
+                      padding: windowWidth <= 768 ? '0.5rem' : '0.75rem', 
                       textAlign: 'left', 
                       fontWeight: '600', 
                       color: '#374151',
                       borderBottom: '1px solid #e5e7eb',
                       cursor: 'pointer',
-                      userSelect: 'none'
-                    }}
-                    onClick={() => handleSort('Squadra')}
-                    title="Clicca per ordinare per squadra"
-                  >
-                    Squadra {getSortIcon('Squadra')}
-                  </th>
-                  <th 
-                    style={{ 
-                      padding: '0.75rem', 
-                      textAlign: 'left', 
-                      fontWeight: '600', 
-                      color: '#374151',
-                      borderBottom: '1px solid #e5e7eb',
-                      cursor: 'pointer',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      fontSize: windowWidth <= 768 ? '0.75rem' : '1rem'
                     }}
                     onClick={() => handleSort('Ruolo')}
                     title="Clicca per ordinare per ruolo"
                   >
-                    Ruolo Mantra {getSortIcon('Ruolo')}
+                    Ruolo {getSortIcon('Ruolo')}
                   </th>
+                  {windowWidth > 768 && (
+                    <th 
+                      style={{ 
+                        padding: '0.75rem', 
+                        fontWeight: '600', 
+                        color: '#374151',
+                        borderBottom: '1px solid #e5e7eb'
+                      }}
+                    >
+                      Skills
+                    </th>
+                  )}
                   <th 
                     style={{ 
-                      padding: '0.75rem', 
-                      fontWeight: '600', 
-                      color: '#374151',
-                      borderBottom: '1px solid #e5e7eb'
-                    }}
-                  >
-                    Skills
-                  </th>
-                  <th 
-                    style={{ 
-                      padding: '0.75rem', 
+                      padding: windowWidth <= 768 ? '0.5rem' : '0.75rem', 
                       textAlign: 'right', 
                       fontWeight: '600', 
                       color: '#374151',
                       borderBottom: '1px solid #e5e7eb',
                       cursor: 'pointer',
-                      userSelect: 'none'
+                      userSelect: 'none',
+                      fontSize: windowWidth <= 768 ? '0.75rem' : '1rem'
                     }}
                     onClick={() => handleSort('Prezzo')}
                     title="Clicca per ordinare per prezzo"
@@ -2777,40 +2764,51 @@ const RosaAcquistata = ({
                         e.currentTarget.style.backgroundColor = 'transparent';
                       }}
                     >
-                    <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                      <button
-                        onClick={() => handleRemovePlayer(player.id)}
-                        style={{
-                          padding: '0.25rem 0.5rem',
-                          backgroundColor: 'transparent',
-                          border: '1px solid #ef4444',
-                          borderRadius: '0.25rem',
-                          color: '#ef4444',
-                          cursor: 'pointer',
-                          fontSize: '0.75rem',
-                          fontWeight: '500',
-                          transition: 'all 0.2s'
-                        }}
-                        onMouseEnter={(e) => {
-                          e.target.style.backgroundColor = '#ef4444';
-                          e.target.style.color = 'white';
-                        }}
-                        onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = 'transparent';
-                          e.target.style.color = '#ef4444';
-                        }}
-                        title="Rimuovi dalla rosa"
-                      >
-                        Rimuovi
-                      </button>
-                    </td>
-                    <td style={{ padding: '0.75rem', fontWeight: '500', color: '#1f2937' }}>
+                    {windowWidth > 768 && (
+                      <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                        <button
+                          onClick={() => handleRemovePlayer(player.id)}
+                          style={{
+                            padding: '0.25rem 0.5rem',
+                            backgroundColor: 'transparent',
+                            border: '1px solid #ef4444',
+                            borderRadius: '0.25rem',
+                            color: '#ef4444',
+                            cursor: 'pointer',
+                            fontSize: '0.75rem',
+                            fontWeight: '500',
+                            transition: 'all 0.2s'
+                          }}
+                          onMouseEnter={(e) => {
+                            e.target.style.backgroundColor = '#ef4444';
+                            e.target.style.color = 'white';
+                          }}
+                          onMouseLeave={(e) => {
+                            e.target.style.backgroundColor = 'transparent';
+                            e.target.style.color = '#ef4444';
+                          }}
+                          title="Rimuovi dalla rosa"
+                        >
+                          Rimuovi
+                        </button>
+                      </td>
+                    )}
+                    <td style={{ 
+                      padding: windowWidth <= 768 ? '0.5rem' : '0.75rem', 
+                      fontWeight: '500', 
+                      color: '#1f2937',
+                      fontSize: windowWidth <= 768 ? '0.75rem' : '1rem'
+                    }}>
                       {player.Nome}
                     </td>
-                    <td style={{ padding: '0.75rem', color: '#6b7280' }}>
-                      {player.Squadra}
-                    </td>
-                    <td style={{ padding: '0.75rem' }}>
+                    {windowWidth > 768 && (
+                      <td style={{ padding: '0.75rem', color: '#6b7280' }}>
+                        {player.Squadra}
+                      </td>
+                    )}
+                    <td style={{ 
+                      padding: windowWidth <= 768 ? '0.5rem' : '0.75rem'
+                    }}>
                       <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
                         {(() => {
                           // Parse the Ruolo Mantra field
@@ -2839,11 +2837,11 @@ const RosaAcquistata = ({
                               <span
                                 key={roleIndex}
                                 style={{
-                                  padding: '0.125rem 0.375rem',
+                                  padding: windowWidth <= 768 ? '0.1rem 0.25rem' : '0.125rem 0.375rem',
                                   backgroundColor: roleColor,
                                   color: 'white',
                                   borderRadius: '0.25rem',
-                                  fontSize: '0.625rem',
+                                  fontSize: windowWidth <= 768 ? '0.5rem' : '0.625rem',
                                   fontWeight: '600',
                                   minWidth: '1.5rem',
                                   textAlign: 'center'
@@ -2856,70 +2854,78 @@ const RosaAcquistata = ({
                         })()}
                     </div>
                     </td>
-                    <td style={{ padding: '0.75rem' }}>
-                      {(() => {
-                        // Parse the Skills field for display
-                        let skills = [];
-                        if (player.Skills) {
-                          if (Array.isArray(player.Skills)) {
-                            skills = player.Skills;
-                          } else if (typeof player.Skills === 'string') {
-                            try {
-                              const jsonString = player.Skills.replace(/'/g, '"');
-                              skills = JSON.parse(jsonString);
-                            } catch (e) {
+                    {windowWidth > 768 && (
+                      <td style={{ padding: '0.75rem' }}>
+                        {(() => {
+                          // Parse the Skills field for display
+                          let skills = [];
+                          if (player.Skills) {
+                            if (Array.isArray(player.Skills)) {
+                              skills = player.Skills;
+                            } else if (typeof player.Skills === 'string') {
+                              try {
+                                const jsonString = player.Skills.replace(/'/g, '"');
+                                skills = JSON.parse(jsonString);
+                              } catch (e) {
+                                skills = [player.Skills];
+                              }
+                            } else {
                               skills = [player.Skills];
                             }
-                          } else {
-                            skills = [player.Skills];
                           }
-                        }
-                        
-                        return skills.length > 0 ? (
-                          <div style={{ display: 'flex', gap: '0.125rem', flexWrap: 'wrap' }}>
-                            {skills.map((skill, idx) => {
-                              // Define skill colors (same as Giocatori tab)
-                              const getSkillColor = (skill) => {
-                                const skillColorMap = {
-                                  'Outsider': '#e11d48',      // Rose-600
-                                  'Titolare': '#059669',      // Emerald-600
-                                  'Buona Media': '#0ea5e9',   // Sky-500
-                                  'Assistman': '#7c3aed',     // Violet-600
-                                  'Goleador': '#dc2626',      // Red-600
-                                  'Difensore': '#64748b',     // Slate-500
-                                  'Portiere': '#ea580c',      // Orange-600
-                                  'Centrocampista': '#0891b2', // Cyan-600
-                                  'Attaccante': '#be185d',    // Pink-700
-                                  'Falloso': '#f59e0b',       // Amber-500
-                                  'Fuoriclasse': '#8b5cf6',   // Violet-500
-                                  'Giovane talento': '#10b981', // Emerald-500
-                                  'Panchinaro': '#6b7280',    // Slate-500
-                                  'Piazzati': '#f97316',      // Orange-500
-                                  'Rigorista': '#ef4444'      // Red-500
+                          
+                          return skills.length > 0 ? (
+                            <div style={{ display: 'flex', gap: '0.125rem', flexWrap: 'wrap' }}>
+                              {skills.map((skill, idx) => {
+                                // Define skill colors (same as Giocatori tab)
+                                const getSkillColor = (skill) => {
+                                  const skillColorMap = {
+                                    'Outsider': '#e11d48',      // Rose-600
+                                    'Titolare': '#059669',      // Emerald-600
+                                    'Buona Media': '#0ea5e9',   // Sky-500
+                                    'Assistman': '#7c3aed',     // Violet-600
+                                    'Goleador': '#dc2626',      // Red-600
+                                    'Difensore': '#64748b',     // Slate-500
+                                    'Portiere': '#ea580c',      // Orange-600
+                                    'Centrocampista': '#0891b2', // Cyan-600
+                                    'Attaccante': '#be185d',    // Pink-700
+                                    'Falloso': '#f59e0b',       // Amber-500
+                                    'Fuoriclasse': '#8b5cf6',   // Violet-500
+                                    'Giovane talento': '#10b981', // Emerald-500
+                                    'Panchinaro': '#6b7280',    // Slate-500
+                                    'Piazzati': '#f97316',      // Orange-500
+                                    'Rigorista': '#ef4444'      // Red-500
+                                  };
+                                  return skillColorMap[skill] || '#6b7280';
                                 };
-                                return skillColorMap[skill] || '#6b7280';
-                              };
-                              
-                              return (
-                                <span key={idx} style={{
-                                  padding: '0.125rem 0.25rem',
-                                  backgroundColor: getSkillColor(skill),
-                                  borderRadius: '0.125rem',
-                                  fontSize: '0.5rem',
-                                  color: 'white',
-                                  fontWeight: '600'
-                                }}>
-                                  {skill}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <span style={{ color: '#9ca3af' }}>-</span>
-                        );
-                      })()}
-                    </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right', fontWeight: '500', color: '#1f2937' }}>
+                                
+                                return (
+                                  <span key={idx} style={{
+                                    padding: '0.125rem 0.25rem',
+                                    backgroundColor: getSkillColor(skill),
+                                    borderRadius: '0.125rem',
+                                    fontSize: '0.5rem',
+                                    color: 'white',
+                                    fontWeight: '600'
+                                  }}>
+                                    {skill}
+                                  </span>
+                                );
+                              })}
+                            </div>
+                          ) : (
+                            <span style={{ color: '#9ca3af' }}>-</span>
+                          );
+                        })()}
+                      </td>
+                    )}
+                    <td style={{ 
+                      padding: windowWidth <= 768 ? '0.5rem' : '0.75rem', 
+                      textAlign: 'right', 
+                      fontWeight: '500', 
+                      color: '#1f2937',
+                      fontSize: windowWidth <= 768 ? '0.75rem' : '1rem'
+                    }}>
                       {player.fantamilioni} FM
                     </td>
                   </tr>

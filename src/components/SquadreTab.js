@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { getTeamColorCoding } from '../utils/dataUtils';
 
 const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }) => {
+  // Window width state for responsive design
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+
   // Use teams from props instead of localStorage
   const [localTeams, setLocalTeams] = useState(() => {
     // If teams prop is provided, use it
@@ -42,6 +45,18 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
   const [draggedPlayer, setDraggedPlayer] = useState(null);
   const [draggedOverPlayer, setDraggedOverPlayer] = useState(null);
   const [draggedOverTeam, setDraggedOverTeam] = useState(null);
+
+  // Window resize listener for responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   // Clear corrupted localStorage data on mount if needed
   useEffect(() => {
@@ -343,19 +358,22 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
   const getTeamsGridStyle = () => {
     return {
       display: 'flex',
-      gap: '1rem',
+      gap: windowWidth <= 768 ? '0.5rem' : '1rem',
       marginBottom: '2rem',
       alignItems: 'flex-start',
-      minWidth: 'fit-content'
+      minWidth: 'fit-content',
+      flexWrap: windowWidth <= 768 ? 'wrap' : 'nowrap',
+      justifyContent: windowWidth <= 768 ? 'center' : 'flex-start'
     };
   };
 
   const teamCountSelectorStyle = {
     display: 'flex',
     alignItems: 'center',
-    gap: '1rem',
+    gap: windowWidth <= 768 ? '0.5rem' : '1rem',
     marginBottom: '2rem',
-    justifyContent: 'center'
+    justifyContent: 'center',
+    flexWrap: windowWidth <= 768 ? 'wrap' : 'nowrap'
   };
 
   const teamCountLabelStyle = {
@@ -405,12 +423,12 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
     backgroundColor: 'white',
     border: '2px solid #e5e7eb',
     borderRadius: '0.5rem',
-    padding: '0.5rem',
+    padding: windowWidth <= 768 ? '0.375rem' : '0.5rem',
     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
     transition: 'all 0.2s',
     cursor: 'pointer',
-    minWidth: '140px',
-    maxWidth: '180px',
+    minWidth: windowWidth <= 768 ? '120px' : '140px',
+    maxWidth: windowWidth <= 768 ? '160px' : '180px',
     flex: '0 0 auto',
     height: 'fit-content'
   };
@@ -425,12 +443,12 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
     width: '100%',
     border: 'none',
     backgroundColor: 'transparent',
-    fontSize: '0.75rem',
+    fontSize: windowWidth <= 768 ? '0.625rem' : '0.75rem',
     fontWeight: '600',
     color: '#1f2937',
     textAlign: 'center',
     marginBottom: '0.25rem',
-    padding: '0.125rem',
+    padding: windowWidth <= 768 ? '0.1rem' : '0.125rem',
     borderRadius: '0.25rem',
     outline: 'none',
     transition: 'background-color 0.2s'

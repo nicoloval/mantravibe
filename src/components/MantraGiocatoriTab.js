@@ -70,6 +70,9 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     const savedDetails = localStorage.getItem('giocatoriShowCardDetails');
     return savedDetails === 'true';
   });
+
+  // Window width state for responsive design
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   
   // Tooltip visibility state
   const [hoveredColumn, setHoveredColumn] = useState(null);
@@ -95,6 +98,18 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       document.removeEventListener('mousemove', handleGlobalMouseMove);
     };
   }, [hoveredColumn]);
+
+  // Window resize listener for responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   // Create role mapping from roles.csv
   const roleMapping = useMemo(() => {
@@ -1021,15 +1036,13 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         position: 'absolute',
         top: '0.5rem',
         right: '0.5rem',
-        display: 'flex',
-        gap: '0.25rem',
-        alignItems: 'center',
         zIndex: 100
       }}>
         <button
           onClick={() => {
-            setDisplayMode('table');
-            localStorage.setItem('giocatoriDisplayMode', 'table');
+            const newMode = displayMode === 'table' ? 'cards' : 'table';
+            setDisplayMode(newMode);
+            localStorage.setItem('giocatoriDisplayMode', newMode);
           }}
           style={{
             padding: '0.375rem 0.75rem',
@@ -1037,38 +1050,18 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             fontWeight: '500',
             border: '1px solid #d1d5db',
             borderRadius: '0.375rem',
-            backgroundColor: displayMode === 'table' ? '#3b82f6' : '#f3f4f6',
-            color: displayMode === 'table' ? 'white' : '#374151',
+            backgroundColor: '#3b82f6',
+            color: 'white',
             cursor: 'pointer',
             transition: 'all 0.2s',
             display: 'flex',
             alignItems: 'center',
-            gap: '0.25rem'
+            gap: '0.25rem',
+            minWidth: '100px',
+            justifyContent: 'center'
           }}
         >
-          📊 Tabella
-        </button>
-        <button
-          onClick={() => {
-            setDisplayMode('cards');
-            localStorage.setItem('giocatoriDisplayMode', 'cards');
-          }}
-          style={{
-            padding: '0.375rem 0.75rem',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-            border: '1px solid #d1d5db',
-            borderRadius: '0.375rem',
-            backgroundColor: displayMode === 'cards' ? '#3b82f6' : '#f3f4f6',
-            color: displayMode === 'cards' ? 'white' : '#374151',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.25rem'
-          }}
-        >
-          🃏 Carte
+          {displayMode === 'table' ? '🃏 Carte' : '📊 Tabella'}
         </button>
       </div>
 
@@ -1156,7 +1149,13 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         </div>
 
         {/* Third Line: Skill Filter Buttons */}
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
+        <div style={{ 
+          display: 'flex', 
+          gap: windowWidth <= 768 ? '0.25rem' : '0.5rem', 
+          flexWrap: 'wrap', 
+          alignItems: 'center', 
+          justifyContent: windowWidth <= 768 ? 'flex-start' : 'center'
+        }}>
           {availableSkills.map(skill => {
             const isSelected = selectedSkills.includes(skill);
             
@@ -1165,8 +1164,8 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                 key={skill}
                 onClick={() => toggleSkill(skill)}
                 style={{
-                  padding: '0.5rem 1rem',
-                  fontSize: '0.875rem',
+                  padding: windowWidth <= 768 ? '0.375rem 0.75rem' : '0.5rem 1rem',
+                  fontSize: windowWidth <= 768 ? '0.75rem' : '0.875rem',
                   fontWeight: '600',
                   border: `2px solid ${getSkillColor(skill)}`,
                   borderRadius: '0.375rem',
