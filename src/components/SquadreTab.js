@@ -150,13 +150,13 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
   };
 
   // Function to sort players by price (highest to lowest)
-  const sortPlayersByPrice = (players) => {
+  const sortPlayersByPrice = useCallback((players) => {
     return [...players].sort((a, b) => {
       const priceA = parseFloat(a.price) || 0;
       const priceB = parseFloat(b.price) || 0;
       return priceB - priceA; // Descending order (highest first)
     });
-  };
+  }, []);
 
   const handleDragStart = (e, teamId, playerIndex) => {
     setDraggedPlayer({ teamId, playerIndex });

@@ -16,7 +16,7 @@ const FantamilioniModal = ({
   const [teamBudget, setTeamBudget] = useState(maxFantamilioni);
 
   // Function to calculate available budget for a specific team
-  const calculateTeamBudget = (teamId) => {
+  const calculateTeamBudget = useCallback((teamId) => {
     // Convert teamId to string for comparison since it might be stored as number in localStorage
     const teamIdStr = String(teamId);
     const team = teams.find(t => String(t.id) === teamIdStr);
@@ -29,7 +29,7 @@ const FantamilioniModal = ({
     const availableBudget = team.budget - totalSpent;
     console.log('🔍 DEBUG: Team', teamId, 'budget:', team.budget, 'spent:', totalSpent, 'available:', availableBudget);
     return availableBudget;
-  };
+  }, [teams]);
 
   // Function to calculate maximum amount (available budget minus reserved for remaining players)
   const calculateMaxAmount = useCallback((teamId) => {
