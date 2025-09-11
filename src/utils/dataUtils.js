@@ -282,3 +282,63 @@ export const debounce = (func, wait) => {
     timeout = setTimeout(later, wait);
   };
 };
+
+/**
+ * Centralized team color coding system
+ * Returns consistent colors for teams across all tabs
+ */
+export const getTeamColorCoding = (team, teams, minPlayers = 21, maxPlayers = 30) => {
+  if (!team) return { status: 'default', colors: {} };
+  
+  const currentPlayerCount = (team.players || []).length;
+  const teamBudget = team.budget - (team.players || []).reduce((sum, player) => sum + (player.price || 0), 0);
+  
+  // Get first team's budget for comparison
+  const firstTeam = teams.length > 0 ? teams[0] : null;
+  const firstTeamBudget = firstTeam ? firstTeam.budget - (firstTeam.players || []).reduce((sum, player) => sum + (player.price || 0), 0) : 0;
+  
+  // Determine team status
+  let status = 'default';
+  if (currentPlayerCount >= maxPlayers || teamBudget <= 0) {
+    status = 'red'; // Max players or zero budget
+  } else if (currentPlayerCount >= minPlayers) {
+    status = 'green'; // At minimum or more players
+  }
+  
+  // Define color schemes
+  const colorSchemes = {
+    green: {
+      border: '#10b981',
+      background: '#f0fdf4',
+      text: '#10b981',
+      budget: '#059669'
+    },
+    red: {
+      border: '#dc2626',
+      background: '#fef2f2',
+      text: '#dc2626',
+      budget: '#dc2626'
+    },
+    default: {
+      border: '#d1d5db',
+      background: 'white',
+      text: '#374151',
+      budget: '#059669'
+    }
+  };
+  
+  // Check if team has less budget than first team
+  const hasLessBudget = team.id !== firstTeam?.id && teamBudget < firstTeamBudget && firstTeamBudget > 0;
+  
+  return {
+    status,
+    colors: colorSchemes[status],
+    hasLessBudget,
+    budgetHighlight: hasLessBudget ? {
+      backgroundColor: '#fef3c7',
+      border: '2px solid #f59e0b',
+      borderRadius: '4px',
+      padding: '2px 6px'
+    } : {}
+  };
+};

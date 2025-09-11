@@ -1,6 +1,7 @@
 // src/components/RosaAcquistata.js
 /* eslint-disable no-unused-vars */
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import { getTeamColorCoding } from '../utils/dataUtils';
 
 const RosaAcquistata = ({ 
   players = [],
@@ -380,6 +381,79 @@ const RosaAcquistata = ({
     minWidth: '200px'
   };
 
+  // Function to calculate remaining budget for a team
+  const calculateRemainingBudget = (team) => {
+    const totalSpent = (team.players || []).reduce((sum, player) => sum + (player.price || 0), 0);
+    return team.budget - totalSpent;
+  };
+
+  const teamButtonStyle = {
+    padding: '0.75rem 1rem',
+    border: '2px solid #e5e7eb',
+    borderRadius: '0.375rem',
+    backgroundColor: 'white',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    minWidth: '140px',
+    textAlign: 'center',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+  };
+
+  const teamButtonSelectedStyle = {
+    ...teamButtonStyle,
+    borderColor: '#3b82f6',
+    backgroundColor: '#eff6ff',
+    boxShadow: '0 4px 6px rgba(59, 130, 246, 0.1)'
+  };
+
+  const teamButtonOrangeStyle = {
+    ...teamButtonStyle,
+    borderColor: '#f97316',
+    backgroundColor: '#fff7ed',
+    boxShadow: '0 1px 3px rgba(249, 115, 22, 0.1)'
+  };
+
+  const teamButtonRedStyle = {
+    ...teamButtonStyle,
+    borderColor: '#dc2626',
+    backgroundColor: '#fef2f2',
+    boxShadow: '0 1px 3px rgba(220, 38, 38, 0.1)'
+  };
+
+  const teamNameStyle = {
+    fontSize: '1rem',
+    fontWeight: '600',
+    color: '#374151',
+    marginBottom: '0.25rem'
+  };
+
+  const teamStatsStyle = {
+    fontSize: '0.75rem',
+    color: '#6b7280',
+    lineHeight: '1.2',
+    marginBottom: '0.125rem'
+  };
+
+  const budgetStyle = {
+    fontSize: '0.75rem',
+    fontWeight: '600'
+  };
+
+  const budgetPositiveStyle = {
+    ...budgetStyle,
+    color: '#059669'
+  };
+
+  const budgetNegativeStyle = {
+    ...budgetStyle,
+    color: '#dc2626'
+  };
+
+  const budgetOrangeStyle = {
+    ...budgetStyle,
+    color: '#f97316'
+  };
+
   const formationSelectorStyle = {
     marginBottom: '2rem',
     display: 'flex',
@@ -566,13 +640,13 @@ const RosaAcquistata = ({
       };
       
       // Categorize positions into lines based on the formation structure
-      if (positionGroup.some(role => role.toLowerCase() === 'p')) {
+      if (positionGroup.some(role => role && role.toLowerCase() === 'p')) {
         lines.p.push(positionData);
-      } else if (positionGroup.some(role => ['DC', 'DD', 'DS', 'B'].map(r => r.toLowerCase()).includes(role.toLowerCase()))) {
+      } else if (positionGroup.some(role => role && ['DC', 'DD', 'DS', 'B'].map(r => r.toLowerCase()).includes(role.toLowerCase()))) {
         lines.defense.push(positionData);
-      } else if (positionGroup.some(role => ['M', 'C', 'E'].map(r => r.toLowerCase()).includes(role.toLowerCase()))) {
+      } else if (positionGroup.some(role => role && ['M', 'C', 'E'].map(r => r.toLowerCase()).includes(role.toLowerCase()))) {
         lines.midfield.push(positionData);
-      } else if (positionGroup.some(role => ['A', 'T', 'PC', 'W'].map(r => r.toLowerCase()).includes(role.toLowerCase()))) {
+      } else if (positionGroup.some(role => role && ['A', 'T', 'PC', 'W'].map(r => r.toLowerCase()).includes(role.toLowerCase()))) {
         lines.attack.push(positionData);
       }
     });
@@ -657,21 +731,21 @@ const RosaAcquistata = ({
       // Create a list of all positions with their appetibilita rankings
       const positionAssignmentsList = [];
       formationPositions.forEach((position, positionIndex) => {
-        const bestAppetibilita = Math.min(...position.roles.map(role => getRoleRanking(role)));
+        const worstAppetibilita = Math.max(...position.roles.map(role => getRoleRanking(role)));
         
         positionAssignmentsList.push({
           positionIndex,
           roles: position.roles,
-          appetibilita: bestAppetibilita,
+          appetibilita: worstAppetibilita,
           assigned: false,
           assignedPlayer: null
         });
       });
       
-      // Sort positions by appetibilita
+      // Sort positions by appetibilita (descending order - higher appetibilita first)
       positionAssignmentsList.sort((a, b) => {
         if (a.appetibilita !== b.appetibilita) {
-          return a.appetibilita - b.appetibilita;
+          return b.appetibilita - a.appetibilita; // Descending order
         }
         return a.positionIndex - b.positionIndex;
       });
@@ -1063,23 +1137,23 @@ const RosaAcquistata = ({
     // Each position can have multiple roles, so we need to find the best appetibilita for each position
     const positionAssignmentsList = [];
     formationPositions.forEach((position, positionIndex) => {
-      // Find the best (lowest) appetibilita among all roles for this position
-      const bestAppetibilita = Math.min(...position.roles.map(role => getRoleRanking(role)));
+      // Find the worst (highest) appetibilita among all roles for this position
+      const worstAppetibilita = Math.max(...position.roles.map(role => getRoleRanking(role)));
       
       positionAssignmentsList.push({
         positionIndex,
         roles: position.roles, // All possible roles for this position
-        appetibilita: bestAppetibilita,
+        appetibilita: worstAppetibilita,
         assigned: false,
         assignedPlayer: null
       });
     });
     
-    // Step 2: Sort positions by appetibilita (lower number = higher priority)
+    // Step 2: Sort positions by appetibilita (higher number = higher priority for assignment)
     // For same appetibilita, maintain original order (positionIndex)
     positionAssignmentsList.sort((a, b) => {
       if (a.appetibilita !== b.appetibilita) {
-        return a.appetibilita - b.appetibilita;
+        return b.appetibilita - a.appetibilita; // Descending order (higher appetibilita first)
       }
       // If same appetibilita, maintain original order (positionIndex)
       return a.positionIndex - b.positionIndex;
@@ -1111,29 +1185,48 @@ const RosaAcquistata = ({
         // Check if player can play ANY of the roles for this position
         return playerData.possibleRoles.some(roleOption => 
           positionAssignment.roles.some(positionRole => 
+            roleOption.role && positionRole && 
             roleOption.role.toLowerCase() === positionRole.toLowerCase()
           )
         );
       });
       
       if (eligiblePlayers.length > 0) {
-        // Sort eligible players by Punteggio FPEDIA (higher is better)
-        eligiblePlayers.sort((a, b) => {
-          const aPunteggio = parseFloat(a.player['Punteggio FPEDIA'] || 0);
-          const bPunteggio = parseFloat(b.player['Punteggio FPEDIA'] || 0);
-          return bPunteggio - aPunteggio; // Higher Punteggio FPEDIA first
-        });
-        
-        const bestPlayer = eligiblePlayers[0];
-        
-        // Find which role the player will be assigned to (prefer the one with better appetibilita)
-        const assignedRoleOption = bestPlayer.possibleRoles
-          .filter(roleOption => 
+        // NEW ALGORITHM: Find the best player for this position
+        // Step 1: For each eligible player, find their best role for this position (lowest appetibilita)
+        const playersWithBestRoles = eligiblePlayers.map(playerData => {
+          const applicableRoles = playerData.possibleRoles.filter(roleOption => 
             positionAssignment.roles.some(positionRole => 
+              roleOption.role && positionRole && 
               roleOption.role.toLowerCase() === positionRole.toLowerCase()
             )
-          )
-          .sort((a, b) => a.ranking - b.ranking)[0]; // Sort by appetibilita, pick the best
+          );
+          
+          if (applicableRoles.length === 0) return null;
+          
+          // Find the role with the lowest appetibilita (best quality) for this position
+          const bestRole = applicableRoles.sort((a, b) => a.ranking - b.ranking)[0];
+          
+          return {
+            playerData,
+            bestRole,
+            appetibilita: bestRole.ranking,
+            fpediaScore: parseFloat(playerData.player['Punteggio FPEDIA'] || 0)
+          };
+        }).filter(Boolean);
+        
+        if (playersWithBestRoles.length === 0) return;
+        
+        // Step 2: Sort by appetibilita (lowest first), then by FPEDIA (highest first) as tiebreaker
+        playersWithBestRoles.sort((a, b) => {
+          if (a.appetibilita !== b.appetibilita) {
+            return a.appetibilita - b.appetibilita; // Lower appetibilita (better quality) first
+          }
+          return b.fpediaScore - a.fpediaScore; // Higher FPEDIA as tiebreaker
+        });
+        
+        const bestPlayer = playersWithBestRoles[0].playerData;
+        const assignedRoleOption = playersWithBestRoles[0].bestRole;
         
         if (!assignedRoleOption) {
           console.error('❌ No valid role found for player', bestPlayer.player.Nome);
@@ -1390,12 +1483,12 @@ const RosaAcquistata = ({
     // Create position assignments list (same logic as main function)
     const positionAssignmentsList = [];
     formationPositions.forEach((position, positionIndex) => {
-      const bestAppetibilita = Math.min(...position.roles.map(role => getRoleRanking(role)));
+      const worstAppetibilita = Math.max(...position.roles.map(role => getRoleRanking(role)));
       
       positionAssignmentsList.push({
         positionIndex,
         roles: position.roles,
-        appetibilita: bestAppetibilita,
+        appetibilita: worstAppetibilita,
         assigned: false,
         assignedPlayer: null
       });
@@ -1404,7 +1497,7 @@ const RosaAcquistata = ({
     // Sort positions by appetibilita (same as main function)
     positionAssignmentsList.sort((a, b) => {
       if (a.appetibilita !== b.appetibilita) {
-        return a.appetibilita - b.appetibilita;
+        return b.appetibilita - a.appetibilita; // Descending order (higher appetibilita first)
       }
       return a.positionIndex - b.positionIndex;
     });
@@ -1427,22 +1520,38 @@ const RosaAcquistata = ({
       
       if (availableForPosition.length === 0) return;
       
-      let bestPlayer = null;
-      let bestScore = -1;
-      let assignedRoleOption = null;
+      // NEW ALGORITHM: Find the best player for this position
+      // Step 1: For each eligible player, find their best role for this position (lowest appetibilita)
+      const playersWithBestRoles = availableForPosition.map(playerData => {
+        const applicableRoles = playerData.possibleRoles.filter(roleOption => 
+          roleOption.role && positionAssignment.roles.includes(roleOption.role)
+        );
+        
+        if (applicableRoles.length === 0) return null;
+        
+        // Find the role with the lowest appetibilita (best quality) for this position
+        const bestRole = applicableRoles.sort((a, b) => a.ranking - b.ranking)[0];
+        
+        return {
+          playerData,
+          bestRole,
+          appetibilita: bestRole.ranking,
+          fpediaScore: parseFloat(playerData.player['Punteggio FPEDIA'] || 0)
+        };
+      }).filter(Boolean);
       
-      availableForPosition.forEach(playerData => {
-        playerData.possibleRoles.forEach(roleOption => {
-          if (positionAssignment.roles.includes(roleOption.role)) {
-            const score = playerData.player['Punteggio FPEDIA'] || 0;
-            if (score > bestScore) {
-              bestScore = score;
-              bestPlayer = playerData;
-              assignedRoleOption = roleOption;
-            }
-          }
-        });
+      if (playersWithBestRoles.length === 0) return;
+      
+      // Step 2: Sort by appetibilita (lowest first), then by FPEDIA (highest first) as tiebreaker
+      playersWithBestRoles.sort((a, b) => {
+        if (a.appetibilita !== b.appetibilita) {
+          return a.appetibilita - b.appetibilita; // Lower appetibilita (better quality) first
+        }
+        return b.fpediaScore - a.fpediaScore; // Higher FPEDIA as tiebreaker
       });
+      
+      const bestPlayer = playersWithBestRoles[0].playerData;
+      const assignedRoleOption = playersWithBestRoles[0].bestRole;
       
       if (bestPlayer && assignedRoleOption) {
         position.assignedPlayer = bestPlayer.player;
@@ -1568,8 +1677,16 @@ const RosaAcquistata = ({
               
               if (roleMatch) {
                 roleMatched = true;
-                if (!possibleRoles.includes(mappedRole)) {
-                  possibleRoles.push(mappedRole);
+                // Check if this role is already in possibleRoles (avoid duplicates)
+                const alreadyExists = possibleRoles.some(existingRole => 
+                  existingRole.role === mappedRole
+                );
+                if (!alreadyExists) {
+                  possibleRoles.push({
+                    role: mappedRole,
+                    positionIndex: position.positionIndex,
+                    ranking: getRoleRanking(mappedRole)
+                  });
                 }
               }
             });
@@ -1595,54 +1712,70 @@ const RosaAcquistata = ({
     // RESERVE ASSIGNMENT ALGORITHM (same as main formation)
     const positionAssignmentsList = [];
     formationPositions.forEach((position, positionIndex) => {
-      const bestAppetibilita = Math.min(...position.roles.map(role => getRoleRanking(role)));
+      const worstAppetibilita = Math.max(...position.roles.map(role => getRoleRanking(role)));
       
       positionAssignmentsList.push({
         positionIndex,
         roles: position.roles,
-        bestAppetibilita,
+        bestAppetibilita: worstAppetibilita,
         assignedPlayer: null,
         assignedPlayerId: null
       });
     });
     
     // Sort positions by appetibilita (same as main formation)
-    positionAssignmentsList.sort((a, b) => a.bestAppetibilita - b.bestAppetibilita);
+    positionAssignmentsList.sort((a, b) => b.bestAppetibilita - a.bestAppetibilita); // Descending order
     
     const reservePositionAssignments = {};
     const assignedReservePlayerIds = new Set();
     
     // Assign players to reserve positions (same logic as main formation)
     positionAssignmentsList.forEach(position => {
-      let bestPlayer = null;
-      let bestScore = -1;
+      // NEW ALGORITHM: Find the best player for this reserve position
+      const availableReservePlayers = reservePlayerData.filter(playerData => 
+        !assignedReservePlayerIds.has(playerData.playerId)
+      );
       
-      reservePlayerData.forEach(playerData => {
-        if (assignedReservePlayerIds.has(playerData.playerId)) return;
-        
-        // Check if player can fill this position
-        const canFillPosition = position.roles.some(role => 
-          playerData.possibleRoles.some(playerRole => 
-            playerRole.toLowerCase() === role.toLowerCase()
+      // Step 1: For each eligible player, find their best role for this position (lowest appetibilita)
+      const playersWithBestRoles = availableReservePlayers.map(playerData => {
+        const applicableRoles = playerData.possibleRoles.filter(roleOption => 
+          position.roles.some(positionRole => 
+            roleOption.role && positionRole && 
+            roleOption.role.toLowerCase() === positionRole.toLowerCase()
           )
         );
         
-        if (canFillPosition) {
-          // Use Punteggio FPEDIA for selection
-          const score = parseFloat(playerData.player['Punteggio FPEDIA']) || 0;
-          
-          if (score > bestScore) {
-            bestScore = score;
-            bestPlayer = playerData;
-          }
+        if (applicableRoles.length === 0) return null;
+        
+        // Find the role with the lowest appetibilita (best quality) for this position
+        const bestRole = applicableRoles.sort((a, b) => a.ranking - b.ranking)[0];
+        
+        return {
+          playerData,
+          bestRole,
+          appetibilita: bestRole.ranking,
+          fpediaScore: parseFloat(playerData.player['Punteggio FPEDIA'] || 0)
+        };
+      }).filter(Boolean);
+      
+      if (playersWithBestRoles.length === 0) return;
+      
+      // Step 2: Sort by appetibilita (lowest first), then by FPEDIA (highest first) as tiebreaker
+      playersWithBestRoles.sort((a, b) => {
+        if (a.appetibilita !== b.appetibilita) {
+          return a.appetibilita - b.appetibilita; // Lower appetibilita (better quality) first
         }
+        return b.fpediaScore - a.fpediaScore; // Higher FPEDIA as tiebreaker
       });
+      
+      const bestPlayer = playersWithBestRoles[0].playerData;
       
       if (bestPlayer) {
         // Find the matching role for this position
         const matchingRole = position.roles.find(role => 
           bestPlayer.possibleRoles.some(playerRole => 
-            playerRole.toLowerCase() === role.toLowerCase()
+            playerRole.role && role && 
+            playerRole.role.toLowerCase() === role.toLowerCase()
           )
         );
         
@@ -1797,34 +1930,64 @@ const RosaAcquistata = ({
   if (totalPlayers === 0) {
     return (
       <div style={containerStyle}>
-        <div style={headerStyle}>
-          <h1 style={titleStyle}>
-            La mia Rosa
-          </h1>
-        </div>
         
         {/* Team Selector */}
         {teams.length > 0 && (
-          <div style={teamSelectorStyle}>
-            <label style={teamSelectorLabelStyle}>Squadra:</label>
-            <select
-              value={selectedTeamId || ''}
-              onChange={(e) => setSelectedTeamId(parseInt(e.target.value))}
-              style={teamSelectorSelectStyle}
-            >
-              {teams.map(team => (
-                <option key={team.id} value={team.id}>
-                  {team.name}
-                </option>
-              ))}
-            </select>
+          <div style={{ 
+            marginBottom: '2rem', 
+            display: 'flex', 
+            gap: '0.5rem', 
+            flexWrap: 'nowrap', 
+            justifyContent: 'center',
+            overflowX: 'auto',
+            padding: '0.5rem 0'
+          }}>
+            {teams.map(team => {
+              const isSelected = selectedTeamId === team.id;
+              const remainingBudget = calculateRemainingBudget(team);
+              const playerCount = team.players ? team.players.length : 0;
+              const maxPlayers = 30; // Default max players
+              
+              // Get centralized color coding
+              const colorCoding = getTeamColorCoding(team, teams, 21, maxPlayers);
+              
+              // Determine button style using centralized color coding
+              let buttonStyle = {
+                ...teamButtonStyle,
+                borderColor: isSelected ? '#3b82f6' : colorCoding.colors.border,
+                backgroundColor: isSelected ? '#eff6ff' : colorCoding.colors.background,
+                color: isSelected ? '#3b82f6' : colorCoding.colors.text
+              };
+              
+              let budgetTextStyle = {
+                ...budgetPositiveStyle,
+                color: colorCoding.colors.budget,
+                ...colorCoding.budgetHighlight
+              };
+              
+              return (
+                <button
+                  key={team.id}
+                  onClick={() => setSelectedTeamId(team.id)}
+                  style={buttonStyle}
+                >
+                  <div style={teamNameStyle}>{team.name}</div>
+                  <div style={teamStatsStyle}>
+                    {playerCount}/{maxPlayers}
+                  </div>
+                  <div style={budgetTextStyle}>
+                    {remainingBudget.toLocaleString()} FM
+                  </div>
+                </button>
+              );
+            })}
           </div>
         )}
 
         {/* Formation Selector */}
         {Object.keys(formations).length > 0 && (
           <div style={formationSelectorStyle}>
-            <span style={teamSelectorLabelStyle}>Formazione:</span>
+            <span style={teamSelectorLabelStyle}></span>
             {Object.keys(formations).map(formation => {
               // Use the same calculation logic for ALL formations to ensure consistency
               const stats = getFormationStats(formation);
@@ -2042,43 +2205,64 @@ const RosaAcquistata = ({
 
   return (
     <div style={containerStyle}>
-      {/* Header */}
-      <div style={headerStyle}>
-        <h1 style={titleStyle}>
-          La mia Rosa
-        </h1>
-        <div style={{ textAlign: 'center', marginTop: '1rem' }}>
-          <span style={{ fontSize: '1.125rem', fontWeight: '600', color: '#374151' }}>
-            {selectedTeam ? selectedTeam.name : 'Nessuna squadra selezionata'}
-          </span>
-          <div style={{ fontSize: '0.875rem', color: '#6b7280', marginTop: '0.25rem' }}>
-            {totalPlayers} giocatori acquistati
-          </div>
-        </div>
-      </div>
 
       {/* Team Selector */}
       {teams.length > 0 && (
-        <div style={teamSelectorStyle}>
-          <label style={teamSelectorLabelStyle}>Squadra:</label>
-          <select
-            value={selectedTeamId || ''}
-            onChange={(e) => setSelectedTeamId(parseInt(e.target.value))}
-            style={teamSelectorSelectStyle}
-          >
-            {teams.map(team => (
-              <option key={team.id} value={team.id}>
-                {team.name}
-              </option>
-            ))}
-          </select>
+        <div style={{ 
+          marginBottom: '2rem', 
+          display: 'flex', 
+          gap: '0.5rem', 
+          flexWrap: 'nowrap', 
+          justifyContent: 'center',
+          overflowX: 'auto',
+          padding: '0.5rem 0'
+        }}>
+          {teams.map(team => {
+            const isSelected = selectedTeamId === team.id;
+            const remainingBudget = calculateRemainingBudget(team);
+            const playerCount = team.players ? team.players.length : 0;
+            const maxPlayers = 30; // Default max players
+            
+            // Get centralized color coding
+            const colorCoding = getTeamColorCoding(team, teams, 21, maxPlayers);
+            
+            // Determine button style using centralized color coding
+            let buttonStyle = {
+              ...teamButtonStyle,
+              borderColor: isSelected ? '#3b82f6' : colorCoding.colors.border,
+              backgroundColor: isSelected ? '#eff6ff' : colorCoding.colors.background,
+              color: isSelected ? '#3b82f6' : colorCoding.colors.text
+            };
+            
+            let budgetTextStyle = {
+              ...budgetPositiveStyle,
+              color: colorCoding.colors.budget,
+              ...colorCoding.budgetHighlight
+            };
+            
+            return (
+              <button
+                key={team.id}
+                onClick={() => setSelectedTeamId(team.id)}
+                style={buttonStyle}
+              >
+                <div style={teamNameStyle}>{team.name}</div>
+                <div style={teamStatsStyle}>
+                  {playerCount}/{maxPlayers}
+                </div>
+                <div style={budgetTextStyle}>
+                  {remainingBudget.toLocaleString()} FM
+                </div>
+              </button>
+            );
+          })}
         </div>
       )}
 
       {/* Formation Selector */}
       {Object.keys(formations).length > 0 && (
         <div style={formationSelectorStyle}>
-          <span style={teamSelectorLabelStyle}>Formazione:</span>
+          <span style={teamSelectorLabelStyle}></span>
             {Object.keys(formations).map(formation => {
               // Use the same calculation logic for ALL formations to ensure consistency
               const stats = getFormationStats(formation);

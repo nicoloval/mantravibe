@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { getTeamColorCoding } from '../utils/dataUtils';
 
 const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }) => {
   // Use teams from props instead of localStorage
@@ -637,7 +638,6 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
 
   return (
     <div style={containerStyle}>
-      <h2 style={titleStyle}>Gestione Squadre</h2>
       
       {/* Team Management */}
       <div style={teamCountSelectorStyle}>
@@ -704,13 +704,20 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
           const isDraggingFromDifferentTeam = draggedPlayer && draggedPlayer.teamId !== team.id;
           const canAcceptDrop = isDraggingFromDifferentTeam && team.players.length < maxPlayers;
           
+          // Get centralized color coding
+          const colorCoding = getTeamColorCoding(team, localTeams, 21, maxPlayers);
+          
           const firstTeamStyle = isFirstTeam ? {
             ...teamBoxStyle,
-            backgroundColor: 'white',
-            border: '3px solid #22c55e',
-            boxShadow: '0 0 20px rgba(34, 197, 94, 0.3), 0 4px 12px rgba(0, 0, 0, 0.1)',
+            backgroundColor: colorCoding.colors.background,
+            border: `3px solid ${colorCoding.colors.border}`,
+            boxShadow: `0 0 20px ${colorCoding.colors.border}40, 0 4px 12px rgba(0, 0, 0, 0.1)`,
             position: 'relative'
-          } : teamBoxStyle;
+          } : {
+            ...teamBoxStyle,
+            backgroundColor: colorCoding.colors.background,
+            border: `2px solid ${colorCoding.colors.border}`
+          };
           
           // Add drag over styling
           const dragOverStyle = isDraggedOver && canAcceptDrop ? {
@@ -793,7 +800,11 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
               {(() => {
                 const remaining = calculateRemainingBudget(team);
                 return (
-                  <div style={remaining >= 0 ? remainingBudgetPositiveStyle : remainingBudgetNegativeStyle}>
+                  <div style={{
+                    ...(remaining >= 0 ? remainingBudgetPositiveStyle : remainingBudgetNegativeStyle),
+                    color: colorCoding.colors.budget,
+                    ...colorCoding.budgetHighlight
+                  }}>
                     {remaining.toLocaleString()}/{team.budget.toLocaleString()} FM
                   </div>
                 );

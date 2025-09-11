@@ -486,9 +486,22 @@ const App = () => {
     <div style={containerStyle}>
       {/* Settings Gear Button */}
       <button 
-        className="settings-gear-button"
+        style={{
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: 'none',
+          color: '#374151',
+          border: 'none',
+          fontSize: '2rem',
+          cursor: 'pointer',
+          transition: 'transform 0.2s',
+          zIndex: 100
+        }}
         onClick={() => setShowSettings(true)}
         title="Settings"
+        onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+        onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
       >
         ⚙️
       </button>

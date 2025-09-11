@@ -2,13 +2,55 @@ import React, { useState, useMemo } from 'react';
 
 const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusChange, onPlayerAcquire, roles = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedRoles, setSelectedRoles] = useState([]);
-  const [selectedSkills, setSelectedSkills] = useState([]);
+  const [selectedRoles, setSelectedRoles] = useState(() => {
+    // Try to load from localStorage first
+    const savedRoles = localStorage.getItem('giocatoriSelectedRoles');
+    if (savedRoles) {
+      try {
+        return JSON.parse(savedRoles);
+      } catch (error) {
+        console.error('Error parsing saved roles:', error);
+      }
+    }
+    return [];
+  });
+  const [selectedSkills, setSelectedSkills] = useState(() => {
+    // Try to load from localStorage first
+    const savedSkills = localStorage.getItem('giocatoriSelectedSkills');
+    if (savedSkills) {
+      try {
+        return JSON.parse(savedSkills);
+      } catch (error) {
+        console.error('Error parsing saved skills:', error);
+      }
+    }
+    return [];
+  });
   const [sortConfig, setSortConfig] = useState({ key: null, direction: 'asc' });
-  const [hideAcquired, setHideAcquired] = useState(false);
+  const [hideAcquired, setHideAcquired] = useState(() => {
+    // Try to load from localStorage first
+    const savedHideAcquired = localStorage.getItem('giocatoriHideAcquired');
+    if (savedHideAcquired !== null) {
+      try {
+        return JSON.parse(savedHideAcquired);
+      } catch (error) {
+        console.error('Error parsing saved hideAcquired:', error);
+      }
+    }
+    return false;
+  });
   
   // Column visibility state
   const [visibleColumns, setVisibleColumns] = useState(() => {
+    // Try to load from localStorage first
+    const savedColumns = localStorage.getItem('giocatoriVisibleColumns');
+    if (savedColumns) {
+      try {
+        return new Set(JSON.parse(savedColumns));
+      } catch (error) {
+        console.error('Error parsing saved columns:', error);
+      }
+    }
     // Default: only Name, Squadra and Ruolo Mantra visible (minimum configuration)
     const defaultVisible = new Set(['Nome', 'Squadra', 'Ruolo Mantra']);
     return defaultVisible;
@@ -122,22 +164,30 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   // Toggle role selection
   const toggleRole = (role) => {
     setSelectedRoles(prev => {
+      let newRoles;
       if (prev.includes(role)) {
-        return prev.filter(r => r !== role);
+        newRoles = prev.filter(r => r !== role);
       } else {
-        return [...prev, role];
+        newRoles = [...prev, role];
       }
+      // Save to localStorage
+      localStorage.setItem('giocatoriSelectedRoles', JSON.stringify(newRoles));
+      return newRoles;
     });
   };
 
   // Toggle skill selection
   const toggleSkill = (skill) => {
     setSelectedSkills(prev => {
+      let newSkills;
       if (prev.includes(skill)) {
-        return prev.filter(s => s !== skill);
+        newSkills = prev.filter(s => s !== skill);
       } else {
-        return [...prev, skill];
+        newSkills = [...prev, skill];
       }
+      // Save to localStorage
+      localStorage.setItem('giocatoriSelectedSkills', JSON.stringify(newSkills));
+      return newSkills;
     });
   };
 
@@ -374,6 +424,8 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       } else {
         newSet.add(columnName);
       }
+      // Save to localStorage
+      localStorage.setItem('giocatoriVisibleColumns', JSON.stringify(Array.from(newSet)));
       return newSet;
     });
   };
@@ -382,13 +434,25 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     const allColumns = getColumns();
     const allVisible = allColumns.every(col => visibleColumns.has(col));
     
+    let newColumns;
     if (allVisible) {
       // If all are visible, set to minimum configuration
-      setVisibleColumns(new Set(['Nome', 'Squadra', 'Ruolo Mantra']));
+      newColumns = new Set(['Nome', 'Squadra', 'Ruolo Mantra']);
     } else {
       // If not all are visible, show all
-      setVisibleColumns(new Set(allColumns));
+      newColumns = new Set(allColumns);
     }
+    setVisibleColumns(newColumns);
+    // Save to localStorage
+    localStorage.setItem('giocatoriVisibleColumns', JSON.stringify(Array.from(newColumns)));
+  };
+
+  const hideAllColumns = () => {
+    // Hide all columns except the essential ones
+    const essentialColumns = new Set(['Nome', 'Squadra', 'Ruolo Mantra']);
+    setVisibleColumns(essentialColumns);
+    // Save to localStorage
+    localStorage.setItem('giocatoriVisibleColumns', JSON.stringify(Array.from(essentialColumns)));
   };
 
   // Get all possible columns from the first player
@@ -501,7 +565,16 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     backgroundColor: 'white',
     borderRadius: '0.5rem',
     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    overflow: 'auto',
+    overflow: 'visible',
+    maxWidth: '100%',
+    position: 'relative',
+    zIndex: 1,
+    paddingTop: '50px' // Add space at top for tooltips
+  };
+
+  const tableWrapperStyle = {
+    overflowX: 'auto',
+    overflowY: 'visible',
     maxWidth: '100%'
   };
 
@@ -559,7 +632,8 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   // Simple tooltip styles
   const tooltipContainerStyle = {
     position: 'relative',
-    display: 'inline-block'
+    display: 'inline-block',
+    zIndex: 1
   };
 
   const tooltipStyle = {
@@ -572,9 +646,11 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     borderRadius: '4px',
     padding: '6px 10px',
     position: 'absolute',
-    zIndex: 1000,
-    top: '0',
-    left: '0',
+    zIndex: 99999,
+    bottom: '100%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    marginBottom: '5px',
     fontSize: '0.7rem',
     fontWeight: '500',
     boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
@@ -696,6 +772,8 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               onChange={(e) => {
                 console.log('🔍 DEBUG: Toggle changed to:', e.target.checked);
                 setHideAcquired(e.target.checked);
+                // Save to localStorage
+                localStorage.setItem('giocatoriHideAcquired', JSON.stringify(e.target.checked));
               }}
               style={{
                 width: '1rem',
@@ -833,24 +911,44 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               Colonne:
             </span>
             
-            {/* ALL button */}
-            <button
-              onClick={toggleAllColumns}
-              style={{
-                padding: '0.25rem 0.5rem',
-                fontSize: '0.75rem',
-                fontWeight: '600',
-                border: '1px solid #d1d5db',
-                borderRadius: '0.25rem',
-                backgroundColor: visibleColumns.size === getColumns().length ? '#3b82f6' : '#f3f4f6',
-                color: visibleColumns.size === getColumns().length ? 'white' : '#374151',
-                cursor: 'pointer',
-                transition: 'all 0.2s'
-              }}
-              title="Seleziona/Deseleziona tutte le colonne"
-            >
-              ALL
-            </button>
+            {/* ALL and Hide All buttons */}
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <button
+                onClick={toggleAllColumns}
+                style={{
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.25rem',
+                  backgroundColor: visibleColumns.size === getColumns().length ? '#3b82f6' : '#f3f4f6',
+                  color: visibleColumns.size === getColumns().length ? 'white' : '#374151',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                title="Seleziona/Deseleziona tutte le colonne"
+              >
+                ALL
+              </button>
+              
+              <button
+                onClick={hideAllColumns}
+                style={{
+                  padding: '0.25rem 0.5rem',
+                  fontSize: '0.75rem',
+                  fontWeight: '600',
+                  border: '1px solid #d1d5db',
+                  borderRadius: '0.25rem',
+                  backgroundColor: visibleColumns.size === 3 ? '#dc2626' : '#f3f4f6',
+                  color: visibleColumns.size === 3 ? 'white' : '#374151',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s'
+                }}
+                title="Nascondi tutte le colonne tranne Nome, Squadra e Ruolo Mantra"
+              >
+                Hide All
+              </button>
+            </div>
             
           </div>
           
@@ -1150,7 +1248,8 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
       {/* Tabella */}
       <div style={tableContainerStyle}>
-        <table style={tableStyle}>
+        <div style={tableWrapperStyle}>
+          <table style={tableStyle}>
           <thead>
             <tr>
               <th style={thStyle}>
@@ -1396,6 +1495,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             })}
           </tbody>
         </table>
+        </div>
       </div>
     </div>
   );

@@ -25,3 +25,7 @@ yarn-error.log*
 
 # data
 public/data/
+
+
+# scratches
+scratches/

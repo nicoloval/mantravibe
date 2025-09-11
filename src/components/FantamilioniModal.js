@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { getTeamColorCoding } from '../utils/dataUtils';
 
 const FantamilioniModal = ({ 
   player, 
@@ -30,39 +31,59 @@ const FantamilioniModal = ({
     return availableBudget;
   };
 
-  // Function to calculate maximum amount considering minimum players requirement
+  // Function to calculate maximum amount (available budget minus reserved for remaining players)
   const calculateMaxAmount = (teamId) => {
     const team = teams.find(t => String(t.id) === String(teamId));
-    if (!team) return 0;
+    if (!team) {
+      console.log(`🔍 DEBUG: Team ${teamId} not found in teams:`, teams.map(t => t.id));
+      return 0;
+    }
     
-    const currentPlayers = (team.players || []).length;
-    const playersNeeded = Math.max(0, minPlayers - currentPlayers);
-    const maxAmount = calculateTeamBudget(teamId) - playersNeeded;
+    const currentPlayerCount = (team.players || []).length;
+    const playersNeeded = Math.max(0, minPlayers - currentPlayerCount);
+    const availableBudget = calculateTeamBudget(teamId);
     
-    console.log(`🔍 DEBUG: Max amount calculation - Team: ${teamId}, Current players: ${currentPlayers}, Min needed: ${minPlayers}, Players still needed: ${playersNeeded}, Max amount: ${maxAmount}`);
+    console.log(`🔍 DEBUG: Team ${teamId} (${team.name}):`);
+    console.log(`  - Current players: ${currentPlayerCount}`);
+    console.log(`  - Min players required: ${minPlayers}`);
+    console.log(`  - Max players allowed: ${maxPlayers}`);
+    console.log(`  - Players needed: ${playersNeeded}`);
+    console.log(`  - Available budget: ${availableBudget}`);
     
-    return Math.max(0, maxAmount);
+    // If team already has enough players, they can spend all their budget
+    if (playersNeeded === 0) {
+      console.log(`  - Max bid: ${availableBudget} (no players needed)`);
+      return availableBudget;
+    }
+    
+    // Reserve budget for remaining players (assuming minimum 1 fantamilione per player)
+    const reservedBudget = playersNeeded * 1;
+    const maxBid = Math.max(0, availableBudget - reservedBudget);
+    
+    console.log(`  - Reserved budget: ${reservedBudget}`);
+    console.log(`  - Max bid: ${maxBid}`);
+    return maxBid;
   };
 
   // Update team budget when team selection changes
   useEffect(() => {
     if (selectedTeamId) {
-      const availableBudget = calculateTeamBudget(selectedTeamId);
-      setTeamBudget(availableBudget);
-      console.log('🔍 DEBUG: Team budget updated for team', selectedTeamId, ':', availableBudget);
+      const maxBidAmount = calculateMaxAmount(selectedTeamId);
+      setTeamBudget(maxBidAmount);
+      console.log('🔍 DEBUG: Team budget updated for team', selectedTeamId, ':', maxBidAmount);
     } else {
       // If no team selected, use the first team's budget as default
       const firstTeam = teams.length > 0 ? teams[0] : null;
       if (firstTeam) {
-        const availableBudget = calculateTeamBudget(firstTeam.id);
-        setTeamBudget(availableBudget);
-        console.log('🔍 DEBUG: Using first team budget:', firstTeam.id, ':', availableBudget);
+        const maxBidAmount = calculateMaxAmount(firstTeam.id);
+        setTeamBudget(maxBidAmount);
+        console.log('🔍 DEBUG: Using first team budget:', firstTeam.id, ':', maxBidAmount);
       } else {
         setTeamBudget(maxFantamilioni);
         console.log('🔍 DEBUG: No teams available, using maxFantamilioni:', maxFantamilioni);
       }
     }
-  }, [selectedTeamId, teams, maxFantamilioni]);
+  }, [selectedTeamId, teams, maxFantamilioni, minPlayers]);
 
   // Reset quando cambia il giocatore, ma ricorda l'ultimo prezzo e squadra inseriti
   useEffect(() => {
@@ -149,8 +170,8 @@ const FantamilioniModal = ({
   const modalContentStyle = {
     backgroundColor: 'white',
     borderRadius: '12px',
-    padding: '24px',
-    maxWidth: '420px',
+    padding: '28px',
+    maxWidth: '750px',
     width: '90%',
     boxShadow: '0 10px 25px rgba(0, 0, 0, 0.15)'
   };
@@ -161,29 +182,29 @@ const FantamilioniModal = ({
 
   const titleStyle = {
     margin: '0 0 8px 0',
-    fontSize: '20px',
+    fontSize: '22px',
     fontWeight: '600',
     color: '#1f2937'
   };
 
   const subtitleStyle = {
     margin: '0 0 4px 0',
-    fontSize: '14px',
+    fontSize: '16px',
     color: '#6b7280'
   };
 
   const budgetInfoStyle = {
     padding: '12px',
-    backgroundColor: maxFantamilioni > 0 ? '#f0fdf4' : '#fef2f2',
+    backgroundColor: teamBudget > 0 ? '#f0fdf4' : '#fef2f2',
     borderRadius: '8px',
-    border: `1px solid ${maxFantamilioni > 0 ? '#bbf7d0' : '#fecaca'}`,
+    border: `1px solid ${teamBudget > 0 ? '#bbf7d0' : '#fecaca'}`,
     marginBottom: '16px'
   };
 
   const budgetTextStyle = {
     margin: 0,
     fontSize: '14px',
-    color: maxFantamilioni > 0 ? '#059669' : '#dc2626',
+    color: teamBudget > 0 ? '#059669' : '#dc2626',
     fontWeight: '600',
     display: 'flex',
     alignItems: 'center',
@@ -191,18 +212,22 @@ const FantamilioniModal = ({
   };
 
   const inputContainerStyle = {
-    marginBottom: '16px'
+    marginBottom: '16px',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center'
   };
 
   const inputStyle = {
-    width: '100%',
-    padding: '12px',
+    width: '180px',
+    padding: '12px 16px',
     border: `2px solid ${error ? '#f87171' : '#d1d5db'}`,
     borderRadius: '8px',
-    fontSize: '16px',
+    fontSize: '18px',
     outline: 'none',
     transition: 'border-color 0.2s',
-    fontWeight: '500'
+    fontWeight: '500',
+    textAlign: 'center'
   };
 
   const errorStyle = {
@@ -255,10 +280,10 @@ const FantamilioniModal = ({
 
   const confirmButtonStyle = {
     ...buttonStyle,
-    backgroundColor: fantamilioni && parseInt(fantamilioni) > 0 && parseInt(fantamilioni) <= maxFantamilioni 
+    backgroundColor: fantamilioni && parseInt(fantamilioni) > 0 && parseInt(fantamilioni) <= teamBudget 
       ? '#10b981' 
       : '#e5e7eb',
-    color: fantamilioni && parseInt(fantamilioni) > 0 && parseInt(fantamilioni) <= maxFantamilioni 
+    color: fantamilioni && parseInt(fantamilioni) > 0 && parseInt(fantamilioni) <= teamBudget 
       ? 'white' 
       : '#9ca3af'
   };
@@ -271,108 +296,167 @@ const FantamilioniModal = ({
         {/* Header */}
         <div style={headerStyle}>
           <h3 style={titleStyle}>
-            Acquista {player.Nome}
+            Acquista {player.Nome} • {player.Squadra}
           </h3>
           <p style={subtitleStyle}>
-            {player.Squadra} • {player.Ruolo}
+            {player.Ruolo}
           </p>
         </div>
 
-        {/* Informazioni Budget */}
-        <div style={budgetInfoStyle}>
-          <p style={budgetTextStyle}>
-            {teamBudget > 0 ? '💚' : '❌'} 
-            Budget disponibile: <strong>{teamBudget.toLocaleString()} fantamilioni</strong>
-            {selectedTeamId && (
-              <span style={{ fontSize: '0.8rem', color: '#6b7280', display: 'block', marginTop: '0.25rem' }}>
-                (Squadra: {teams.find(t => t.id === selectedTeamId)?.name || 'N/A'})
-              </span>
-            )}
-          </p>
-        </div>
 
-        {/* Quick Amount Buttons */}
-        {quickAmounts.length > 0 && selectedTeamId && teamBudget > 0 && (
-          <div style={quickButtonsStyle}>
-            <span style={{ fontSize: '14px', color: '#6b7280', alignSelf: 'center', marginRight: '4px' }}>
-              Rapido:
-            </span>
-            {quickAmounts.map(amount => (
-              <button
-                key={amount}
-                onClick={() => setFantamilioni(amount.toString())}
-                style={{
-                  ...quickButtonStyle,
-                  backgroundColor: fantamilioni === amount.toString() ? '#3b82f6' : '#f3f4f6',
-                  color: fantamilioni === amount.toString() ? 'white' : '#374151',
-                  borderColor: fantamilioni === amount.toString() ? '#3b82f6' : '#d1d5db'
-                }}
-              >
-                {amount}
-              </button>
-            ))}
-            {selectedTeamId && calculateMaxAmount(selectedTeamId) >= 1 && (
-              <button
-                onClick={() => setFantamilioni(calculateMaxAmount(selectedTeamId).toString())}
-                style={{
-                  ...quickButtonStyle,
-                  backgroundColor: fantamilioni === calculateMaxAmount(selectedTeamId).toString() ? '#3b82f6' : '#f3f4f6',
-                  color: fantamilioni === calculateMaxAmount(selectedTeamId).toString() ? 'white' : '#374151',
-                  borderColor: fantamilioni === calculateMaxAmount(selectedTeamId).toString() ? '#3b82f6' : '#d1d5db'
-                }}
-              >
-                Max
-              </button>
+        {/* Quick Amount Buttons and Input on same line */}
+        {selectedTeamId && teamBudget > 0 && (
+          <div style={{ display: 'flex', alignItems: 'flex-end', gap: '20px', marginBottom: '16px', justifyContent: 'center' }}>
+            {/* Quick Amount Buttons */}
+            {quickAmounts.length > 0 && (
+              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {quickAmounts.map(amount => (
+                  <button
+                    key={amount}
+                    onClick={() => setFantamilioni(amount.toString())}
+                    style={{
+                      ...quickButtonStyle,
+                      backgroundColor: fantamilioni === amount.toString() ? '#3b82f6' : '#f3f4f6',
+                      color: fantamilioni === amount.toString() ? 'white' : '#374151',
+                      borderColor: fantamilioni === amount.toString() ? '#3b82f6' : '#d1d5db'
+                    }}
+                  >
+                    {amount}
+                  </button>
+                ))}
+                {selectedTeamId && calculateMaxAmount(selectedTeamId) >= 1 && (
+                  <button
+                    onClick={() => setFantamilioni(calculateMaxAmount(selectedTeamId).toString())}
+                    style={{
+                      ...quickButtonStyle,
+                      backgroundColor: fantamilioni === calculateMaxAmount(selectedTeamId).toString() ? '#3b82f6' : '#f3f4f6',
+                      color: fantamilioni === calculateMaxAmount(selectedTeamId).toString() ? 'white' : '#374151',
+                      borderColor: fantamilioni === calculateMaxAmount(selectedTeamId).toString() ? '#3b82f6' : '#d1d5db'
+                    }}
+                  >
+                    Max
+                  </button>
+                )}
+              </div>
             )}
+            
+            {/* Input Field */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+              {fantamilioni && (
+                <div style={{
+                  fontSize: '0.75rem',
+                  color: '#6b7280',
+                  marginBottom: '0.25rem',
+                  fontStyle: 'italic'
+                }}>
+                  Precompilato con l'ultimo prezzo inserito
+                </div>
+              )}
+              <input
+                type="number"
+                value={fantamilioni}
+                onChange={handleInputChange}
+                onKeyDown={handleKeyPress}
+                placeholder="Inserisci fantamilioni"
+                min="1"
+                max={teamBudget}
+                style={inputStyle}
+                autoFocus
+                disabled={teamBudget <= 0}
+              />
+            </div>
           </div>
         )}
 
-        {/* Input Field */}
-        <div style={inputContainerStyle}>
-          {fantamilioni && (
-            <div style={{
-              fontSize: '0.75rem',
-              color: '#6b7280',
-              marginBottom: '0.25rem',
-              fontStyle: 'italic'
-            }}>
-              Precompilato con l'ultimo prezzo inserito
-            </div>
-          )}
-          <input
-            type="number"
-            value={fantamilioni}
-            onChange={handleInputChange}
-            onKeyDown={handleKeyPress}
-            placeholder="Inserisci fantamilioni"
-            min="1"
-            max={teamBudget}
-            style={inputStyle}
-            autoFocus
-            disabled={teamBudget <= 0}
-          />
-        </div>
-
         {/* Team Selection */}
         <div style={inputContainerStyle}>
-          <select
-            value={selectedTeamId}
-            onChange={(e) => setSelectedTeamId(e.target.value)}
-            style={inputStyle}
-            disabled={teamBudget <= 0}
-          >
-            <option value="">Seleziona una squadra</option>
-            {teams.filter(team => (team.players || []).length < maxPlayers).map(team => (
-              <option key={team.id} value={team.id}>
-                {team.name} ({(team.players || []).length}/{maxPlayers})
-              </option>
-            ))}
-          </select>
+          <div style={{
+            fontSize: '0.875rem',
+            color: '#374151',
+            marginBottom: '8px',
+            textAlign: 'center',
+            fontWeight: '500'
+          }}>
+            Seleziona Squadra
+          </div>
+          <div style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 1fr)',
+            gap: '10px',
+            marginBottom: '8px',
+            maxWidth: '700px'
+          }}>
+            {teams.map(team => {
+              const isSelected = selectedTeamId === String(team.id);
+              const playerCount = (team.players || []).length;
+              const teamRemainingBudget = calculateTeamBudget(team.id);
+              const maxBidAmount = calculateMaxAmount(team.id);
+              
+              // Get centralized color coding
+              const colorCoding = getTeamColorCoding(team, teams, minPlayers, maxPlayers);
+              const isDisabled = colorCoding.status === 'red';
+              
+              // Determine button style using centralized color coding
+              let buttonStyle = {
+                padding: '12px 10px',
+                border: `2px solid ${isSelected ? '#3b82f6' : colorCoding.colors.border}`,
+                borderRadius: '6px',
+                backgroundColor: isSelected ? '#eff6ff' : colorCoding.colors.background,
+                color: isSelected ? '#3b82f6' : colorCoding.colors.text,
+                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                fontSize: '1rem',
+                fontWeight: '600',
+                transition: 'all 0.2s',
+                textAlign: 'center',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '3px',
+                minHeight: '85px',
+                justifyContent: 'center',
+                opacity: isDisabled ? 0.6 : 1
+              };
+              
+              // Use centralized budget color
+              let budgetColor = colorCoding.colors.budget;
+              
+              if (isSelected) {
+                budgetColor = '#3b82f6';
+              }
+              
+              return (
+                <button
+                  key={team.id}
+                  onClick={() => !isDisabled && setSelectedTeamId(String(team.id))}
+                  style={buttonStyle}
+                  disabled={isDisabled}
+                >
+                  <div style={{ fontSize: '1.1rem', fontWeight: '700' }}>
+                    {team.name}
+                  </div>
+                  <div style={{ fontSize: '0.75rem', opacity: 0.8 }}>
+                    {playerCount}/{maxPlayers} (min: {minPlayers})
+                  </div>
+                  <div style={{ 
+                    fontSize: '0.75rem', 
+                    fontWeight: '600', 
+                    color: budgetColor,
+                    ...colorCoding.budgetHighlight
+                  }}>
+                    {teamRemainingBudget.toLocaleString()} FM
+                  </div>
+                  {maxBidAmount !== teamRemainingBudget && (
+                    <div style={{ fontSize: '0.7rem', color: '#6b7280' }}>
+                      Max: {maxBidAmount.toLocaleString()}M
+                    </div>
+                  )}
+                </button>
+              );
+            })}
+          </div>
           {selectedTeamId && (
             <div style={{
               fontSize: '0.75rem',
               color: '#6b7280',
-              marginTop: '0.25rem',
               textAlign: 'center'
             }}>
               Budget disponibile: {teamBudget.toLocaleString()} FM
@@ -400,7 +484,7 @@ const FantamilioniModal = ({
         </div>
 
         {/* Warning per budget basso */}
-        {maxFantamilioni <= 0 && (
+        {teamBudget <= 0 && (
           <div style={{
             marginTop: '16px',
             padding: '12px',
