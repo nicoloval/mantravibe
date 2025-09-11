@@ -1,140 +1,158 @@
 # 🚀 Mantravibe - Fantacalcio Assistant
 
-[![Netlify Status](https://api.netlify.com/api/v1/badges/d9c9ea9a-5574-4489-a836-e3476e571d62/deploy-status)](https://app.netlify.com/projects/fantavibe/deploys)
+## 📋 Purpose
 
-Allora, intanto ciao, qua sono io che scrivo ed é giusto fare le dovute premesse. Sta roba qua é frutto di un paio di sere di vibe coding tra me e Claude :wink: quindi prendete tutto per come sta senza troppe aspettative.
+Mantravibe is a comprehensive web application designed to assist fantasy football (fantacalcio) managers in building and managing their teams. The application provides advanced player analysis, team management tools, and budget tracking specifically tailored for the Italian fantasy football league.
 
-I dati per far vedere le magie li prendo qui: <https://github.com/piopy/fantacalcio-py> (bravi ragazzi, salutano sempre).
-Al momento sono dati belli scolpiti dentro ad un file in `public/` ma se mai dovesse girarmi metto su un servizio per recuperare i dati in qualche altro modo, chi lo sa.
+## 🎯 Key Features
 
-Se volete l'ho tirata su in Netlify qui: https://fantavibe.netlify.app/
+### 🏆 **Advanced Player Management**
+- **Comprehensive player database** with detailed statistics and analysis
+- **Smart search and filtering** by role, skills, and performance metrics
+- **Player acquisition system** with budget validation and team management
+- **Formation optimization** with automatic player assignment based on roles and appetibilita
 
-Adesso vi lascio ai trip mentali dello zio Claude che chissá cosa si sará fumato prima di scrivere sto README.
-
-## ✨ Cosa fa Mantravibe
-
-Mantravibe è il tuo assistente personale per il fantacalcio che ti permette di:
-
-### 🎯 **Gestione Rosa Intelligente**
-
-- **Ricerca avanzata** dei giocatori con filtri per ruolo e nome
-- **Visualizzazione classifiche** complete con statistiche dettagliate
-- **Gestione stati** giocatori (disponibile, acquistato, non disponibile)
-- **Tracking automatico** degli acquisti con timestamp
-
-### 💰 **Budget Manager**
-
-- **Controllo budget** in tempo reale con fantamilioni disponibili
-- **Validazione acquisti** automatica per evitare sforamenti
-- **Statistiche spesa** per ruolo e giocatore
-- **Calcolo budget rimanente** dinamico
+### 💰 **Budget & Team Management**
+- **Real-time budget tracking** across multiple teams
+- **Team comparison tools** with visual indicators for budget status
+- **Player acquisition workflow** with price validation and team selection
+- **Formation statistics** showing occupied positions and available players
 
 ### 📊 **Analytics & Insights**
+- **Player performance analysis** with multiple statistical categories
+- **Team composition analysis** with role distribution and budget allocation
+- **Formation optimization** with automatic player assignment algorithms
+- **Export/import functionality** for data backup and sharing
 
-- **Dashboard rosa** con giocatori acquistati organizzati per ruolo
-- **Statistiche complete** su spesa, giocatori per ruolo, media acquisti
-- **Indicatori visivi** per budget e disponibilità
-- **Esportazione dati** per backup e condivisione
+### 🎨 **Modern User Interface**
+- **Responsive design** optimized for desktop and mobile
+- **Intuitive tab-based navigation** with persistent user preferences
+- **Color-coded team status** (green for optimal, red for issues)
+- **Real-time visual feedback** for all user actions
 
-### 🎨 **UI/UX Moderna**
+## 🔗 Related Projects
 
-- **Design responsive** ottimizzato per desktop e mobile
-- **Interfaccia intuitiva** con navigazione a tab
-- **Feedback visivi** per tutte le azioni utente
-- **Persistenza dati** automatica con localStorage
+This project builds upon and integrates with two key open-source projects:
 
-### Stack Tecnologico
+### [fantacalcio-py](https://github.com/piopy/fantacalcio-py)
+The data source for this application. This Python tool:
+- **Scrapes player data** from FPEDIA and FSTATS
+- **Calculates convenience indices** for player valuation
+- **Processes and cleans** statistical data
+- **Exports structured data** in Excel format
+
+The processed data from fantacalcio-py is used as the foundation for all player analysis and recommendations in Mantravibe.
+
+### [fantavibe (original)](https://github.com/informagico/fantavibe)
+This repository was born as a fork of the original fantavibe project, specifically adapted for the **Mantra** fantasy football format. The original project provided the initial React-based architecture and user interface concepts that were extended and specialized for Mantra's specific requirements.
+
+## 🛠️ Technology Stack
 
 ```text
 Frontend Framework: React 19.1.1
-Styling: Inline Styles
-Data Processing: XLSX per parsing file Excel
-Storage: LocalStorage per persistenza client-side
-State Management: React Hooks (useState, useEffect, useMemo)
-Search: Algoritmo di ricerca fuzzy custom
+Styling: CSS-in-JS with inline styles
+Data Processing: JSON parsing and manipulation
+Storage: LocalStorage for client-side persistence
+State Management: React Hooks (useState, useEffect, useMemo, useCallback)
+Search: Optimized search algorithms with indexing
 Build Tool: Create React App
 ```
 
-## 🚀 Quick Start
+## 🚀 Getting Started
 
-### Installazione
+### Prerequisites
+
+- **Node.js** (version 14 or higher)
+- **npm** or **yarn** package manager
+
+### Installation
 
 ```bash
-# Clona il repository
-git clone [repository-url]
+# Clone the repository
+git clone https://github.com/nicoloval/mantravibe.git
+cd mantravibe
 
-# Installa le dipendenze
+# Install dependencies
 npm install
 
-# Avvia l'ambiente di sviluppo
+# Start the development server
 npm start
 ```
 
-### Utilizzo
+The application will be available at `http://localhost:3000`
 
-1. **Carica i dati**: L'app cerca automaticamente `fpedia_analysis.xlsx` nella cartella `public/data/`
-2. **Imposta budget**: Modifica il budget iniziale (default 500 FM)
-3. **Esplora giocatori**: Usa la ricerca per trovare i giocatori desiderati
-4. **Costruisci la rosa**: Acquista giocatori specificando i fantamilioni
-5. **Monitora budget**: Tieni traccia delle spese in tempo reale
+### Building for Production
 
-## 🔧 Configurazione
+```bash
+# Create production build
+npm run build
 
-### File Dati
-
-Posiziona il file Excel con i dati dei giocatori in:
-
-```
-public/data/fpedia_analysis.xlsx
+# The build folder will contain the optimized production files
 ```
 
-Il file deve contenere colonne:
+### Data Setup
 
-- `Nome` - Nome del giocatore
-- `Ruolo` - Ruolo (POR, DIF, CEN, ATT)
-- `Squadra` - Squadra di appartenenza
-- Altre statistiche opzionali
+1. **Player Data**: Place the processed player data file in `public/data/final.json`
+2. **Role Configuration**: Ensure `public/data/roles.csv` contains role definitions and colors
+3. **Appetibilita Data**: Place formation role preferences in `public/assets/appetibilita.json`
 
-### Personalizzazione Budget
+## 📁 Project Structure
 
-Il budget iniziale è 500 FM, modificabile dall'interfaccia e salvato automaticamente.
+```
+src/
+├── components/          # React components
+│   ├── FantamilioniModal.js    # Player acquisition modal
+│   ├── MantraGiocatoriTab.js   # Player search and filtering
+│   ├── RosaAcquistata.js       # Team management and formations
+│   ├── SquadreTab.js           # Multi-team management
+│   └── Settings.js             # Application settings
+├── utils/               # Utility functions
+│   ├── dataUtils.js     # Data processing and search utilities
+│   └── storage.js       # LocalStorage management
+└── App.js              # Main application component
 
-## 🎮 Funzionalità Avanzate
+public/
+├── data/               # Data files
+│   ├── final.json      # Player database
+│   └── roles.csv       # Role definitions
+└── assets/             # Static assets
+    └── appetibilita.json  # Formation preferences
+```
 
-### Ricerca Intelligente
+## 🎮 Usage Guide
 
-- **Ricerca fuzzy** per trovare giocatori anche con errori di digitazione
-- **Filtri ruolo** per navigazione rapida
-- **Indicatori rank** per posizionamento in classifica
-- **Modalità dettagli** per statistiche complete
+### 1. **Player Search & Analysis**
+- Use the "Giocatori" tab to search and filter players
+- Apply role and skill filters for targeted searches
+- View detailed player statistics and performance metrics
 
-### Gestione Rosa
+### 2. **Team Building**
+- Navigate to "La Mia Rosa" to manage your team
+- Select formations and view automatic player assignments
+- Monitor team statistics and budget allocation
 
-- **Organizzazione per ruolo** automatica
-- **Ordinamento per spesa** decrescente
-- **Rimozione giocatori** con conferma
-- **Calcolo automatico** totali e medie
+### 3. **Player Acquisition**
+- Click on any player to open the acquisition modal
+- Set your bid amount and select target team
+- Validate budget constraints and complete purchases
 
-### Persistenza Dati
+### 4. **Multi-Team Management**
+- Use the "Squadre" tab to manage multiple teams
+- Compare team compositions and budgets
+- Drag and drop players between teams
 
-- **Salvataggio automatico** di tutti gli acquisti
-- **Migrazione dati** automatica tra versioni
-- **Esportazione JSON** per backup
-- **Reset completo** con conferma
+## 🔧 Configuration
 
-## 🤝 Contribuire
+### Team Settings
+- **Minimum players**: 21 (configurable)
+- **Maximum players**: 30 (configurable)
+- **Initial budget**: 500 FM (configurable per team)
 
-Mantravibe è un progetto in continua evoluzione. I contributi sono benvenuti, purché rispettino la filosofia di semplicità e intuizione.
+### Formation System
+- **Automatic assignment** based on player roles and appetibilita
+- **Position priority** determined by role importance
+- **Reserve management** for unassigned players
 
-### Come Contribuire
+## 📄 License
 
-1. Studia il flusso utente esistente
-2. Proponi miglioramenti che seguano l'intuizione naturale
-3. Mantieni il codice semplice e leggibile
-4. Testa l'impatto sull'esperienza utente
-
----
-
-**Sviluppato con ❤️ e Claude**
-
-*"Il miglior codice è quello che non si nota, che fluisce naturalmente come il pensiero dell'utente"*
+This project is open source and available under the [MIT License](LICENSE).

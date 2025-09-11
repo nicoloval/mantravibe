@@ -39,7 +39,6 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
   });
 
   const [numberOfTeams, setNumberOfTeams] = useState(8);
-  const [collapsedTeams, setCollapsedTeams] = useState(new Set());
   const [draggedPlayer, setDraggedPlayer] = useState(null);
   const [draggedOverPlayer, setDraggedOverPlayer] = useState(null);
   const [draggedOverTeam, setDraggedOverTeam] = useState(null);
@@ -293,17 +292,6 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
     localStorage.setItem('fantacalcio_teams', JSON.stringify(defaultTeams));
   };
 
-  const toggleTeamCollapse = (teamId) => {
-    setCollapsedTeams(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(teamId)) {
-        newSet.delete(teamId);
-      } else {
-        newSet.add(teamId);
-      }
-      return newSet;
-    });
-  };
 
   // Function to add a player to a team (called from App.js)
   const addPlayerToTeam = (teamId, player, price) => {
@@ -556,7 +544,6 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
   };
 
   const teamBoxHeaderStyle = {
-    cursor: 'pointer',
     userSelect: 'none'
   };
 
@@ -755,7 +742,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
               {isFirstTeam && (
                 <div style={{
                   position: 'absolute',
-                  top: '-12px',
+                  top: '-30px',
                   left: '50%',
                   transform: 'translateX(-50%)',
                   backgroundColor: '#22c55e',
@@ -771,11 +758,8 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
                 </div>
               )}
               
-            {/* Team Header - Clickable */}
-            <div 
-              style={teamBoxHeaderStyle}
-              onClick={() => toggleTeamCollapse(team.id)}
-            >
+            {/* Team Header */}
+            <div style={teamBoxHeaderStyle}>
               <input
                 type="text"
                 value={team.name}
@@ -811,8 +795,8 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
               })()}
             </div>
 
-            {/* Players List - Collapsible */}
-            {team.players && team.players.length > 0 && !collapsedTeams.has(team.id) && (
+            {/* Players List - Always Visible */}
+            {team.players && team.players.length > 0 && (
               <div>
                 <div style={getPlayersListStyle()}>
                 {team.players.map((player, index) => {

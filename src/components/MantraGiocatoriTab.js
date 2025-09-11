@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusChange, onPlayerAcquire, roles = [] }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -60,7 +60,29 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   const [showColumnControls, setShowColumnControls] = useState(false);
   
   // Tooltip visibility state
-  const [visibleTooltip, setVisibleTooltip] = useState(null);
+  const [hoveredColumn, setHoveredColumn] = useState(null);
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  // Global mouse tracking to hide tooltip when mouse leaves table area
+  useEffect(() => {
+    const handleGlobalMouseMove = (e) => {
+      setMousePosition({ x: e.clientX, y: e.clientY });
+      
+      // Check if mouse is over any table header
+      const target = e.target;
+      const isOverTableHeader = target.closest('th');
+      
+      if (!isOverTableHeader && hoveredColumn) {
+        setHoveredColumn(null);
+      }
+    };
+
+    document.addEventListener('mousemove', handleGlobalMouseMove);
+    
+    return () => {
+      document.removeEventListener('mousemove', handleGlobalMouseMove);
+    };
+  }, [hoveredColumn]);
 
   // Create role mapping from roles.csv
   const roleMapping = useMemo(() => {
@@ -395,23 +417,21 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     return typeof value === 'number' && value === -1.00;
   };
 
-  // Simple Tooltip component
-  const Tooltip = ({ children, content, columnName }) => {
-    const isVisible = visibleTooltip === columnName;
-    
+  // Simple Column Header component with tooltip
+  const ColumnHeader = ({ children, content, columnName, onClick }) => {
+    const handleMouseEnter = (e) => {
+      setHoveredColumn(columnName);
+      setMousePosition({ x: e.clientX, y: e.clientY });
+    };
+
     return (
-      <div 
-        style={tooltipContainerStyle}
-        onMouseEnter={() => setVisibleTooltip(columnName)}
-        onMouseLeave={() => setVisibleTooltip(null)}
+      <th 
+        style={thStyle} 
+        onClick={onClick}
+        onMouseEnter={handleMouseEnter}
       >
         {children}
-        {content && (
-          <div style={isVisible ? tooltipVisibleStyle : tooltipStyle}>
-            {content}
-          </div>
-        )}
-      </div>
+      </th>
     );
   };
 
@@ -568,8 +588,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     overflow: 'visible',
     maxWidth: '100%',
     position: 'relative',
-    zIndex: 1,
-    paddingTop: '50px' // Add space at top for tooltips
+    zIndex: 1
   };
 
   const tableWrapperStyle = {
@@ -629,41 +648,22 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     color: '#dc2626' // Darker red text
   };
 
-  // Simple tooltip styles
-  const tooltipContainerStyle = {
-    position: 'relative',
-    display: 'inline-block',
-    zIndex: 1
-  };
-
+  // Tooltip styles
   const tooltipStyle = {
-    visibility: 'hidden',
-    width: 'max-content',
-    maxWidth: '250px',
+    position: 'fixed',
     backgroundColor: '#1f2937',
     color: '#fff',
-    textAlign: 'center',
-    borderRadius: '4px',
-    padding: '6px 10px',
-    position: 'absolute',
-    zIndex: 99999,
-    bottom: '100%',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    marginBottom: '5px',
-    fontSize: '0.7rem',
+    padding: '8px 12px',
+    borderRadius: '6px',
+    fontSize: '0.8rem',
     fontWeight: '500',
-    boxShadow: '0 2px 8px rgba(0, 0, 0, 0.3)',
-    opacity: 0,
-    transition: 'opacity 0.2s, visibility 0.2s',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+    zIndex: 999999,
     pointerEvents: 'none',
-    whiteSpace: 'nowrap'
-  };
-
-  const tooltipVisibleStyle = {
-    ...tooltipStyle,
-    visibility: 'visible',
-    opacity: 1
+    whiteSpace: 'nowrap',
+    maxWidth: '300px',
+    textAlign: 'center',
+    border: '1px solid #374151'
   };
 
   const playerNameStyle = {
@@ -822,17 +822,17 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
           {availableSkills.map(skill => {
             const isSelected = selectedSkills.includes(skill);
             const getSkillColor = (skill) => {
-              // Categorical color scheme for skills
+              // Categorical color scheme for skills - consistent with table display
               const skillColorMap = {
-                'Outsider': '#e11d48',      // Rose-600
-                'Titolare': '#059669',      // Emerald-600
-                'Buona Media': '#0ea5e9',   // Sky-500
-                'Assistman': '#7c3aed',     // Violet-600
-                'Goleador': '#dc2626',      // Red-600
-                'Difensore': '#64748b',     // Slate-500
-                'Portiere': '#ea580c',      // Orange-600
-                'Centrocampista': '#0891b2', // Cyan-600
-                'Attaccante': '#be185d',    // Pink-700
+                'Outsider': '#f59e0b',      // Orange
+                'Titolare': '#10b981',      // Green
+                'Buona Media': '#3b82f6',   // Blue
+                'Assistman': '#8b5cf6',     // Purple
+                'Goleador': '#ef4444',      // Red
+                'Difensore': '#6b7280',     // Gray
+                'Portiere': '#f97316',      // Orange
+                'Centrocampista': '#06b6d4', // Cyan
+                'Attaccante': '#ec4899',    // Pink
                 'Falloso': '#f59e0b',       // Amber-500
                 'Fuoriclasse': '#8b5cf6',   // Violet-500
                 'Giovane talento': '#10b981', // Emerald-500
@@ -1246,51 +1246,54 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         </div>
       )}
 
+      {/* Tooltip Overlay */}
+      {hoveredColumn && (
+        <div
+          style={{
+            ...tooltipStyle,
+            top: `${mousePosition.y - 40}px`,
+            left: `${mousePosition.x}px`,
+            transform: 'translateX(-50%)',
+            display: 'block'
+          }}
+        >
+          {hoveredColumn}
+        </div>
+      )}
+
       {/* Tabella */}
       <div style={tableContainerStyle}>
         <div style={tableWrapperStyle}>
           <table style={tableStyle}>
           <thead>
             <tr>
-              <th style={thStyle}>
-                <Tooltip content="Azioni" columnName="Azioni">
-                  Azioni
-                </Tooltip>
-              </th>
+              <ColumnHeader columnName="Azioni" content="Azioni">
+                Azioni
+              </ColumnHeader>
               {visibleColumns.has('Nome') && (
-                <th style={nameThStyle} onClick={() => handleSort('Nome')}>
-                  <Tooltip content="Nome" columnName="Nome">
-                    Nome {getSortIcon('Nome')}
-                  </Tooltip>
-                </th>
+                <ColumnHeader columnName="Nome" content="Nome" onClick={() => handleSort('Nome')}>
+                  Nome {getSortIcon('Nome')}
+                </ColumnHeader>
               )}
               {visibleColumns.has('Squadra') && (
-                <th style={thStyle} onClick={() => handleSort('Squadra')}>
-                  <Tooltip content="Squadra" columnName="Squadra">
-                    Squadra {getSortIcon('Squadra')}
-                  </Tooltip>
-                </th>
+                <ColumnHeader columnName="Squadra" content="Squadra" onClick={() => handleSort('Squadra')}>
+                  Squadra {getSortIcon('Squadra')}
+                </ColumnHeader>
               )}
               {visibleColumns.has('Ruolo Mantra') && (
-                <th style={thStyle}>
-                  <Tooltip content="Ruolo" columnName="Ruolo">
-                    Ruolo
-                  </Tooltip>
-                </th>
+                <ColumnHeader columnName="Ruolo" content="Ruolo">
+                  Ruolo
+                </ColumnHeader>
               )}
               {visibleColumns.has('Skills') && (
-                <th style={thStyle}>
-                  <Tooltip content="Skills" columnName="Skills">
-                    Skills
-                  </Tooltip>
-                </th>
+                <ColumnHeader columnName="Skills" content="Skills">
+                  Skills
+                </ColumnHeader>
               )}
               {columns.filter(column => visibleColumns.has(column) && column !== 'Nome' && column !== 'Squadra' && column !== 'Ruolo Mantra' && column !== 'Skills').map(column => (
-                <th key={column} style={thStyle} onClick={() => handleSort(column)}>
-                  <Tooltip content={column} columnName={column}>
-                    {getColumnAcronym(column)} {getSortIcon(column)}
-                  </Tooltip>
-                </th>
+                <ColumnHeader key={column} columnName={column} content={column} onClick={() => handleSort(column)}>
+                  {getColumnAcronym(column)} {getSortIcon(column)}
+                </ColumnHeader>
               ))}
             </tr>
           </thead>
