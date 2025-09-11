@@ -59,6 +59,18 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   // Column controls visibility state
   const [showColumnControls, setShowColumnControls] = useState(false);
   
+  // Display mode state (table or cards)
+  const [displayMode, setDisplayMode] = useState(() => {
+    const savedMode = localStorage.getItem('giocatoriDisplayMode');
+    return savedMode || 'table';
+  });
+  
+  // Card details visibility state
+  const [showCardDetails, setShowCardDetails] = useState(() => {
+    const savedDetails = localStorage.getItem('giocatoriShowCardDetails');
+    return savedDetails === 'true';
+  });
+  
   // Tooltip visibility state
   const [hoveredColumn, setHoveredColumn] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
@@ -213,6 +225,11 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     });
   };
 
+  // Helper function to check if data is missing (-1.00)
+  const isMissingData = (value) => {
+    return typeof value === 'number' && value === -1.00;
+  };
+
   // Filter and sort players
   const filteredAndSortedPlayers = useMemo(() => {
     // Debug logging for playerStatus
@@ -288,7 +305,50 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     
 
     // Sort players
-    if (sortConfig.key) {
+    if (displayMode === 'cards') {
+      // For card display mode, always sort by max between Fantaindex and FPEDIA
+      filtered.sort((a, b) => {
+        const aFantaindex = a['Fantaindex  2025-2026'];
+        const aFpedia = a['Punteggio FPEDIA'];
+        const bFantaindex = b['Fantaindex  2025-2026'];
+        const bFpedia = b['Punteggio FPEDIA'];
+        
+        // Check if values are N/A (missing data)
+        const aFantaindexValid = !isMissingData(aFantaindex);
+        const aFpediaValid = !isMissingData(aFpedia);
+        const bFantaindexValid = !isMissingData(bFantaindex);
+        const bFpediaValid = !isMissingData(bFpedia);
+        
+        // If both players have no valid values, maintain original order
+        if (!aFantaindexValid && !aFpediaValid && !bFantaindexValid && !bFpediaValid) {
+          return 0;
+        }
+        
+        // If player A has no valid values, put them at bottom
+        if (!aFantaindexValid && !aFpediaValid) {
+          return 1;
+        }
+        
+        // If player B has no valid values, put them at bottom
+        if (!bFantaindexValid && !bFpediaValid) {
+          return -1;
+        }
+        
+        // Calculate max values for each player (ignoring N/A)
+        const aMax = Math.max(
+          aFantaindexValid ? aFantaindex : -Infinity,
+          aFpediaValid ? aFpedia : -Infinity
+        );
+        const bMax = Math.max(
+          bFantaindexValid ? bFantaindex : -Infinity,
+          bFpediaValid ? bFpedia : -Infinity
+        );
+        
+        // Sort in descending order (highest values first)
+        return bMax - aMax;
+      });
+    } else if (sortConfig.key) {
+      // For table mode, use the selected sort column
       filtered.sort((a, b) => {
         let aVal = a[sortConfig.key];
         let bVal = b[sortConfig.key];
@@ -316,7 +376,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     }
 
     return filtered;
-  }, [players, searchTerm, selectedRoles, selectedSkills, sortConfig, hideAcquired, playerStatus]);
+  }, [players, searchTerm, selectedRoles, selectedSkills, sortConfig, hideAcquired, playerStatus, displayMode]);
 
   const handleSort = (key) => {
     setSortConfig(prevConfig => ({
@@ -412,9 +472,96 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     return acronyms[columnName] || columnName.substring(0, 8);
   };
 
-  // Helper function to check if data is missing (-1.00)
-  const isMissingData = (value) => {
-    return typeof value === 'number' && value === -1.00;
+  // Helper function to get trend emoji
+  const getTrendEmoji = (trend) => {
+    if (!trend) return '=';
+    const trendLower = trend.toLowerCase();
+    if (trendLower.includes('up') || trendLower.includes('crescita') || trendLower.includes('positivo')) {
+      return '📈';
+    } else if (trendLower.includes('down') || trendLower.includes('calo') || trendLower.includes('negativo')) {
+      return '📉';
+    }
+    return '=';
+  };
+
+  // Helper function to get role color
+  const getRoleColor = (role) => {
+    const roleColorMap = {
+      'G': '#f97316',    // Orange
+      'CB': '#22c55e',   // Green
+      'LA': '#22c55e',   // Green
+      'RB': '#22c55e',   // Green
+      'LB': '#22c55e',   // Green
+      'E': '#3b82f6',    // Blue
+      'DM': '#3b82f6',   // Blue
+      'M': '#3b82f6',    // Blue
+      'W': '#a855f7',    // Purple
+      'OM': '#a855f7',   // Purple
+      'F': '#ef4444',    // Red
+      'CF': '#ef4444'    // Red
+    };
+    return roleColorMap[role] || '#6b7280';
+  };
+
+  // Helper function to get role info (Italian translation and color)
+  const getRoleInfo = (role) => {
+    const roleMap = {
+      'G': { italian: 'P', color: '#f97316' },    // Orange
+      'CB': { italian: 'DC', color: '#22c55e' },  // Green
+      'LA': { italian: 'B', color: '#22c55e' },   // Green
+      'RB': { italian: 'DD', color: '#22c55e' },  // Green
+      'LB': { italian: 'DS', color: '#22c55e' },  // Green
+      'E': { italian: 'E', color: '#3b82f6' },    // Blue
+      'DM': { italian: 'M', color: '#3b82f6' },   // Blue
+      'M': { italian: 'C', color: '#3b82f6' },    // Blue
+      'W': { italian: 'W', color: '#a855f7' },    // Purple
+      'OM': { italian: 'T', color: '#a855f7' },   // Purple
+      'F': { italian: 'A', color: '#ef4444' },    // Red
+      'CF': { italian: 'PC', color: '#ef4444' }   // Red
+    };
+    return roleMap[role] || { italian: role, color: '#6b7280' };
+  };
+
+  // Helper function to format values (int vs float)
+  const formatValue = (value) => {
+    if (typeof value === 'number') {
+      if (isMissingData(value)) return 'N/A';
+      // Check if it's an integer (even if stored as float)
+      if (Number.isInteger(value)) {
+        return value.toString();
+      } else {
+        return value.toFixed(2);
+      }
+    }
+    return String(value || '-');
+  };
+
+  // Helper function to check if player is goalkeeper
+  const isGoalkeeper = (mantraRoles) => {
+    return mantraRoles.some(role => role === 'G' || role === 'P');
+  };
+
+  // Helper function to get skill color
+  const getSkillColor = (skill) => {
+    // Categorical color scheme for skills - consistent with table display
+    const skillColorMap = {
+      'Outsider': '#f59e0b',      // Orange
+      'Titolare': '#10b981',      // Green
+      'Buona Media': '#3b82f6',   // Blue
+      'Assistman': '#8b5cf6',     // Purple
+      'Goleador': '#ef4444',      // Red
+      'Difensore': '#6b7280',     // Gray
+      'Portiere': '#f97316',      // Orange
+      'Centrocampista': '#06b6d4', // Cyan
+      'Attaccante': '#ec4899',    // Pink
+      'Falloso': '#f59e0b',       // Amber-500
+      'Fuoriclasse': '#8b5cf6',   // Violet-500
+      'Giovane talento': '#10b981', // Emerald-500
+      'Panchinaro': '#6b7280',    // Slate-500
+      'Piazzati': '#f97316',      // Orange-500
+      'Rigorista': '#ef4444'      // Red-500
+    };
+    return skillColorMap[skill] || '#6b7280';
   };
 
   // Simple Column Header component with tooltip
@@ -423,7 +570,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       setHoveredColumn(columnName);
       setMousePosition({ x: e.clientX, y: e.clientY });
     };
-
+    
     return (
       <th 
         style={thStyle} 
@@ -557,7 +704,8 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   const containerStyle = {
     padding: '2rem',
     maxWidth: '1400px',
-    margin: '0 auto'
+    margin: '0 auto',
+    position: 'relative'
   };
 
   const filtersStyle = {
@@ -732,8 +880,198 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     color: '#dc2626'
   };
 
+  // Card display styles
+  const cardsContainerStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '1rem',
+    padding: '1rem 0'
+  };
+
+  const playerCardStyle = {
+    backgroundColor: 'white',
+    border: '1px solid #e5e7eb',
+    borderRadius: '0.5rem',
+    padding: '1rem',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    transition: 'all 0.2s',
+    cursor: 'pointer'
+  };
+
+  const playerCardHoverStyle = {
+    ...playerCardStyle,
+    borderColor: '#3b82f6',
+    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)'
+  };
+
+  const cardHeaderStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    marginBottom: '0.75rem',
+    flexWrap: 'wrap'
+  };
+
+  const cardTitleStyle = {
+    fontSize: '1rem',
+    fontWeight: '600',
+    color: '#1f2937',
+    flex: 1,
+    minWidth: 0
+  };
+
+  const cardSquadraStyle = {
+    fontSize: '0.875rem',
+    color: '#6b7280',
+    marginBottom: '0.75rem'
+  };
+
+  const cardStatsGridStyle = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(3, 1fr)',
+    gap: '0.5rem',
+    marginBottom: '1rem'
+  };
+
+  const cardStatsGrid4Style = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(4, 1fr)',
+    gap: '0.5rem',
+    marginBottom: '1rem'
+  };
+
+  const cardStatsGrid2Style = {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(2, 1fr)',
+    gap: '0.5rem',
+    marginBottom: '1rem'
+  };
+
+  const statItemStyle = {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    padding: '0.5rem',
+    backgroundColor: '#f9fafb',
+    borderRadius: '0.25rem',
+    fontSize: '0.75rem'
+  };
+
+  const statValueStyle = {
+    fontWeight: '700',
+    color: '#1f2937',
+    marginBottom: '0.25rem',
+    fontSize: '1.1rem'
+  };
+
+  const statLabelStyle = {
+    color: '#6b7280',
+    fontSize: '0.85rem',
+    textAlign: 'center',
+    lineHeight: '1.2',
+    wordWrap: 'break-word',
+    overflowWrap: 'break-word',
+    hyphens: 'auto',
+    fontWeight: '500'
+  };
+
+
+  const cardActionsStyle = {
+    display: 'flex',
+    justifyContent: 'center',
+    paddingTop: '0.75rem',
+    borderTop: '1px solid #e5e7eb'
+  };
+
+  const cardSkillsStyle = {
+    display: 'flex',
+    gap: '0.25rem',
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+    marginTop: '0.5rem',
+    marginBottom: '0.5rem'
+  };
+
+  const skillTagStyle = {
+    padding: '0.125rem 0.375rem',
+    borderRadius: '0.25rem',
+    fontSize: '0.7rem',
+    fontWeight: '600',
+    color: 'white'
+  };
+
+  const topRightButtonStyle = {
+    position: 'absolute',
+    top: '0.75rem',
+    right: '0.75rem',
+    padding: '0.5rem 1rem',
+    fontSize: '0.875rem',
+    fontWeight: '600',
+    border: 'none',
+    borderRadius: '0.375rem',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    minWidth: '80px'
+  };
+
   return (
     <div style={containerStyle}>
+      {/* Display Mode Toggle - Top Right Corner of Tab */}
+      <div style={{ 
+        position: 'absolute',
+        top: '0.5rem',
+        right: '0.5rem',
+        display: 'flex',
+        gap: '0.25rem',
+        alignItems: 'center',
+        zIndex: 100
+      }}>
+        <button
+          onClick={() => {
+            setDisplayMode('table');
+            localStorage.setItem('giocatoriDisplayMode', 'table');
+          }}
+          style={{
+            padding: '0.375rem 0.75rem',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            border: '1px solid #d1d5db',
+            borderRadius: '0.375rem',
+            backgroundColor: displayMode === 'table' ? '#3b82f6' : '#f3f4f6',
+            color: displayMode === 'table' ? 'white' : '#374151',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.25rem'
+          }}
+        >
+          📊 Tabella
+        </button>
+        <button
+          onClick={() => {
+            setDisplayMode('cards');
+            localStorage.setItem('giocatoriDisplayMode', 'cards');
+          }}
+          style={{
+            padding: '0.375rem 0.75rem',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            border: '1px solid #d1d5db',
+            borderRadius: '0.375rem',
+            backgroundColor: displayMode === 'cards' ? '#3b82f6' : '#f3f4f6',
+            color: displayMode === 'cards' ? 'white' : '#374151',
+            cursor: 'pointer',
+            transition: 'all 0.2s',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.25rem'
+          }}
+        >
+          🃏 Carte
+        </button>
+      </div>
+
       {/* Filtri */}
       <div style={{ 
         ...filtersStyle,
@@ -821,29 +1159,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           {availableSkills.map(skill => {
             const isSelected = selectedSkills.includes(skill);
-            const getSkillColor = (skill) => {
-              // Categorical color scheme for skills - consistent with table display
-              const skillColorMap = {
-                'Outsider': '#f59e0b',      // Orange
-                'Titolare': '#10b981',      // Green
-                'Buona Media': '#3b82f6',   // Blue
-                'Assistman': '#8b5cf6',     // Purple
-                'Goleador': '#ef4444',      // Red
-                'Difensore': '#6b7280',     // Gray
-                'Portiere': '#f97316',      // Orange
-                'Centrocampista': '#06b6d4', // Cyan
-                'Attaccante': '#ec4899',    // Pink
-                'Falloso': '#f59e0b',       // Amber-500
-                'Fuoriclasse': '#8b5cf6',   // Violet-500
-                'Giovane talento': '#10b981', // Emerald-500
-                'Panchinaro': '#6b7280',    // Slate-500
-                'Piazzati': '#f97316',      // Orange-500
-                'Rigorista': '#ef4444'      // Red-500
-              };
-              const color = skillColorMap[skill] || '#6b7280';
-              console.log(`🎨 Skill "${skill}" -> ${color}`);
-              return color;
-            };
             
             return (
               <button
@@ -872,7 +1187,8 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
           {filteredAndSortedPlayers.length} giocatori trovati
         </div>
         
-        {/* Toggle Column Controls Button */}
+        {/* Toggle Column Controls Button - Only show in table mode */}
+        {displayMode === 'table' && (
         <button
           onClick={() => setShowColumnControls(!showColumnControls)}
           style={{
@@ -890,10 +1206,35 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         >
           {showColumnControls ? 'Nascondi Colonne' : 'Mostra Colonne'}
         </button>
+        )}
+        
+        {/* Toggle Card Details Button - Only show in card mode */}
+        {displayMode === 'cards' && (
+          <button
+            onClick={() => {
+              setShowCardDetails(!showCardDetails);
+              localStorage.setItem('giocatoriShowCardDetails', (!showCardDetails).toString());
+            }}
+            style={{
+              padding: '0.5rem 1rem',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              border: '1px solid #d1d5db',
+              borderRadius: '0.375rem',
+              backgroundColor: showCardDetails ? '#3b82f6' : '#f3f4f6',
+              color: showCardDetails ? 'white' : '#374151',
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+            title={showCardDetails ? 'Nascondi dettagli carte' : 'Mostra dettagli carte'}
+          >
+            {showCardDetails ? 'Nascondi Dettagli' : 'Mostra Dettagli'}
+          </button>
+        )}
       </div>
 
-      {/* Column Visibility Controls */}
-      {showColumnControls && (
+      {/* Column Visibility Controls - Only show in table mode */}
+      {displayMode === 'table' && showColumnControls && (
         <div style={{ marginBottom: '1rem' }}>
           <div style={{ 
             display: 'flex', 
@@ -1246,6 +1587,443 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         </div>
       )}
 
+      {/* Card Display */}
+      {displayMode === 'cards' && (
+        <div style={cardsContainerStyle}>
+          {filteredAndSortedPlayers.map((player, index) => {
+            const playerId = player.id;
+            const status = getPlayerStatus(playerId);
+            const fantamilioni = getPlayerFantamilioni(playerId);
+            
+            // Parse mantra roles
+            let mantraRoles = [];
+            if (player['Ruolo Mantra']) {
+              if (Array.isArray(player['Ruolo Mantra'])) {
+                mantraRoles = player['Ruolo Mantra'];
+              } else if (typeof player['Ruolo Mantra'] === 'string') {
+                try {
+                  const jsonString = player['Ruolo Mantra'].replace(/'/g, '"');
+                  mantraRoles = JSON.parse(jsonString);
+                } catch (e) {
+                  mantraRoles = [player['Ruolo Mantra']];
+                }
+              } else {
+                mantraRoles = [player['Ruolo Mantra']];
+              }
+            }
+            
+            const isGK = isGoalkeeper(mantraRoles);
+            
+            return (
+              <div
+                key={index}
+                style={playerCardStyle}
+                onMouseEnter={(e) => {
+                  Object.assign(e.currentTarget.style, playerCardHoverStyle);
+                }}
+                onMouseLeave={(e) => {
+                  Object.assign(e.currentTarget.style, playerCardStyle);
+                }}
+              >
+                {/* Card Header - First Line: Player Name + Button */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '0.5rem'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}>
+                    <span style={{ fontSize: '1.2rem' }}>
+                      {getTrendEmoji(player.Trend)}
+                    </span>
+                    <div style={cardTitleStyle}>{player.Nome}</div>
+                  </div>
+                  
+                  {/* Button in card header */}
+                  {status === 'acquired' && (
+                    <button
+                      style={{
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        border: 'none',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        backgroundColor: '#10b981',
+                        color: 'white',
+                        minWidth: '80px'
+                      }}
+                    >
+                      Acquistato
+                    </button>
+                  )}
+                  {status === 'unavailable' && (
+                    <button
+                      style={{
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        border: 'none',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        backgroundColor: '#ef4444',
+                        color: 'white',
+                        minWidth: '80px'
+                      }}
+                    >
+                      Non Disp.
+                    </button>
+                  )}
+                  {status === 'available' && (
+                    <button
+                      onClick={() => handleAcquire(player)}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        border: 'none',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        backgroundColor: '#3b82f6',
+                        color: 'white',
+                        minWidth: '80px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = '#2563eb';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = '#3b82f6';
+                      }}
+                    >
+                      Compra
+                    </button>
+                  )}
+                  {status !== 'available' && (
+                    <button
+                      onClick={() => handleStatusChange(playerId, 'available')}
+                      style={{
+                        padding: '0.5rem 1rem',
+                        fontSize: '0.875rem',
+                        fontWeight: '600',
+                        border: 'none',
+                        borderRadius: '0.375rem',
+                        cursor: 'pointer',
+                        transition: 'all 0.2s',
+                        backgroundColor: '#6b7280',
+                        color: 'white',
+                        minWidth: '80px'
+                      }}
+                      onMouseEnter={(e) => {
+                        e.target.style.backgroundColor = '#4b5563';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.target.style.backgroundColor = '#6b7280';
+                      }}
+                    >
+                      Reset
+                    </button>
+                  )}
+                </div>
+                
+                {/* Second Line: Role + Team */}
+                <div style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: '0.5rem'
+                }}>
+                  {/* Mantra Roles */}
+                  <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                    {mantraRoles.map((role, roleIndex) => {
+                      const roleInfo = getRoleInfo(role);
+                      return (
+                        <span
+                          key={roleIndex}
+                          style={{
+                            padding: '0.125rem 0.375rem',
+                            backgroundColor: getRoleColor(role),
+                            borderRadius: '0.25rem',
+                            fontSize: '0.7rem',
+                            color: 'white',
+                            fontWeight: '600'
+                          }}
+                        >
+                          {roleInfo.italian}
+                        </span>
+                      );
+                    })}
+                  </div>
+                  
+                  {/* Team */}
+                  <div style={{
+                    ...cardSquadraStyle,
+                    fontSize: '0.8rem',
+                    marginBottom: '0'
+                  }}>
+                    {player.Squadra}
+                  </div>
+                </div>
+                
+                {/* Skills */}
+                {player.Skills && (
+                  <div style={cardSkillsStyle}>
+                    {(() => {
+                      let skills = [];
+                      if (Array.isArray(player.Skills)) {
+                        skills = player.Skills;
+                      } else if (typeof player.Skills === 'string') {
+                        try {
+                          const jsonString = player.Skills.replace(/'/g, '"');
+                          skills = JSON.parse(jsonString);
+                        } catch (e) {
+                          skills = [player.Skills];
+                        }
+                      } else {
+                        skills = [player.Skills];
+                      }
+                      
+                      return skills.map((skill, skillIndex) => (
+                        <span
+                          key={skillIndex}
+                          style={{
+                            ...skillTagStyle,
+                            backgroundColor: getSkillColor(skill)
+                          }}
+                        >
+                          {skill}
+                        </span>
+                      ));
+                    })()}
+                  </div>
+                )}
+                
+                {/* Always Visible Stats */}
+                <div style={cardStatsGrid2Style}>
+                  {['Fantaindex  2025-2026', 'Punteggio FPEDIA'].map((statColumn, statIndex) => {
+                    const value = player[statColumn];
+                    const isMissing = isMissingData(value);
+                    const displayValue = formatValue(value);
+                    
+                    return (
+                      <div key={statIndex} style={statItemStyle}>
+                        <div style={{
+                          ...statValueStyle,
+                          color: isMissing ? '#dc2626' : '#1f2937'
+                        }}>
+                          {displayValue}
+                        </div>
+                        <div style={statLabelStyle}>
+                          {statColumn}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                <div style={cardStatsGridStyle}>
+                  {['Convenienza FSTATS 2025-2026', 'Convenienza FPEDIA', 'Buon Investimento'].map((statColumn, statIndex) => {
+                    const value = player[statColumn];
+                    const isMissing = isMissingData(value);
+                    const displayValue = formatValue(value);
+                    
+                    return (
+                      <div key={statIndex} style={statItemStyle}>
+                        <div style={{
+                          ...statValueStyle,
+                          color: isMissing ? '#dc2626' : '#1f2937'
+                        }}>
+                          {displayValue}
+                        </div>
+                        <div style={statLabelStyle}>
+                          {statColumn}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                
+                {/* Conditional Stats - Only show when details are enabled */}
+                {showCardDetails && (
+                  <>
+                    <div style={cardStatsGridStyle}>
+                      {['Resistenza Infortuni', 'Infortunato', 'Nuovo Acquisto'].map((statColumn, statIndex) => {
+                        const value = player[statColumn];
+                        const isMissing = isMissingData(value);
+                        const displayValue = formatValue(value);
+                        
+                        return (
+                          <div key={statIndex} style={statItemStyle}>
+                            <div style={{
+                              ...statValueStyle,
+                              color: isMissing ? '#dc2626' : '#1f2937'
+                            }}>
+                              {displayValue}
+                            </div>
+                            <div style={statLabelStyle}>
+                              {statColumn}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    <div style={cardStatsGridStyle}>
+                      {['Presenze Previste', 'Gol Previsti', 'Assist Previsti'].map((statColumn, statIndex) => {
+                        const value = player[statColumn];
+                        const isMissing = isMissingData(value);
+                        const displayValue = formatValue(value);
+                        
+                        return (
+                          <div key={statIndex} style={statItemStyle}>
+                            <div style={{
+                              ...statValueStyle,
+                              color: isMissing ? '#dc2626' : '#1f2937'
+                            }}>
+                              {displayValue}
+                            </div>
+                            <div style={statLabelStyle}>
+                              {statColumn}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    <div style={cardStatsGrid2Style}>
+                      {['Fantamedia 2025-2026', 'Media 2025-2026'].map((statColumn, statIndex) => {
+                        const value = player[statColumn];
+                        const isMissing = isMissingData(value);
+                        const displayValue = formatValue(value);
+                        
+                        return (
+                          <div key={statIndex} style={statItemStyle}>
+                            <div style={{
+                              ...statValueStyle,
+                              color: isMissing ? '#dc2626' : '#1f2937'
+                            }}>
+                              {displayValue}
+                            </div>
+                            <div style={statLabelStyle}>
+                              {statColumn}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    <div style={cardStatsGridStyle}>
+                      {['Presenze 2025-2026', 'Minuti Giocati 2025-2026', 'Matches With Grade 2025-2026'].map((statColumn, statIndex) => {
+                        const value = player[statColumn];
+                        const isMissing = isMissingData(value);
+                        const displayValue = formatValue(value);
+                        
+                        return (
+                          <div key={statIndex} style={statItemStyle}>
+                            <div style={{
+                              ...statValueStyle,
+                              color: isMissing ? '#dc2626' : '#1f2937'
+                            }}>
+                              {displayValue}
+                            </div>
+                            <div style={statLabelStyle}>
+                              {statColumn}
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                    
+                    {/* Non-goalkeeper stats */}
+                    {!isGK && (
+                      <div style={cardStatsGrid2Style}>
+                        {['Gol 2025-2026', 'Assist 2025-2026'].map((statColumn, statIndex) => {
+                          const value = player[statColumn];
+                          const isMissing = isMissingData(value);
+                          const displayValue = formatValue(value);
+                          
+                          return (
+                            <div key={statIndex} style={statItemStyle}>
+                              <div style={{
+                                ...statValueStyle,
+                                color: isMissing ? '#dc2626' : '#1f2937'
+                              }}>
+                                {displayValue}
+                              </div>
+                              <div style={statLabelStyle}>
+                                {statColumn}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    
+                    {/* Non-goalkeeper xG/xA stats */}
+                    {!isGK && (
+                      <div style={cardStatsGrid2Style}>
+                        {['xG From Open Plays 2025-2026', 'xA 2025-2026'].map((statColumn, statIndex) => {
+                          const value = player[statColumn];
+                          const isMissing = isMissingData(value);
+                          const displayValue = formatValue(value);
+                          
+                          return (
+                            <div key={statIndex} style={statItemStyle}>
+                              <div style={{
+                                ...statValueStyle,
+                                color: isMissing ? '#dc2626' : '#1f2937'
+                              }}>
+                                {displayValue}
+                              </div>
+                              <div style={statLabelStyle}>
+                                {statColumn}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    
+                    {/* Goalkeeper stats */}
+                    {isGK && (
+                      <div style={cardStatsGridStyle}>
+                        {['GK Penalties Saved 2025-2026', 'GK Clean Sheets 2025-2026', 'GK Conceded Goals 2025-2026'].map((statColumn, statIndex) => {
+                          const value = player[statColumn];
+                          const isMissing = isMissingData(value);
+                          const displayValue = formatValue(value);
+                          
+                          return (
+                            <div key={statIndex} style={statItemStyle}>
+                              <div style={{
+                                ...statValueStyle,
+                                color: isMissing ? '#dc2626' : '#1f2937'
+                              }}>
+                                {displayValue}
+                              </div>
+                              <div style={statLabelStyle}>
+                                {statColumn}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                    
+                  </>
+                )}
+                
+              </div>
+            );
+          })}
+        </div>
+      )}
+
       {/* Tooltip Overlay */}
       {hoveredColumn && (
         <div
@@ -1261,38 +2039,39 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         </div>
       )}
 
-      {/* Tabella */}
+      {/* Tabella - Only show in table mode */}
+      {displayMode === 'table' && (
       <div style={tableContainerStyle}>
         <div style={tableWrapperStyle}>
           <table style={tableStyle}>
           <thead>
             <tr>
               <ColumnHeader columnName="Azioni" content="Azioni">
-                Azioni
+                  Azioni
               </ColumnHeader>
               {visibleColumns.has('Nome') && (
                 <ColumnHeader columnName="Nome" content="Nome" onClick={() => handleSort('Nome')}>
-                  Nome {getSortIcon('Nome')}
+                    Nome {getSortIcon('Nome')}
                 </ColumnHeader>
               )}
               {visibleColumns.has('Squadra') && (
                 <ColumnHeader columnName="Squadra" content="Squadra" onClick={() => handleSort('Squadra')}>
-                  Squadra {getSortIcon('Squadra')}
+                    Squadra {getSortIcon('Squadra')}
                 </ColumnHeader>
               )}
               {visibleColumns.has('Ruolo Mantra') && (
                 <ColumnHeader columnName="Ruolo" content="Ruolo">
-                  Ruolo
+                    Ruolo
                 </ColumnHeader>
               )}
               {visibleColumns.has('Skills') && (
                 <ColumnHeader columnName="Skills" content="Skills">
-                  Skills
+                    Skills
                 </ColumnHeader>
               )}
               {columns.filter(column => visibleColumns.has(column) && column !== 'Nome' && column !== 'Squadra' && column !== 'Ruolo Mantra' && column !== 'Skills').map(column => (
                 <ColumnHeader key={column} columnName={column} content={column} onClick={() => handleSort(column)}>
-                  {getColumnAcronym(column)} {getSortIcon(column)}
+                    {getColumnAcronym(column)} {getSortIcon(column)}
                 </ColumnHeader>
               ))}
             </tr>
@@ -1443,21 +2222,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                       return skills.length > 0 ? (
                         <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
                           {skills.map((skill, idx) => {
-                            // Define skill colors
-                            const getSkillColor = (skill) => {
-                              const skillColorMap = {
-                                'Outsider': '#f59e0b',      // Orange
-                                'Titolare': '#10b981',      // Green
-                                'Buona Media': '#3b82f6',   // Blue
-                                'Assistman': '#8b5cf6',     // Purple
-                                'Goleador': '#ef4444',      // Red
-                                'Difensore': '#6b7280',     // Gray
-                                'Portiere': '#f97316',      // Orange
-                                'Centrocampista': '#06b6d4', // Cyan
-                                'Attaccante': '#ec4899'     // Pink
-                              };
-                              return skillColorMap[skill] || '#6b7280';
-                            };
                             
                             return (
                               <span key={idx} style={{
@@ -1500,6 +2264,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         </table>
         </div>
       </div>
+      )}
     </div>
   );
 };
