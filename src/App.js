@@ -90,41 +90,6 @@ const App = () => {
   const currentPlayerStatus = mantraPlayerStatus;
   const currentBudget = mantraBudget;
 
-  // Carica status giocatori all'avvio
-  useEffect(() => {
-    // Load separate data for each mode
-    const normalStatus = loadPlayerStatus('normal');
-    const mantraStatus = loadPlayerStatus('mantra');
-    const normalSavedBudget = loadBudget('normal');
-    const mantraSavedBudget = loadBudget('mantra');
-    
-    console.log('Caricamento iniziale - Stato normale trovato:', Object.keys(normalStatus).length, 'giocatori');
-    console.log('Caricamento iniziale - Stato mantra trovato:', Object.keys(mantraStatus).length, 'giocatori');
-    console.log('Caricamento iniziale - Budget normale trovato:', normalSavedBudget);
-    console.log('Caricamento iniziale - Budget mantra trovato:', mantraSavedBudget);
-    
-    setNormalPlayerStatus(normalStatus);
-    setMantraPlayerStatus(mantraStatus);
-    setNormalBudget(normalSavedBudget);
-    setMantraBudget(mantraSavedBudget);
-    
-    // Load teams from localStorage
-    try {
-      const savedTeams = localStorage.getItem('fantacalcio_teams');
-      const teamsData = savedTeams ? JSON.parse(savedTeams) : [];
-      const validTeams = Array.isArray(teamsData) ? teamsData : [];
-      setTeams(validTeams);
-      console.log('🔍 DEBUG: Loaded teams from localStorage:', validTeams);
-    } catch (error) {
-      console.error('Error loading teams from localStorage:', error);
-      setTeams([]);
-    }
-    
-    // Segna come inizializzato DOPO aver caricato i dati
-    setIsInitialized(true);
-    
-    loadMantraData();
-  }, []);
 
   // Salva automaticamente lo status dei giocatori normali
   useEffect(() => {
@@ -262,6 +227,41 @@ const App = () => {
     }
   }, []);
 
+  // Carica status giocatori all'avvio
+  useEffect(() => {
+    // Load separate data for each mode
+    const normalStatus = loadPlayerStatus('normal');
+    const mantraStatus = loadPlayerStatus('mantra');
+    const normalSavedBudget = loadBudget('normal');
+    const mantraSavedBudget = loadBudget('mantra');
+    
+    console.log('Caricamento iniziale - Stato normale trovato:', Object.keys(normalStatus).length, 'giocatori');
+    console.log('Caricamento iniziale - Stato mantra trovato:', Object.keys(mantraStatus).length, 'giocatori');
+    console.log('Caricamento iniziale - Budget normale trovato:', normalSavedBudget);
+    console.log('Caricamento iniziale - Budget mantra trovato:', mantraSavedBudget);
+    
+    setNormalPlayerStatus(normalStatus);
+    setMantraPlayerStatus(mantraStatus);
+    setNormalBudget(normalSavedBudget);
+    setMantraBudget(mantraSavedBudget);
+    
+    // Load teams from localStorage
+    try {
+      const savedTeams = localStorage.getItem('fantacalcio_teams');
+      const teamsData = savedTeams ? JSON.parse(savedTeams) : [];
+      const validTeams = Array.isArray(teamsData) ? teamsData : [];
+      setTeams(validTeams);
+      console.log('🔍 DEBUG: Loaded teams from localStorage:', validTeams);
+    } catch (error) {
+      console.error('Error loading teams from localStorage:', error);
+      setTeams([]);
+    }
+    
+    // Segna come inizializzato DOPO aver caricato i dati
+    setIsInitialized(true);
+    
+    loadMantraData();
+  }, [loadMantraData]);
 
   // Gestione status giocatori
   const handlePlayerStatusChange = (playerId, status, fantamilioni = null) => {

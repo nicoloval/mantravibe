@@ -1596,7 +1596,7 @@ const RosaAcquistata = ({
       unassignedPlayers: unusedPlayersCount,
       totalUsablePlayers: totalUsablePlayers
     };
-  }, [selectedTeam, players, formations, appetibilitaData, roleMapping, getPlayerRole, translateRoleToItalian]);
+  }, [selectedTeam, players, formations, appetibilitaData, getPlayerRole, translateRoleToItalian]);
 
   // Get reserve players with formation assignment logic (same as main formation but with unassigned players)
   const getReservePlayers = useMemo(() => {

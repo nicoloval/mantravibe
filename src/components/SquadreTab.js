@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { getTeamColorCoding } from '../utils/dataUtils';
 
 const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }) => {
@@ -41,7 +41,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
     }));
   });
 
-  const [numberOfTeams, setNumberOfTeams] = useState(8);
+  const [, setNumberOfTeams] = useState(8);
   const [draggedPlayer, setDraggedPlayer] = useState(null);
   const [draggedOverPlayer, setDraggedOverPlayer] = useState(null);
   const [draggedOverTeam, setDraggedOverTeam] = useState(null);
@@ -103,7 +103,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
     if (onTeamsChange && localTeams.length > 0) {
       onTeamsChange(localTeams);
     }
-  }, [localTeams]); // Removed onTeamsChange from dependencies to avoid infinite loop
+  }, [localTeams, onTeamsChange]); // Added onTeamsChange back to dependencies
 
   const handleTeamNameChange = (teamId, newName) => {
     setLocalTeams(prevTeams =>
@@ -309,7 +309,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
 
 
   // Function to add a player to a team (called from App.js)
-  const addPlayerToTeam = (teamId, player, price) => {
+  const addPlayerToTeam = useCallback((teamId, player, price) => {
     setLocalTeams(prevTeams =>
       prevTeams.map(team =>
         team.id === teamId
@@ -322,7 +322,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
           : team
       )
     );
-  };
+  }, [maxPlayers, sortPlayersByPrice]);
 
   // Expose the addPlayerToTeam function to parent component
   useEffect(() => {
@@ -330,14 +330,14 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
     return () => {
       delete window.addPlayerToTeam;
     };
-  }, []);
+  }, [addPlayerToTeam]);
 
   // Also expose via ref for more reliable access
   useEffect(() => {
     if (window.squadreTabRef) {
       window.squadreTabRef.addPlayerToTeam = addPlayerToTeam;
     }
-  }, []);
+  }, [addPlayerToTeam]);
 
   const containerStyle = {
     padding: '1rem',
@@ -346,13 +346,6 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
     overflowX: 'auto'
   };
 
-  const titleStyle = {
-    fontSize: '1.5rem',
-    fontWeight: '600',
-    marginBottom: '2rem',
-    color: '#374151',
-    textAlign: 'center'
-  };
 
   // Horizontal flex layout for all teams
   const getTeamsGridStyle = () => {
@@ -466,12 +459,6 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
     textAlign: 'center'
   };
 
-  const budgetValueStyle = {
-    fontSize: '1.2rem',
-    fontWeight: '700',
-    color: '#059669',
-    textAlign: 'center'
-  };
 
   // Calculate height based on max players (each player item is ~60px with margins for 4 lines)
   const getPlayersListStyle = () => ({
@@ -508,12 +495,6 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
     marginBottom: '0.125rem'
   };
 
-  const playerRolesStyle = {
-    display: 'flex',
-    gap: '0.125rem',
-    marginBottom: '0.125rem',
-    flexWrap: 'wrap'
-  };
 
   const roleBadgeStyle = {
     fontSize: '0.6rem',

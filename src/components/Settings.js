@@ -13,7 +13,7 @@ const Settings = ({
   onExport,
   onImport
 }) => {
-  const [importFile, setImportFile] = useState(null);
+  const [, setImportFile] = useState(null);
 
   const handleImport = (event) => {
     const file = event.target.files[0];

@@ -739,10 +739,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     minWidth: '200px'
   };
 
-  const selectStyle = {
-    ...inputStyle,
-    minWidth: '150px'
-  };
 
   const tableContainerStyle = {
     backgroundColor: 'white',
@@ -791,12 +787,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     whiteSpace: 'nowrap'
   };
 
-  // Special styles for name column (wider)
-  const nameThStyle = {
-    ...thStyle,
-    minWidth: '180px',
-    fontSize: '0.875rem'
-  };
 
   const nameTdStyle = {
     ...tdStyle,
@@ -862,12 +852,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     borderColor: '#3b82f6'
   };
 
-  const unavailableButtonStyle = {
-    ...buttonStyle,
-    backgroundColor: '#ef4444',
-    color: 'white',
-    borderColor: '#ef4444'
-  };
 
   const resetButtonStyle = {
     ...buttonStyle,
@@ -919,13 +903,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)'
   };
 
-  const cardHeaderStyle = {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    marginBottom: '0.75rem',
-    flexWrap: 'wrap'
-  };
 
   const cardTitleStyle = {
     fontSize: '1rem',
@@ -948,12 +925,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     marginBottom: '1rem'
   };
 
-  const cardStatsGrid4Style = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(4, 1fr)',
-    gap: '0.5rem',
-    marginBottom: '1rem'
-  };
 
   const cardStatsGrid2Style = {
     display: 'grid',
@@ -991,12 +962,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   };
 
 
-  const cardActionsStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    paddingTop: '0.75rem',
-    borderTop: '1px solid #e5e7eb'
-  };
 
   const cardSkillsStyle = {
     display: 'flex',
@@ -1015,19 +980,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     color: 'white'
   };
 
-  const topRightButtonStyle = {
-    position: 'absolute',
-    top: '0.75rem',
-    right: '0.75rem',
-    padding: '0.5rem 1rem',
-    fontSize: '0.875rem',
-    fontWeight: '600',
-    border: 'none',
-    borderRadius: '0.375rem',
-    cursor: 'pointer',
-    transition: 'all 0.2s',
-    minWidth: '80px'
-  };
 
   return (
     <div style={containerStyle}>
@@ -1592,7 +1544,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
           {filteredAndSortedPlayers.map((player, index) => {
             const playerId = player.id;
             const status = getPlayerStatus(playerId);
-            const fantamilioni = getPlayerFantamilioni(playerId);
             
             // Parse mantra roles
             let mantraRoles = [];

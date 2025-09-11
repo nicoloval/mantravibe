@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { getTeamColorCoding } from '../utils/dataUtils';
 
 const FantamilioniModal = ({ 
@@ -32,7 +32,7 @@ const FantamilioniModal = ({
   };
 
   // Function to calculate maximum amount (available budget minus reserved for remaining players)
-  const calculateMaxAmount = (teamId) => {
+  const calculateMaxAmount = useCallback((teamId) => {
     const team = teams.find(t => String(t.id) === String(teamId));
     if (!team) {
       console.log(`🔍 DEBUG: Team ${teamId} not found in teams:`, teams.map(t => t.id));
@@ -63,7 +63,7 @@ const FantamilioniModal = ({
     console.log(`  - Reserved budget: ${reservedBudget}`);
     console.log(`  - Max bid: ${maxBid}`);
     return maxBid;
-  };
+  }, [teams, minPlayers, maxPlayers, calculateTeamBudget]);
 
   // Update team budget when team selection changes
   useEffect(() => {
@@ -83,7 +83,7 @@ const FantamilioniModal = ({
         console.log('🔍 DEBUG: No teams available, using maxFantamilioni:', maxFantamilioni);
       }
     }
-  }, [selectedTeamId, teams, maxFantamilioni, minPlayers]);
+  }, [selectedTeamId, teams, maxFantamilioni, minPlayers, calculateMaxAmount]);
 
   // Reset quando cambia il giocatore, ma ricorda l'ultimo prezzo e squadra inseriti
   useEffect(() => {
@@ -193,23 +193,6 @@ const FantamilioniModal = ({
     color: '#6b7280'
   };
 
-  const budgetInfoStyle = {
-    padding: '12px',
-    backgroundColor: teamBudget > 0 ? '#f0fdf4' : '#fef2f2',
-    borderRadius: '8px',
-    border: `1px solid ${teamBudget > 0 ? '#bbf7d0' : '#fecaca'}`,
-    marginBottom: '16px'
-  };
-
-  const budgetTextStyle = {
-    margin: 0,
-    fontSize: '14px',
-    color: teamBudget > 0 ? '#059669' : '#dc2626',
-    fontWeight: '600',
-    display: 'flex',
-    alignItems: 'center',
-    gap: '6px'
-  };
 
   const inputContainerStyle = {
     marginBottom: '16px',
@@ -237,12 +220,6 @@ const FantamilioniModal = ({
     fontWeight: '500'
   };
 
-  const quickButtonsStyle = {
-    display: 'flex',
-    gap: '8px',
-    marginBottom: '20px',
-    flexWrap: 'wrap'
-  };
 
   const quickButtonStyle = {
     padding: '6px 12px',
