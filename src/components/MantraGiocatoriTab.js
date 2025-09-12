@@ -1,6 +1,8 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 
 const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusChange, onPlayerAcquire, roles = [] }) => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedRoles, setSelectedRoles] = useState(() => {
     // Try to load from localStorage first
@@ -240,9 +242,9 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     });
   };
 
-  // Helper function to check if data is missing (-1.00)
+  // Helper function to check if data is missing (negative values)
   const isMissingData = (value) => {
-    return typeof value === 'number' && value === -1.00;
+    return typeof value === 'number' && value < 0;
   };
 
   // Filter and sort players
@@ -1590,7 +1592,13 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                     <span style={{ fontSize: '1.2rem' }}>
                       {getTrendEmoji(player.Trend)}
                     </span>
-                    <div style={cardTitleStyle}>{player.Nome}</div>
+                    <div 
+                      style={{...cardTitleStyle, cursor: 'pointer', color: '#3b82f6'}}
+                      onClick={() => navigate(`/player/${player.player_id}`)}
+                      title="Click to view player details"
+                    >
+                      {player.Nome}
+                    </div>
                   </div>
                   
                   {/* Button in card header */}
@@ -2074,7 +2082,13 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                   </td>
                   {visibleColumns.has('Nome') && (
                     <td style={nameTdStyle}>
-                      <div style={playerNameStyle}>{player.Nome}</div>
+                      <div 
+                        style={{...playerNameStyle, cursor: 'pointer', color: '#3b82f6'}}
+                        onClick={() => navigate(`/player/${player.player_id}`)}
+                        title="Click to view player details"
+                      >
+                        {player.Nome}
+                      </div>
                       {fantamilioni && (
                         <div style={{ fontSize: '0.75rem', color: '#3b82f6', fontWeight: '500' }}>
                           {fantamilioni} FM
@@ -2201,7 +2215,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                     return (
                       <td key={column} style={cellStyle}>
                         {typeof value === 'number' ? 
-                          value.toFixed(2) : 
+                          (value < 0 ? 'N/A' : value.toFixed(2)) : 
                           String(value || '-')
                         }
                       </td>

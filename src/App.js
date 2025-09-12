@@ -1,10 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import FantamilioniModal from './components/FantamilioniModal';
 import Header from './components/Header';
 import RosaAcquistata from './components/RosaAcquistata';
 import MantraGiocatoriTab from './components/MantraGiocatoriTab';
 import SquadreTab from './components/SquadreTab';
 import Settings from './components/Settings';
+import PlayerPage from './components/PlayerPage';
 import { loadBudget, loadPlayerStatus, saveBudget, savePlayerStatus, updatePlayerStatus } from './utils/storage';
 
 const App = () => {
@@ -481,7 +483,17 @@ const App = () => {
   };
 
   return (
-    <div style={containerStyle}>
+    <Router>
+      <Routes>
+        <Route path="/player/:id" element={
+          <PlayerPage 
+            players={mantraData}
+            playerStatus={currentPlayerStatus}
+            onPlayerStatusChange={handlePlayerStatusChange}
+          />
+        } />
+        <Route path="/*" element={
+          <div style={containerStyle}>
       {/* Settings Gear Button */}
       <button 
         style={{
@@ -647,7 +659,10 @@ const App = () => {
         onExport={handleExport}
         onImport={handleImport}
       />
-    </div>
+          </div>
+        } />
+      </Routes>
+    </Router>
   );
 };
 

@@ -1,6 +1,7 @@
 // src/components/RosaAcquistata.js
 /* eslint-disable no-unused-vars */
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { getTeamColorCoding } from '../utils/dataUtils';
 
 const RosaAcquistata = ({ 
@@ -13,7 +14,7 @@ const RosaAcquistata = ({
   appetibilitaData = {},
   roles = []
 }) => {
-  
+  const navigate = useNavigate();
   
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [formations, setFormations] = useState({});
@@ -625,7 +626,14 @@ const RosaAcquistata = ({
     padding: '0.25rem',
     backgroundColor: '#f9fafb',
     borderRadius: '0.25rem',
-    border: '1px solid #e5e7eb'
+    border: '1px solid #e5e7eb',
+    minHeight: '2rem',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    textAlign: 'center',
+    width: '100%',
+    maxWidth: '120px'
   };
 
 
@@ -688,8 +696,8 @@ const RosaAcquistata = ({
       const positionGroup = positions[positionIndex];
       const positionDisplay = positionGroup.length > 1 ? positionGroup.join('/') : positionGroup[0];
       lines.p.push({
-        role: positionDisplay,
-        roles: positionGroup,
+        role: positionDisplay, 
+        roles: positionGroup, 
         positionIndex: positionIndex
       });
       positionIndex++;
@@ -2073,7 +2081,7 @@ const RosaAcquistata = ({
                       }}>
                         {remainingBudget} FM
                       </span>
-                    </div>
+                  </div>
                   </div>
                 </button>
               );
@@ -2102,167 +2110,6 @@ const RosaAcquistata = ({
           );
         })()}
 
-        {/* Formation Display */}
-        {formations[selectedFormation] && (
-          <div style={formationDisplayStyle}>
-            <h3 style={{ textAlign: 'center', marginBottom: '0.5rem', fontSize: '1.625rem', fontWeight: '600', color: '#374151' }}>
-              Formazione {selectedFormation}
-            </h3>
-            <div style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.25rem', color: '#6b7280' }}>
-              {getTotalPositions} posizioni totali
-            </div>
-                <div style={{ textAlign: 'center', marginBottom: '1rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-                  <span style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '1.375rem' }}>
-                    {getPlayersByFormationRoles.occupiedPositions}/11 posizioni occupate
-                  </span>
-                  <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '1.375rem' }}>
-                    {getPlayersByFormationRoles.unassignedPlayers} giocatori non utilizzabili
-                  </span>
-                  <span style={{ color: '#000000', fontWeight: 'bold', fontSize: '1.375rem' }}>
-                    {getPlayersByFormationRoles.totalUsablePlayers} giocatori utilizzabili
-                  </span>
-            </div>
-            
-            {/* P Line */}
-            <div style={formationLineStyle}>
-              <span style={formationLineLabelStyle}>Portiere:</span>
-              {getFormationLines.p.map((positionData, index) => (
-                <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={formationPositionStyle}>
-                    {positionData.role}
-                  </div>
-                  {(() => {
-                    // Find the player assigned to this specific position
-                    const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
-                      Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
-                        assignment.positionIndex === positionData.positionIndex
-                      ) : null;
-                    
-                    if (assignedPlayer) {
-                      const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
-                        p.positionIndex === positionData.positionIndex
-                      );
-                      return player ? (
-                        <div style={playerUnderRoleStyle}>
-                        {player.Nome}
-                      </div>
-                      ) : null;
-                  }
-                    return null;
-                  })()}
-                </div>
-              ))}
-            </div>
-
-            {/* Defense Line */}
-            <div style={formationLineStyle}>
-              <span style={formationLineLabelStyle}>Difesa:</span>
-              {getFormationLines.defense.map((positionData, index) => (
-                  <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={formationPositionStyle}>
-                    {positionData.role}
-                    </div>
-                  {(() => {
-                    // Find the player assigned to this specific position
-                    const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
-                      Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
-                        assignment.positionIndex === positionData.positionIndex
-                      ) : null;
-                    
-                    if (assignedPlayer) {
-                      const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
-                        p.positionIndex === positionData.positionIndex
-                      );
-                      return player ? (
-                        <div style={playerUnderRoleStyle}>
-                          {player.Nome}
-                        </div>
-                      ) : null;
-                    }
-                    return null;
-                  })()}
-                  </div>
-              ))}
-            </div>
-
-            {/* Midfield Line */}
-            <div style={formationLineStyle}>
-              <span style={formationLineLabelStyle}>Centrocampo:</span>
-              {getFormationLines.midfield.map((positionData, index) => (
-                  <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={formationPositionStyle}>
-                    {positionData.role}
-                    </div>
-                  {(() => {
-                    // Find the player assigned to this specific position
-                    const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
-                      Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
-                        assignment.positionIndex === positionData.positionIndex
-                      ) : null;
-                    
-                    if (assignedPlayer) {
-                      const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
-                        p.positionIndex === positionData.positionIndex
-                      );
-                      return player ? (
-                        <div style={playerUnderRoleStyle}>
-                          {player.Nome}
-                        </div>
-                      ) : null;
-                    }
-                    return null;
-                  })()}
-                  </div>
-              ))}
-            </div>
-
-            {/* Attack Line */}
-            <div style={formationLineStyle}>
-              <span style={formationLineLabelStyle}>Attacco:</span>
-              {getFormationLines.attack.map((positionData, index) => (
-                  <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                    <div style={formationPositionStyle}>
-                    {positionData.role}
-                    </div>
-                  {(() => {
-                    // Find the player assigned to this specific position
-                    const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
-                      Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
-                        assignment.positionIndex === positionData.positionIndex
-                      ) : null;
-                    
-                    if (assignedPlayer) {
-                      const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
-                        p.positionIndex === positionData.positionIndex
-                      );
-                      return player ? (
-                        <div style={playerUnderRoleStyle}>
-                          {player.Nome}
-                        </div>
-                      ) : null;
-                    }
-                    return null;
-                  })()}
-                  </div>
-              ))}
-            </div>
-
-            {/* Unused Roles Box */}
-            {getPlayersByFormationRoles.playersByRole && getPlayersByFormationRoles.playersByRole['UNUSED'] && 
-             getPlayersByFormationRoles.playersByRole['UNUSED'].length > 0 && (
-              <div style={unusedRolesBoxStyle}>
-                <div style={unusedRolesTitleStyle}>
-                  Giocatori con ruoli non utilizzati in questa formazione
-                </div>
-                {getPlayersByFormationRoles.playersByRole['UNUSED'].map((player, index) => (
-                  <div key={index} style={unusedPlayerStyle}>
-                    {player.Nome} - {player.unusedRoles ? player.unusedRoles.join(', ') : player.originalRole}
-                  </div>
-                ))}
-              </div>
-            )}
-          </div>
-        )}
         
         <div style={emptyStateStyle}>
           <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>😔</div>
@@ -2308,37 +2155,37 @@ const RosaAcquistata = ({
               backgroundColor: isSelected ? '#eff6ff' : colorCoding.colors.background,
               color: isSelected ? '#3b82f6' : colorCoding.colors.text
             };
-            
-            return (
+              
+              return (
               <button
                 key={team.id}
                 onClick={() => setSelectedTeamId(team.id)}
                 style={buttonStyle}
               >
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
                   <span>{team.name}</span>
-                  <div style={{ display: 'flex', gap: '8px', fontSize: '0.75rem' }}>
-                    <span style={{ color: '#22c55e', fontWeight: 'bold' }}>
+                    <div style={{ display: 'flex', gap: '8px', fontSize: '0.75rem' }}>
+                      <span style={{ color: '#22c55e', fontWeight: 'bold' }}>
                       {playerCount}
-                    </span>
+                      </span>
                     <span style={{ 
                       color: remainingBudget <= 0 || playerCount >= maxPlayers ? '#ef4444' : '#000000', 
                       fontWeight: 'bold' 
                     }}>
                       {remainingBudget} FM
-                    </span>
+                      </span>
+                    </div>
                   </div>
-                </div>
               </button>
-            );
-          })}
-        </div>
-      )}
+              );
+            })}
+          </div>
+        )}
 
       {/* Formation Selector - Grouped by starting number */}
       {Object.keys(formations).length > 0 && (() => {
         const { formations3, formations4 } = getGroupedFormations();
-        return (
+              return (
           <div style={groupedFormationSelectorStyle}>
             {/* Formations starting with 3 */}
             {formations3.length > 0 && (
@@ -2356,8 +2203,8 @@ const RosaAcquistata = ({
         );
       })()}
 
-      {/* Formation Display */}
-      {formations[selectedFormation] && (
+        {/* Formation Display */}
+        {formations[selectedFormation] && (
         <div style={{ 
           display: 'flex', 
           gap: '1.5rem', 
@@ -2374,61 +2221,51 @@ const RosaAcquistata = ({
             flexDirection: 'column',
             overflowY: 'auto',
             width: windowWidth <= 768 ? '100%' : 'auto',
-            justifyContent: 'space-between'
+            justifyContent: 'flex-start'
           }}>
-            <h3 style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.625rem', fontWeight: '600', color: '#374151' }}>
-            Formazione {selectedFormation}
-          </h3>
-            <div style={{ textAlign: 'center', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-              <span style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '1.375rem' }}>
-                {getPlayersByFormationRoles.occupiedPositions}/11 posizioni occupate
-              </span>
-              <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '1.375rem' }}>
-                {getPlayersByFormationRoles.unassignedPlayers} giocatori non utilizzabili
-              </span>
-              <span style={{ color: '#000000', fontWeight: 'bold', fontSize: '1.375rem' }}>
-                {getPlayersByFormationRoles.totalUsablePlayers} giocatori utilizzabili
-              </span>
-          </div>
+            {/* Fixed Formation Header */}
+            <div style={{
+              position: 'sticky',
+              top: 0,
+              backgroundColor: '#f8fafc',
+              zIndex: 10,
+              padding: '1rem 0',
+              borderBottom: '2px solid #e2e8f0',
+              marginBottom: '1rem'
+            }}>
+              <h3 style={{ textAlign: 'center', marginBottom: '0.5rem', fontSize: '1.625rem', fontWeight: '600', color: '#374151' }}>
+              Formazione {selectedFormation}
+            </h3>
+              <div style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                <span style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '1.25rem' }}>
+                    {getPlayersByFormationRoles.occupiedPositions}/11 posizioni occupate
+                  </span>
+                <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '1.25rem' }}>
+                    {getPlayersByFormationRoles.unassignedPlayers} giocatori non utilizzabili
+                  </span>
+                <span style={{ color: '#000000', fontWeight: 'bold', fontSize: '1.25rem' }}>
+                    {getPlayersByFormationRoles.totalUsablePlayers} giocatori utilizzabili
+                  </span>
+            </div>
+                  </div>
+
+            {/* Formation Diagram with Fixed Height */}
+            <div style={{
+              minHeight: '500px',
+              display: 'flex',
+              flexDirection: 'column',
+              justifyContent: 'space-between',
+              padding: '1rem 0'
+            }}>
           
           {/* Goalkeeper Line */}
-          <div style={formationLineStyle}>
+            <div style={formationLineStyle}>
             {getFormationLines.p.map((positionData, index) => (
-              <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
                 <div style={getPositionStyle(positionData)}>
-                  {positionData.role}
-                </div>
-                {(() => {
-                  // Find the player assigned to this specific position
-                  const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
-                    Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
-                      assignment.positionIndex === positionData.positionIndex
-                    ) : null;
-                  
-                  if (assignedPlayer) {
-                    const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
-                      p.positionIndex === positionData.positionIndex
-                    );
-                    return player ? (
-                      <div style={playerUnderRoleStyle}>
-                        {player.Nome} ({player.fantamilioni} FM)
-                      </div>
-                    ) : null;
-                  }
-                  return null;
-                })()}
-              </div>
-            ))}
-          </div>
-
-          {/* Formation Lines based on visual layout */}
-          {getFormationLines.lines.map((line, lineIndex) => (
-            <div key={lineIndex} style={formationLineStyle}>
-              {line.map((positionData, positionIndex) => (
-                <div key={positionIndex} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={getPositionStyle(positionData)}>
                     {positionData.role}
-                  </div>
+                    </div>
+                        <div style={playerUnderRoleStyle}>
                   {(() => {
                     // Find the player assigned to this specific position
                     const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
@@ -2441,33 +2278,62 @@ const RosaAcquistata = ({
                         p.positionIndex === positionData.positionIndex
                       );
                       return player ? (
-                        <div style={playerUnderRoleStyle}>
+                        <span 
+                          style={{cursor: 'pointer', color: '#3b82f6'}}
+                          onClick={() => navigate(`/player/${player.player_id}`)}
+                          title="Click to view player details"
+                        >
                           {player.Nome} ({player.fantamilioni} FM)
-                        </div>
+                        </span>
                       ) : null;
                     }
                     return null;
                   })()}
-                </div>
+        </div>
+                  </div>
               ))}
             </div>
+
+          {/* Formation Lines based on visual layout */}
+          {getFormationLines.lines.map((line, lineIndex) => (
+            <div key={lineIndex} style={formationLineStyle}>
+              {line.map((positionData, positionIndex) => (
+                <div key={positionIndex} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={getPositionStyle(positionData)}>
+                    {positionData.role}
+                    </div>
+                  <div style={playerUnderRoleStyle}>
+                  {(() => {
+                    // Find the player assigned to this specific position
+                    const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
+                      Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
+                        assignment.positionIndex === positionData.positionIndex
+                      ) : null;
+                    
+                    if (assignedPlayer) {
+                      const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
+                        p.positionIndex === positionData.positionIndex
+                      );
+                      return player ? (
+                          <span 
+                            style={{cursor: 'pointer', color: '#3b82f6'}}
+                            onClick={() => navigate(`/player/${player.player_id}`)}
+                            title="Click to view player details"
+                          >
+                            {player.Nome} ({player.fantamilioni} FM)
+                          </span>
+                      ) : null;
+                    }
+                    return null;
+                  })()}
+                  </div>
+                  </div>
+                ))}
+              </div>
           ))}
 
-          {/* Unused Roles Box */}
-          {getPlayersByFormationRoles.playersByRole && getPlayersByFormationRoles.playersByRole['UNUSED'] && 
-           getPlayersByFormationRoles.playersByRole['UNUSED'].length > 0 && (
-            <div style={unusedRolesBoxStyle}>
-              <div style={unusedRolesTitleStyle}>
-                Giocatori con ruoli non utilizzati in questa formazione
-              </div>
-              {getPlayersByFormationRoles.playersByRole['UNUSED'].map((player, index) => (
-                <div key={index} style={unusedPlayerStyle}>
-                  {player.Nome} - {player.unusedRoles ? player.unusedRoles.join(', ') : player.originalRole}
-                </div>
-              ))}
-            </div>
-          )}
-          </div>
+        </div>
+      </div>
 
           {/* Riserve Column */}
           <div style={{ 
@@ -2527,8 +2393,8 @@ const RosaAcquistata = ({
                     
                     // Get color from roles.csv mapping
                     const roleInfo = getRoleInfo(italianRole);
-                    return {
-                      italian: italianRole,
+                    return { 
+                      italian: italianRole, 
                       color: roleInfo ? roleInfo.color : '#6b7280'
                     };
                   };
@@ -2547,7 +2413,11 @@ const RosaAcquistata = ({
                       fontSize: '0.75rem'
                     }}>
                       <div>
-                        <div style={{ fontWeight: '600', color: '#1f2937', fontSize: '0.875rem' }}>
+                        <div 
+                          style={{ fontWeight: '600', color: '#3b82f6', fontSize: '0.875rem', cursor: 'pointer' }}
+                          onClick={() => navigate(`/player/${player.player_id}`)}
+                          title="Click to view player details"
+                        >
                           {player.Nome}
                         </div>
                         <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
@@ -2582,6 +2452,52 @@ const RosaAcquistata = ({
                 Nessuna riserva
               </div>
             )}
+          </div>
+          </div>
+      )}
+
+      {/* Unused Roles Box - Outside Formation Display */}
+      {formations[selectedFormation] && getPlayersByFormationRoles.playersByRole && getPlayersByFormationRoles.playersByRole['UNUSED'] && 
+           getPlayersByFormationRoles.playersByRole['UNUSED'].length > 0 && (
+        <div style={{
+          marginTop: '1.5rem',
+          padding: '1rem',
+          backgroundColor: '#fef2f2',
+          borderRadius: '0.5rem',
+          border: '1px solid #fecaca'
+        }}>
+          <div style={{
+            fontSize: '1rem',
+            fontWeight: '600',
+            color: '#dc2626',
+            marginBottom: '0.75rem',
+            textAlign: 'center'
+          }}>
+                Giocatori con ruoli non utilizzati in questa formazione
+              </div>
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '0.5rem'
+          }}>
+              {getPlayersByFormationRoles.playersByRole['UNUSED'].map((player, index) => (
+              <div 
+                key={index} 
+                style={{
+                  padding: '0.5rem',
+                  backgroundColor: 'white',
+                  borderRadius: '0.25rem',
+                  border: '1px solid #fecaca',
+                  cursor: 'pointer',
+                  color: '#3b82f6',
+                  fontSize: '0.875rem'
+                }}
+                onClick={() => navigate(`/player/${player.player_id}`)}
+                title="Click to view player details"
+              >
+                  {player.Nome} - {player.unusedRoles ? player.unusedRoles.join(', ') : player.originalRole}
+                </div>
+              ))}
           </div>
         </div>
       )}
@@ -2671,15 +2587,15 @@ const RosaAcquistata = ({
               <thead>
                 <tr style={{ backgroundColor: '#f8fafc' }}>
                   {windowWidth > 768 && (
-                    <th style={{ 
-                      padding: '0.75rem', 
-                      textAlign: 'left', 
-                      fontWeight: '600', 
-                      color: '#374151',
-                      borderBottom: '1px solid #e5e7eb'
-                    }}>
-                      Azioni
-                    </th>
+                  <th style={{ 
+                    padding: '0.75rem', 
+                    textAlign: 'left', 
+                    fontWeight: '600', 
+                    color: '#374151',
+                    borderBottom: '1px solid #e5e7eb'
+                  }}>
+                    Azioni
+                  </th>
                   )}
                   <th style={{ 
                     padding: windowWidth <= 768 ? '0.5rem' : '0.75rem', 
@@ -2692,21 +2608,21 @@ const RosaAcquistata = ({
                     Nome
                   </th>
                   {windowWidth > 768 && (
-                    <th 
-                      style={{ 
-                        padding: '0.75rem', 
-                        textAlign: 'left', 
-                        fontWeight: '600', 
-                        color: '#374151',
-                        borderBottom: '1px solid #e5e7eb',
-                        cursor: 'pointer',
-                        userSelect: 'none'
-                      }}
-                      onClick={() => handleSort('Squadra')}
-                      title="Clicca per ordinare per squadra"
-                    >
-                      Squadra {getSortIcon('Squadra')}
-                    </th>
+                  <th 
+                    style={{ 
+                      padding: '0.75rem', 
+                      textAlign: 'left', 
+                      fontWeight: '600', 
+                      color: '#374151',
+                      borderBottom: '1px solid #e5e7eb',
+                      cursor: 'pointer',
+                      userSelect: 'none'
+                    }}
+                    onClick={() => handleSort('Squadra')}
+                    title="Clicca per ordinare per squadra"
+                  >
+                    Squadra {getSortIcon('Squadra')}
+                  </th>
                   )}
                   <th 
                     style={{ 
@@ -2725,16 +2641,16 @@ const RosaAcquistata = ({
                     Ruolo {getSortIcon('Ruolo')}
                   </th>
                   {windowWidth > 768 && (
-                    <th 
-                      style={{ 
-                        padding: '0.75rem', 
-                        fontWeight: '600', 
-                        color: '#374151',
-                        borderBottom: '1px solid #e5e7eb'
-                      }}
-                    >
-                      Skills
-                    </th>
+                  <th 
+                    style={{ 
+                      padding: '0.75rem', 
+                      fontWeight: '600', 
+                      color: '#374151',
+                      borderBottom: '1px solid #e5e7eb'
+                    }}
+                  >
+                    Skills
+                  </th>
                   )}
                   <th 
                     style={{ 
@@ -2769,46 +2685,49 @@ const RosaAcquistata = ({
                       }}
                     >
                     {windowWidth > 768 && (
-                      <td style={{ padding: '0.75rem', textAlign: 'center' }}>
-                        <button
-                          onClick={() => handleRemovePlayer(player.id)}
-                          style={{
-                            padding: '0.25rem 0.5rem',
-                            backgroundColor: 'transparent',
-                            border: '1px solid #ef4444',
-                            borderRadius: '0.25rem',
-                            color: '#ef4444',
-                            cursor: 'pointer',
-                            fontSize: '0.75rem',
-                            fontWeight: '500',
-                            transition: 'all 0.2s'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = '#ef4444';
-                            e.target.style.color = 'white';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = 'transparent';
-                            e.target.style.color = '#ef4444';
-                          }}
-                          title="Rimuovi dalla rosa"
-                        >
-                          Rimuovi
-                        </button>
-                      </td>
+                    <td style={{ padding: '0.75rem', textAlign: 'center' }}>
+                      <button
+                        onClick={() => handleRemovePlayer(player.id)}
+                        style={{
+                          padding: '0.25rem 0.5rem',
+                          backgroundColor: 'transparent',
+                          border: '1px solid #ef4444',
+                          borderRadius: '0.25rem',
+                          color: '#ef4444',
+                          cursor: 'pointer',
+                          fontSize: '0.75rem',
+                          fontWeight: '500',
+                          transition: 'all 0.2s'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = '#ef4444';
+                          e.target.style.color = 'white';
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = 'transparent';
+                          e.target.style.color = '#ef4444';
+                        }}
+                        title="Rimuovi dalla rosa"
+                      >
+                        Rimuovi
+                      </button>
+                    </td>
                     )}
                     <td style={{ 
                       padding: windowWidth <= 768 ? '0.5rem' : '0.75rem', 
                       fontWeight: '500', 
-                      color: '#1f2937',
-                      fontSize: windowWidth <= 768 ? '0.75rem' : '1rem'
-                    }}>
+                      color: '#3b82f6',
+                      fontSize: windowWidth <= 768 ? '0.75rem' : '1rem',
+                      cursor: 'pointer'
+                    }}
+                    onClick={() => navigate(`/player/${player.player_id}`)}
+                    title="Click to view player details">
                       {player.Nome}
                     </td>
                     {windowWidth > 768 && (
-                      <td style={{ padding: '0.75rem', color: '#6b7280' }}>
-                        {player.Squadra}
-                      </td>
+                    <td style={{ padding: '0.75rem', color: '#6b7280' }}>
+                      {player.Squadra}
+                    </td>
                     )}
                     <td style={{ 
                       padding: windowWidth <= 768 ? '0.5rem' : '0.75rem'
@@ -2859,69 +2778,69 @@ const RosaAcquistata = ({
                     </div>
                     </td>
                     {windowWidth > 768 && (
-                      <td style={{ padding: '0.75rem' }}>
-                        {(() => {
-                          // Parse the Skills field for display
-                          let skills = [];
-                          if (player.Skills) {
-                            if (Array.isArray(player.Skills)) {
-                              skills = player.Skills;
-                            } else if (typeof player.Skills === 'string') {
-                              try {
-                                const jsonString = player.Skills.replace(/'/g, '"');
-                                skills = JSON.parse(jsonString);
-                              } catch (e) {
-                                skills = [player.Skills];
-                              }
-                            } else {
+                    <td style={{ padding: '0.75rem' }}>
+                      {(() => {
+                        // Parse the Skills field for display
+                        let skills = [];
+                        if (player.Skills) {
+                          if (Array.isArray(player.Skills)) {
+                            skills = player.Skills;
+                          } else if (typeof player.Skills === 'string') {
+                            try {
+                              const jsonString = player.Skills.replace(/'/g, '"');
+                              skills = JSON.parse(jsonString);
+                            } catch (e) {
                               skills = [player.Skills];
                             }
+                          } else {
+                            skills = [player.Skills];
                           }
-                          
-                          return skills.length > 0 ? (
-                            <div style={{ display: 'flex', gap: '0.125rem', flexWrap: 'wrap' }}>
-                              {skills.map((skill, idx) => {
-                                // Define skill colors (same as Giocatori tab)
-                                const getSkillColor = (skill) => {
-                                  const skillColorMap = {
-                                    'Outsider': '#e11d48',      // Rose-600
-                                    'Titolare': '#059669',      // Emerald-600
-                                    'Buona Media': '#0ea5e9',   // Sky-500
-                                    'Assistman': '#7c3aed',     // Violet-600
-                                    'Goleador': '#dc2626',      // Red-600
-                                    'Difensore': '#64748b',     // Slate-500
-                                    'Portiere': '#ea580c',      // Orange-600
-                                    'Centrocampista': '#0891b2', // Cyan-600
-                                    'Attaccante': '#be185d',    // Pink-700
-                                    'Falloso': '#f59e0b',       // Amber-500
-                                    'Fuoriclasse': '#8b5cf6',   // Violet-500
-                                    'Giovane talento': '#10b981', // Emerald-500
-                                    'Panchinaro': '#6b7280',    // Slate-500
-                                    'Piazzati': '#f97316',      // Orange-500
-                                    'Rigorista': '#ef4444'      // Red-500
-                                  };
-                                  return skillColorMap[skill] || '#6b7280';
+                        }
+                        
+                        return skills.length > 0 ? (
+                          <div style={{ display: 'flex', gap: '0.125rem', flexWrap: 'wrap' }}>
+                            {skills.map((skill, idx) => {
+                              // Define skill colors (same as Giocatori tab)
+                              const getSkillColor = (skill) => {
+                                const skillColorMap = {
+                                  'Outsider': '#e11d48',      // Rose-600
+                                  'Titolare': '#059669',      // Emerald-600
+                                  'Buona Media': '#0ea5e9',   // Sky-500
+                                  'Assistman': '#7c3aed',     // Violet-600
+                                  'Goleador': '#dc2626',      // Red-600
+                                  'Difensore': '#64748b',     // Slate-500
+                                  'Portiere': '#ea580c',      // Orange-600
+                                  'Centrocampista': '#0891b2', // Cyan-600
+                                  'Attaccante': '#be185d',    // Pink-700
+                                  'Falloso': '#f59e0b',       // Amber-500
+                                  'Fuoriclasse': '#8b5cf6',   // Violet-500
+                                  'Giovane talento': '#10b981', // Emerald-500
+                                  'Panchinaro': '#6b7280',    // Slate-500
+                                  'Piazzati': '#f97316',      // Orange-500
+                                  'Rigorista': '#ef4444'      // Red-500
                                 };
-                                
-                                return (
-                                  <span key={idx} style={{
-                                    padding: '0.125rem 0.25rem',
-                                    backgroundColor: getSkillColor(skill),
-                                    borderRadius: '0.125rem',
-                                    fontSize: '0.5rem',
-                                    color: 'white',
-                                    fontWeight: '600'
-                                  }}>
-                                    {skill}
-                                  </span>
-                                );
-                              })}
-                            </div>
-                          ) : (
-                            <span style={{ color: '#9ca3af' }}>-</span>
-                          );
-                        })()}
-                      </td>
+                                return skillColorMap[skill] || '#6b7280';
+                              };
+                              
+                              return (
+                                <span key={idx} style={{
+                                  padding: '0.125rem 0.25rem',
+                                  backgroundColor: getSkillColor(skill),
+                                  borderRadius: '0.125rem',
+                                  fontSize: '0.5rem',
+                                  color: 'white',
+                                  fontWeight: '600'
+                                }}>
+                                  {skill}
+                                </span>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <span style={{ color: '#9ca3af' }}>-</span>
+                        );
+                      })()}
+                    </td>
                     )}
                     <td style={{ 
                       padding: windowWidth <= 768 ? '0.5rem' : '0.75rem', 

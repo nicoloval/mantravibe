@@ -75,8 +75,8 @@ const PlayerCard = ({
 
   // Statistiche base (sempre visibili)
   const baseStats = [
-    { key: 'convenienza', label: 'Convenienza', value: player.convenienza?.toFixed(1) || 'N/A' },
-    { key: 'fantamedia', label: 'Fantamedia', value: player.fantamedia?.toFixed(2) || 'N/A' }
+    { key: 'convenienza', label: 'Convenienza', value: (player.convenienza && player.convenienza >= 0) ? player.convenienza.toFixed(1) : 'N/A' },
+    { key: 'fantamedia', label: 'Fantamedia', value: (player.fantamedia && player.fantamedia >= 0) ? player.fantamedia.toFixed(2) : 'N/A' }
   ];
 
   // Statistiche complete (visibili quando showAllStats è true)
