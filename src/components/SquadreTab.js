@@ -36,7 +36,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
     return Array.from({ length: 8 }, (_, index) => ({
       id: index + 1,
       name: `Squadra ${index + 1}`,
-      budget: budget,
+      budget: 500, // Each team gets its own 500 FM budget
       players: []
     }));
   });
@@ -351,12 +351,12 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
   const getTeamsGridStyle = () => {
     return {
       display: 'flex',
-      gap: windowWidth <= 768 ? '0.5rem' : '1rem',
+      gap: windowWidth <= 768 ? '0.5rem' : '0.5rem',
       marginBottom: '2rem',
       alignItems: 'flex-start',
       minWidth: 'fit-content',
       flexWrap: windowWidth <= 768 ? 'wrap' : 'nowrap',
-      justifyContent: windowWidth <= 768 ? 'center' : 'flex-start'
+      justifyContent: windowWidth <= 768 ? 'center' : 'space-evenly'
     };
   };
 
@@ -416,12 +416,12 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
     backgroundColor: 'white',
     border: '2px solid #e5e7eb',
     borderRadius: '0.5rem',
-    padding: windowWidth <= 768 ? '0.375rem' : '0.5rem',
+    padding: windowWidth <= 768 ? '0.375rem' : '0.25rem',
     boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
     transition: 'all 0.2s',
     cursor: 'pointer',
-    minWidth: windowWidth <= 768 ? '120px' : '140px',
-    maxWidth: windowWidth <= 768 ? '160px' : '180px',
+    minWidth: windowWidth <= 768 ? '120px' : '130px',
+    maxWidth: windowWidth <= 768 ? '160px' : '140px',
     flex: '0 0 auto',
     height: 'fit-content'
   };
@@ -436,7 +436,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
     width: '100%',
     border: 'none',
     backgroundColor: 'transparent',
-    fontSize: windowWidth <= 768 ? '0.625rem' : '0.75rem',
+    fontSize: windowWidth <= 768 ? '0.875rem' : '1rem', // Increased by 4 points (0.25rem)
     fontWeight: '600',
     color: '#1f2937',
     textAlign: 'center',

@@ -215,6 +215,7 @@ const Settings = ({
             />
           </div>
 
+
           {/* Buttons */}
           <div style={buttonGroupStyle}>
             <button 

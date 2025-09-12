@@ -399,7 +399,7 @@ const RosaAcquistata = ({
     padding: windowWidth <= 768 ? '0.375rem 0.75rem' : '0.5rem 1rem',
     border: '2px solid #e5e7eb',
     borderRadius: '0.375rem',
-    fontSize: windowWidth <= 768 ? '0.75rem' : '0.875rem',
+    fontSize: windowWidth <= 768 ? '1rem' : '1.125rem', // Increased by 4 points (0.25rem)
     backgroundColor: 'white',
     color: '#374151',
     cursor: 'pointer',
@@ -447,11 +447,27 @@ const RosaAcquistata = ({
     flexWrap: 'wrap'
   };
 
+  const groupedFormationSelectorStyle = {
+    marginBottom: '2rem',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '0.5rem' // Smaller gap between the two lines
+  };
+
+  const formationLineStyle = {
+    display: 'flex',
+    alignItems: 'center',
+    gap: windowWidth <= 768 ? '0.75rem' : '1.5rem',
+    justifyContent: 'center',
+    flexWrap: 'wrap'
+  };
+
   const formationButtonStyle = {
     padding: windowWidth <= 768 ? '0.375rem 0.75rem' : '0.5rem 1rem',
     border: '1px solid #d1d5db',
     borderRadius: '0.375rem',
-    fontSize: windowWidth <= 768 ? '0.75rem' : '0.875rem',
+    fontSize: windowWidth <= 768 ? '1rem' : '1.125rem', // Increased by 4 points (0.25rem)
     backgroundColor: 'white',
     color: '#374151',
     cursor: 'pointer',
@@ -469,7 +485,6 @@ const RosaAcquistata = ({
   };
 
   const formationDisplayStyle = {
-    marginBottom: '2rem',
     padding: '1.5rem',
     backgroundColor: '#f8fafc',
     borderRadius: '0.75rem',
@@ -477,20 +492,13 @@ const RosaAcquistata = ({
     justifyContent: 'center'
   };
 
-  const formationLineStyle = {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: '1rem',
-    marginBottom: '1.5rem'
-  };
 
   const formationPositionStyle = {
     padding: '0.5rem 0.75rem',
     backgroundColor: 'white',
     border: '1px solid #d1d5db',
     borderRadius: '0.375rem',
-    fontSize: '0.7rem',
+    fontSize: '0.9rem',
     fontWeight: '600',
     color: '#374151',
     minWidth: '50px',
@@ -515,6 +523,44 @@ const RosaAcquistata = ({
       'PC': '#ef4444'    // Red
     };
     return roleColorMap[role] || '#6b7280';
+  };
+
+  // Function to get role info (Italian name and color)
+  const getRoleInfo = (role) => {
+    const roleInfoMap = {
+      'P': { italian: 'P', color: 'Orange' },
+      'DC': { italian: 'Dc', color: 'Green' },
+      'B': { italian: 'B', color: 'Green' },
+      'DD': { italian: 'Dd', color: 'Green' },
+      'DS': { italian: 'Ds', color: 'Green' },
+      'E': { italian: 'E', color: 'Blue' },
+      'M': { italian: 'M', color: 'Blue' },
+      'C': { italian: 'C', color: 'Blue' },
+      'W': { italian: 'W', color: 'Purple' },
+      'T': { italian: 'T', color: 'Purple' },
+      'A': { italian: 'A', color: 'Red' },
+      'PC': { italian: 'Pc', color: 'Red' },
+      'Dm': { italian: 'Dm', color: 'Blue' },
+      'Cm': { italian: 'Cm', color: 'Blue' },
+      'Am': { italian: 'Am', color: 'Purple' },
+      'Al': { italian: 'Al', color: 'Red' },
+      'Ad': { italian: 'Ad', color: 'Red' },
+      'Ac': { italian: 'Ac', color: 'Red' }
+    };
+    return roleInfoMap[role] || { italian: role, color: 'Gray' };
+  };
+
+  // Function to convert color name to hex
+  const getColorHex = (colorName) => {
+    const colorMap = {
+      'Orange': '#f97316',
+      'Green': '#22c55e', 
+      'Blue': '#3b82f6',
+      'Purple': '#a855f7',
+      'Red': '#ef4444',
+      'Gray': '#6b7280'
+    };
+    return colorMap[colorName] || '#6b7280';
   };
 
   // Function to get position style with split colors for multiple roles
@@ -543,7 +589,18 @@ const RosaAcquistata = ({
       };
     }
     
-    // For more than 2 colors, use the first color as fallback
+    // For 3 colors, create a three-way split
+    if (colors.length === 3) {
+      return {
+        ...formationPositionStyle,
+        background: `linear-gradient(90deg, ${colors[0]} 33.33%, ${colors[1]} 33.33%, ${colors[1]} 66.66%, ${colors[2]} 66.66%)`,
+        color: 'white',
+        border: `1px solid ${colors[0]}`,
+        position: 'relative'
+      };
+    }
+    
+    // For more than 3 colors, use the first color as fallback
     return {
       ...formationPositionStyle,
       backgroundColor: colors[0],
@@ -553,7 +610,7 @@ const RosaAcquistata = ({
   };
 
   const formationLineLabelStyle = {
-    fontSize: '0.75rem',
+    fontSize: '1rem',
     fontWeight: '600',
     color: '#6b7280',
     marginRight: '1rem',
@@ -562,7 +619,7 @@ const RosaAcquistata = ({
   };
 
   const playerUnderRoleStyle = {
-    fontSize: '0.65rem',
+    fontSize: '0.8rem',
     color: '#374151',
     marginTop: '0.25rem',
     padding: '0.25rem',
@@ -607,38 +664,55 @@ const RosaAcquistata = ({
     return info;
   }, [availableRoles]);
 
-  // Organize formation positions into 4 lines with proper double role handling
+  // Parse formation name to get visual layout (e.g., "3-4-3" -> [3, 4, 3])
+  const getFormationLayout = useMemo(() => {
+    if (!selectedFormation) return [];
+    
+    // Extract numbers from formation name (e.g., "3-4-3" -> [3, 4, 3])
+    const numbers = selectedFormation.split('-').map(num => parseInt(num)).filter(num => !isNaN(num));
+    return numbers;
+  }, [selectedFormation]);
+
+  // Organize formation positions into visual lines based on formation layout
   const getFormationLines = useMemo(() => {
-    if (!formations[selectedFormation]) return { p: [], defense: [], midfield: [], attack: [] };
+    if (!formations[selectedFormation]) return { p: [], lines: [] };
     
     const positions = formations[selectedFormation].positions;
-    const lines = { p: [], defense: [], midfield: [], attack: [] };
+    const layout = getFormationLayout;
+    const lines = { p: [], lines: [] };
     
-    positions.forEach((positionGroup, index) => {
-      // Handle double roles - if array has multiple roles, show them as "Role1/Role2"
+    let positionIndex = 0;
+    
+    // First, handle goalkeeper (P)
+    if (positions[positionIndex] && positions[positionIndex].some(role => role && role.toLowerCase() === 'p')) {
+      const positionGroup = positions[positionIndex];
       const positionDisplay = positionGroup.length > 1 ? positionGroup.join('/') : positionGroup[0];
-      
-      // Create position data with both display role and original roles array
-      const positionData = { 
-        role: positionDisplay, 
-        roles: positionGroup, 
-        positionIndex: index 
-      };
-      
-      // Categorize positions into lines based on the formation structure
-      if (positionGroup.some(role => role && role.toLowerCase() === 'p')) {
-        lines.p.push(positionData);
-      } else if (positionGroup.some(role => role && ['DC', 'DD', 'DS', 'B'].map(r => r.toLowerCase()).includes(role.toLowerCase()))) {
-        lines.defense.push(positionData);
-      } else if (positionGroup.some(role => role && ['M', 'C', 'E'].map(r => r.toLowerCase()).includes(role.toLowerCase()))) {
-        lines.midfield.push(positionData);
-      } else if (positionGroup.some(role => role && ['A', 'T', 'PC', 'W'].map(r => r.toLowerCase()).includes(role.toLowerCase()))) {
-        lines.attack.push(positionData);
+      lines.p.push({
+        role: positionDisplay,
+        roles: positionGroup,
+        positionIndex: positionIndex
+      });
+      positionIndex++;
+    }
+    
+    // Then, create lines based on formation layout
+    layout.forEach((positionsInLine, lineIndex) => {
+      const line = [];
+      for (let i = 0; i < positionsInLine && positionIndex < positions.length; i++) {
+        const positionGroup = positions[positionIndex];
+        const positionDisplay = positionGroup.length > 1 ? positionGroup.join('/') : positionGroup[0];
+        line.push({
+          role: positionDisplay,
+          roles: positionGroup,
+          positionIndex: positionIndex
+        });
+        positionIndex++;
       }
+      lines.lines.push(line);
     });
     
     return lines;
-  }, [formations, selectedFormation]);
+  }, [formations, selectedFormation, getFormationLayout]);
 
   // Count total positions to verify we have 11
   const getTotalPositions = useMemo(() => {
@@ -1598,6 +1672,49 @@ const RosaAcquistata = ({
     };
   }, [selectedTeam, players, formations, appetibilitaData, getPlayerRole, translateRoleToItalian]);
 
+  // Helper function to group formations by their starting number (3 vs 4)
+  const getGroupedFormations = useCallback(() => {
+    const formationsList = Object.keys(formations);
+    const formations3 = formationsList.filter(f => f.startsWith('3-'));
+    const formations4 = formationsList.filter(f => f.startsWith('4-'));
+    
+    return {
+      formations3: formations3.sort(),
+      formations4: formations4.sort()
+    };
+  }, [formations]);
+
+  // Helper function to render formation buttons
+  const renderFormationButtons = useCallback((formationList) => {
+    return formationList.map(formation => {
+      const stats = getFormationStats(formation);
+      console.log(`📊 FORMATION ${formation} stats:`, stats);
+      
+      return (
+        <button
+          key={formation}
+          onClick={() => setSelectedFormation(formation)}
+          style={selectedFormation === formation ? formationButtonActiveStyle : formationButtonStyle}
+        >
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
+            <span>{formation}</span>
+            <div style={{ display: 'flex', gap: '8px', fontSize: '0.75rem' }}>
+              <span style={{ color: '#22c55e', fontWeight: 'bold' }}>
+                {stats.occupiedPositions}
+              </span>
+              <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
+                {stats.unassignedPlayers}
+              </span>
+              <span style={{ color: '#000000', fontWeight: 'bold' }}>
+                {stats.totalUsablePlayers}
+              </span>
+            </div>
+          </div>
+        </button>
+      );
+    });
+  }, [getFormationStats, selectedFormation, formationButtonActiveStyle, formationButtonStyle]);
+
   // Get reserve players with formation assignment logic (same as main formation but with unassigned players)
   const getReservePlayers = useMemo(() => {
     if (!selectedTeam || !selectedTeam.players || !formations[selectedFormation]) return { playersByRole: {}, positionAssignments: {} };
@@ -1964,58 +2081,44 @@ const RosaAcquistata = ({
           </div>
         )}
 
-        {/* Formation Selector */}
-        {Object.keys(formations).length > 0 && (
-          <div style={formationSelectorStyle}>
-            <span style={teamSelectorLabelStyle}></span>
-            {Object.keys(formations).map(formation => {
-              // Use the same calculation logic for ALL formations to ensure consistency
-              const stats = getFormationStats(formation);
-              console.log(`📊 FORMATION ${formation} stats:`, stats);
-              
-              return (
-              <button
-                key={formation}
-                onClick={() => setSelectedFormation(formation)}
-                style={selectedFormation === formation ? formationButtonActiveStyle : formationButtonStyle}
-              >
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                    <span>{formation}</span>
-                    <div style={{ display: 'flex', gap: '8px', fontSize: '0.75rem' }}>
-                      <span style={{ color: '#22c55e', fontWeight: 'bold' }}>
-                        {stats.occupiedPositions}
-                      </span>
-                      <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
-                        {stats.unassignedPlayers}
-                      </span>
-                      <span style={{ color: '#000000', fontWeight: 'bold' }}>
-                        {stats.totalUsablePlayers}
-                      </span>
-                    </div>
-                  </div>
-              </button>
-              );
-            })}
-          </div>
-        )}
+        {/* Formation Selector - Grouped by starting number */}
+        {Object.keys(formations).length > 0 && (() => {
+          const { formations3, formations4 } = getGroupedFormations();
+          return (
+            <div style={groupedFormationSelectorStyle}>
+              {/* Formations starting with 3 */}
+              {formations3.length > 0 && (
+                <div style={formationLineStyle}>
+                  {renderFormationButtons(formations3)}
+                </div>
+              )}
+              {/* Formations starting with 4 */}
+              {formations4.length > 0 && (
+                <div style={formationLineStyle}>
+                  {renderFormationButtons(formations4)}
+                </div>
+              )}
+            </div>
+          );
+        })()}
 
         {/* Formation Display */}
         {formations[selectedFormation] && (
           <div style={formationDisplayStyle}>
-            <h3 style={{ textAlign: 'center', marginBottom: '0.5rem', fontSize: '1.125rem', fontWeight: '600', color: '#374151' }}>
+            <h3 style={{ textAlign: 'center', marginBottom: '0.5rem', fontSize: '1.625rem', fontWeight: '600', color: '#374151' }}>
               Formazione {selectedFormation}
             </h3>
-            <div style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '0.75rem', color: '#6b7280' }}>
+            <div style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.25rem', color: '#6b7280' }}>
               {getTotalPositions} posizioni totali
             </div>
                 <div style={{ textAlign: 'center', marginBottom: '1rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-                  <span style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '0.875rem' }}>
+                  <span style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '1.375rem' }}>
                     {getPlayersByFormationRoles.occupiedPositions}/11 posizioni occupate
                   </span>
-                  <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.875rem' }}>
+                  <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '1.375rem' }}>
                     {getPlayersByFormationRoles.unassignedPlayers} giocatori non utilizzabili
                   </span>
-                  <span style={{ color: '#000000', fontWeight: 'bold', fontSize: '0.875rem' }}>
+                  <span style={{ color: '#000000', fontWeight: 'bold', fontSize: '1.375rem' }}>
                     {getPlayersByFormationRoles.totalUsablePlayers} giocatori utilizzabili
                   </span>
             </div>
@@ -2232,50 +2335,140 @@ const RosaAcquistata = ({
         </div>
       )}
 
-      {/* Formation Selector */}
-      {Object.keys(formations).length > 0 && (
-        <div style={formationSelectorStyle}>
-          <span style={teamSelectorLabelStyle}></span>
-            {Object.keys(formations).map(formation => {
-              // Use the same calculation logic for ALL formations to ensure consistency
-              const stats = getFormationStats(formation);
-              console.log(`📊 FORMATION ${formation} stats:`, stats);
-              
-              return (
-            <button
-              key={formation}
-              onClick={() => setSelectedFormation(formation)}
-              style={selectedFormation === formation ? formationButtonActiveStyle : formationButtonStyle}
-            >
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-                    <span>{formation}</span>
-                    <div style={{ display: 'flex', gap: '8px', fontSize: '0.75rem' }}>
-                      <span style={{ color: '#22c55e', fontWeight: 'bold' }}>
-                        {stats.occupiedPositions}
-                      </span>
-                      <span style={{ color: '#ef4444', fontWeight: 'bold' }}>
-                        {stats.unassignedPlayers}
-                      </span>
-                      <span style={{ color: '#000000', fontWeight: 'bold' }}>
-                        {stats.totalUsablePlayers}
-                      </span>
-                    </div>
-                  </div>
-            </button>
-              );
-            })}
-        </div>
-      )}
+      {/* Formation Selector - Grouped by starting number */}
+      {Object.keys(formations).length > 0 && (() => {
+        const { formations3, formations4 } = getGroupedFormations();
+        return (
+          <div style={groupedFormationSelectorStyle}>
+            {/* Formations starting with 3 */}
+            {formations3.length > 0 && (
+              <div style={formationLineStyle}>
+                {renderFormationButtons(formations3)}
+              </div>
+            )}
+            {/* Formations starting with 4 */}
+            {formations4.length > 0 && (
+              <div style={formationLineStyle}>
+                {renderFormationButtons(formations4)}
+              </div>
+            )}
+          </div>
+        );
+      })()}
 
       {/* Formation Display */}
       {formations[selectedFormation] && (
         <div style={{ 
           display: 'flex', 
           gap: '1.5rem', 
-          alignItems: 'flex-start', 
+          alignItems: 'stretch', 
           minHeight: '700px',
           flexDirection: windowWidth <= 768 ? 'column' : 'row'
         }}>
+
+          {/* Formation Column */}
+          <div style={{
+            ...formationDisplayStyle,
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            overflowY: 'auto',
+            width: windowWidth <= 768 ? '100%' : 'auto',
+            justifyContent: 'space-between'
+          }}>
+            <h3 style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.625rem', fontWeight: '600', color: '#374151' }}>
+            Formazione {selectedFormation}
+          </h3>
+            <div style={{ textAlign: 'center', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
+              <span style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '1.375rem' }}>
+                {getPlayersByFormationRoles.occupiedPositions}/11 posizioni occupate
+              </span>
+              <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '1.375rem' }}>
+                {getPlayersByFormationRoles.unassignedPlayers} giocatori non utilizzabili
+              </span>
+              <span style={{ color: '#000000', fontWeight: 'bold', fontSize: '1.375rem' }}>
+                {getPlayersByFormationRoles.totalUsablePlayers} giocatori utilizzabili
+              </span>
+          </div>
+          
+          {/* Goalkeeper Line */}
+          <div style={formationLineStyle}>
+            {getFormationLines.p.map((positionData, index) => (
+              <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <div style={getPositionStyle(positionData)}>
+                  {positionData.role}
+                </div>
+                {(() => {
+                  // Find the player assigned to this specific position
+                  const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
+                    Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
+                      assignment.positionIndex === positionData.positionIndex
+                    ) : null;
+                  
+                  if (assignedPlayer) {
+                    const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
+                      p.positionIndex === positionData.positionIndex
+                    );
+                    return player ? (
+                      <div style={playerUnderRoleStyle}>
+                        {player.Nome} ({player.fantamilioni} FM)
+                      </div>
+                    ) : null;
+                  }
+                  return null;
+                })()}
+              </div>
+            ))}
+          </div>
+
+          {/* Formation Lines based on visual layout */}
+          {getFormationLines.lines.map((line, lineIndex) => (
+            <div key={lineIndex} style={formationLineStyle}>
+              {line.map((positionData, positionIndex) => (
+                <div key={positionIndex} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                  <div style={getPositionStyle(positionData)}>
+                    {positionData.role}
+                  </div>
+                  {(() => {
+                    // Find the player assigned to this specific position
+                    const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
+                      Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
+                        assignment.positionIndex === positionData.positionIndex
+                      ) : null;
+                    
+                    if (assignedPlayer) {
+                      const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
+                        p.positionIndex === positionData.positionIndex
+                      );
+                      return player ? (
+                        <div style={playerUnderRoleStyle}>
+                          {player.Nome} ({player.fantamilioni} FM)
+                        </div>
+                      ) : null;
+                    }
+                    return null;
+                  })()}
+                </div>
+              ))}
+            </div>
+          ))}
+
+          {/* Unused Roles Box */}
+          {getPlayersByFormationRoles.playersByRole && getPlayersByFormationRoles.playersByRole['UNUSED'] && 
+           getPlayersByFormationRoles.playersByRole['UNUSED'].length > 0 && (
+            <div style={unusedRolesBoxStyle}>
+              <div style={unusedRolesTitleStyle}>
+                Giocatori con ruoli non utilizzati in questa formazione
+              </div>
+              {getPlayersByFormationRoles.playersByRole['UNUSED'].map((player, index) => (
+                <div key={index} style={unusedPlayerStyle}>
+                  {player.Nome} - {player.unusedRoles ? player.unusedRoles.join(', ') : player.originalRole}
+                </div>
+              ))}
+            </div>
+          )}
+          </div>
+
           {/* Riserve Column */}
           <div style={{ 
             minWidth: windowWidth <= 768 ? '100%' : '280px', 
@@ -2284,13 +2477,12 @@ const RosaAcquistata = ({
             borderRadius: '0.5rem', 
             padding: '1rem',
             border: '1px solid #e2e8f0',
-            height: windowWidth <= 768 ? 'auto' : '700px',
             overflowY: 'auto'
           }}>
             <h3 style={{ 
               textAlign: 'center', 
               marginBottom: '1rem', 
-              fontSize: '1.125rem', 
+              fontSize: '1.625rem', 
               fontWeight: '600', 
               color: '#374151' 
             }}>
@@ -2323,55 +2515,28 @@ const RosaAcquistata = ({
                         'T': 'T',      // Trequartista
                         'Dd': 'Dd',    // Right Back
                         'Ds': 'Ds',    // Left Back
-                        'DD': 'DD',    // Right Wing Back
-                        'DS': 'DS'     // Left Wing Back
+                        'Dm': 'Dm',    // Defensive Midfielder
+                        'Cm': 'Cm',    // Central Midfielder
+                        'Am': 'Am',    // Attacking Midfielder
+                        'Al': 'Al',    // Left Attacker
+                        'Ad': 'Ad',    // Right Attacker
+                        'Ac': 'Ac'     // Center Attacker
                       };
                       italianRole = formationToItalian[role] || role;
                     }
                     
-                    // Get color from roles.csv data with fallback
-                    const getColorFromRole = (englishRole) => {
-                      // Find the color from roles.csv directly
-                      const rolesCsvData = roles.find(r => r.Role === englishRole);
-                      if (rolesCsvData && rolesCsvData.Color) {
-                        return rolesCsvData.Color;
-                      }
-                      
-                      // Fallback color mapping
-                      const fallbackColors = {
-                        'G': 'Orange', 'CB': 'Green', 'LA': 'Green', 'RB': 'Green', 'LB': 'Green',
-                        'E': 'Blue', 'DM': 'Blue', 'M': 'Blue', 'W': 'Purple', 'OM': 'Purple',
-                        'F': 'Red', 'CF': 'Red', 'P': 'Orange', 'DC': 'Green', 'DD': 'Blue',
-                        'DS': 'Blue', 'B': 'Green', 'C': 'Blue', 'T': 'Purple', 'A': 'Red', 'PC': 'Red'
-                      };
-                      
-                      return fallbackColors[englishRole] || 'Gray';
-                    };
-                    
-                    return { 
-                      italian: italianRole, 
-                      color: getColorFromRole(role) 
+                    // Get color from roles.csv mapping
+                    const roleInfo = getRoleInfo(italianRole);
+                    return {
+                      italian: italianRole,
+                      color: roleInfo ? roleInfo.color : '#6b7280'
                     };
                   };
                   
                   const roleInfo = roleToItalianAndColor(role);
                   
-                  
-                  // Convert color name to hex
-                  const getColorHex = (colorName) => {
-                    const colorMap = {
-                      'Orange': '#f97316',
-                      'Green': '#22c55e', 
-                      'Blue': '#3b82f6',
-                      'Purple': '#a855f7',
-                      'Red': '#ef4444',
-                      'Gray': '#6b7280'
-                    };
-                    return colorMap[colorName] || '#6b7280';
-                  };
-                  
-                  return players.map((player, index) => (
-                    <div key={`${role}-${index}`} style={{
+                  return players.map((player, playerIndex) => (
+                    <div key={`${role}-${playerIndex}`} style={{
                       display: 'flex',
                       justifyContent: 'space-between',
                       alignItems: 'center',
@@ -2417,167 +2582,6 @@ const RosaAcquistata = ({
                 Nessuna riserva
               </div>
             )}
-          </div>
-
-          {/* Formation Column */}
-          <div style={{
-            ...formationDisplayStyle,
-            flex: 1,
-            height: windowWidth <= 768 ? 'auto' : '700px',
-            display: 'flex',
-            flexDirection: 'column',
-            overflowY: 'auto',
-            width: windowWidth <= 768 ? '100%' : 'auto'
-          }}>
-            <h3 style={{ textAlign: 'center', marginBottom: '1rem', fontSize: '1.125rem', fontWeight: '600', color: '#374151' }}>
-            Formazione {selectedFormation}
-          </h3>
-            <div style={{ textAlign: 'center', marginBottom: '1.5rem', display: 'flex', justifyContent: 'center', gap: '1rem' }}>
-              <span style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '0.875rem' }}>
-                {getPlayersByFormationRoles.occupiedPositions}/11 posizioni occupate
-              </span>
-              <span style={{ color: '#ef4444', fontWeight: 'bold', fontSize: '0.875rem' }}>
-                {getPlayersByFormationRoles.unassignedPlayers} giocatori non utilizzabili
-              </span>
-              <span style={{ color: '#000000', fontWeight: 'bold', fontSize: '0.875rem' }}>
-                {getPlayersByFormationRoles.totalUsablePlayers} giocatori utilizzabili
-              </span>
-          </div>
-          
-          {/* P Line */}
-          <div style={formationLineStyle}>
-            {getFormationLines.p.map((positionData, index) => (
-              <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <div style={getPositionStyle(positionData)}>
-                  {positionData.role}
-                </div>
-                {(() => {
-                  // Find the player assigned to this specific position
-                  const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
-                    Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
-                      assignment.positionIndex === positionData.positionIndex
-                    ) : null;
-                  
-                  if (assignedPlayer) {
-                    const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
-                      p.positionIndex === positionData.positionIndex
-                    );
-                    return player ? (
-                      <div style={playerUnderRoleStyle}>
-                      {player.Nome} ({player.fantamilioni} FM)
-                    </div>
-                    ) : null;
-                }
-                  return null;
-                })()}
-              </div>
-            ))}
-          </div>
-
-          {/* Defense Line */}
-          <div style={formationLineStyle}>
-            {getFormationLines.defense.map((positionData, index) => (
-                <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={getPositionStyle(positionData)}>
-                  {positionData.role}
-                  </div>
-                {(() => {
-                  // Find the player assigned to this specific position
-                  const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
-                    Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
-                      assignment.positionIndex === positionData.positionIndex
-                    ) : null;
-                  
-                  if (assignedPlayer) {
-                    const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
-                      p.positionIndex === positionData.positionIndex
-                    );
-                    return player ? (
-                      <div style={playerUnderRoleStyle}>
-                          {player.Nome}
-                        </div>
-                    ) : null;
-                  }
-                  return null;
-                })()}
-                </div>
-            ))}
-          </div>
-
-          {/* Midfield Line */}
-          <div style={formationLineStyle}>
-            {getFormationLines.midfield.map((positionData, index) => (
-                <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={getPositionStyle(positionData)}>
-                  {positionData.role}
-                  </div>
-                {(() => {
-                  // Find the player assigned to this specific position
-                  const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
-                    Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
-                      assignment.positionIndex === positionData.positionIndex
-                    ) : null;
-                  
-                  if (assignedPlayer) {
-                    const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
-                      p.positionIndex === positionData.positionIndex
-                    );
-                    return player ? (
-                      <div style={playerUnderRoleStyle}>
-                        {player.Nome}
-                      </div>
-                    ) : null;
-                  }
-                  return null;
-                })()}
-                </div>
-            ))}
-          </div>
-
-          {/* Attack Line */}
-          <div style={formationLineStyle}>
-            {getFormationLines.attack.map((positionData, index) => (
-                <div key={index} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                  <div style={getPositionStyle(positionData)}>
-                  {positionData.role}
-                  </div>
-                {(() => {
-                  // Find the player assigned to this specific position
-                  const assignedPlayer = getPlayersByFormationRoles.positionAssignments ? 
-                    Object.values(getPlayersByFormationRoles.positionAssignments).find(assignment => 
-                      assignment.positionIndex === positionData.positionIndex
-                    ) : null;
-                  
-                  if (assignedPlayer) {
-                    const player = getPlayersByFormationRoles.playersByRole[assignedPlayer.role]?.find(p => 
-                      p.positionIndex === positionData.positionIndex
-                    );
-                    return player ? (
-                      <div style={playerUnderRoleStyle}>
-                        {player.Nome}
-                      </div>
-                    ) : null;
-                  }
-                  return null;
-                })()}
-                </div>
-            ))}
-          </div>
-
-          {/* Unused Roles Box */}
-          {getPlayersByFormationRoles.playersByRole && getPlayersByFormationRoles.playersByRole['UNUSED'] && 
-           getPlayersByFormationRoles.playersByRole['UNUSED'].length > 0 && (
-            <div style={unusedRolesBoxStyle}>
-              <div style={unusedRolesTitleStyle}>
-                Giocatori con ruoli non utilizzati in questa formazione
-              </div>
-              {getPlayersByFormationRoles.playersByRole['UNUSED'].map((player, index) => (
-                <div key={index} style={unusedPlayerStyle}>
-                  {player.Nome} - {player.unusedRoles ? player.unusedRoles.join(', ') : player.originalRole}
-                </div>
-              ))}
-            </div>
-          )}
           </div>
         </div>
       )}

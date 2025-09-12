@@ -281,11 +281,8 @@ const App = () => {
 
   const handleFantamilioniConfirm = (fantamilioni, teamId) => {
     if (playerToAcquire) {
-      // Controllo budget
-      if (!canAffordPlayer(fantamilioni, currentBudget, currentPlayerStatus)) {
-        alert(`Non hai abbastanza fantamilioni! Budget rimanente: ${currentBudget - getTotalFantamilioni(currentPlayerStatus)} FM`);
-        return;
-      }
+      // Team-specific budget check is handled in FantamilioniModal
+      // No need for global budget check here
       
       handlePlayerStatusChange(playerToAcquire.id, 'acquired', fantamilioni);
       
@@ -338,6 +335,7 @@ const App = () => {
     setMaxPlayers(newMaxPlayers);
     localStorage.setItem('maxPlayers', newMaxPlayers.toString());
   };
+
 
   const handleFantamilioniCancel = () => {
     setShowFantamilioniModal(false);
@@ -629,7 +627,6 @@ const App = () => {
           player={playerToAcquire}
           onConfirm={handleFantamilioniConfirm}
           onCancel={handleFantamilioniCancel}
-          maxFantamilioni={currentBudget - getTotalFantamilioni(currentPlayerStatus)}
           teams={teams || []}
           maxPlayers={maxPlayers}
           minPlayers={minPlayers}

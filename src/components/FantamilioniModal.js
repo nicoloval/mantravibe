@@ -5,7 +5,7 @@ const FantamilioniModal = ({
   player, 
   onConfirm, 
   onCancel,
-  maxFantamilioni,
+  maxFantamilioni = null,
   teams = [],
   maxPlayers = 30,
   minPlayers = 21
@@ -13,7 +13,7 @@ const FantamilioniModal = ({
   const [fantamilioni, setFantamilioni] = useState('');
   const [selectedTeamId, setSelectedTeamId] = useState('');
   const [error, setError] = useState('');
-  const [teamBudget, setTeamBudget] = useState(maxFantamilioni);
+  const [teamBudget, setTeamBudget] = useState(0);
 
   // Function to calculate available budget for a specific team
   const calculateTeamBudget = useCallback((teamId) => {
@@ -28,6 +28,7 @@ const FantamilioniModal = ({
     const totalSpent = (team.players || []).reduce((sum, player) => sum + (parseFloat(player.price) || 0), 0);
     const availableBudget = team.budget - totalSpent;
     console.log('🔍 DEBUG: Team', teamId, 'budget:', team.budget, 'spent:', totalSpent, 'available:', availableBudget);
+    console.log('🔍 DEBUG: Team object:', team);
     return availableBudget;
   }, [teams]);
 
@@ -79,11 +80,11 @@ const FantamilioniModal = ({
         setTeamBudget(maxBidAmount);
         console.log('🔍 DEBUG: Using first team budget:', firstTeam.id, ':', maxBidAmount);
       } else {
-        setTeamBudget(maxFantamilioni);
-        console.log('🔍 DEBUG: No teams available, using maxFantamilioni:', maxFantamilioni);
+        setTeamBudget(0);
+        console.log('🔍 DEBUG: No teams available, setting budget to 0');
       }
     }
-  }, [selectedTeamId, teams, maxFantamilioni, minPlayers, calculateMaxAmount]);
+  }, [selectedTeamId, teams, minPlayers, calculateMaxAmount]);
 
   // Reset quando cambia il giocatore, ma ricorda l'ultimo prezzo e squadra inseriti
   useEffect(() => {
@@ -117,7 +118,8 @@ const FantamilioniModal = ({
     }
     
     if (value > teamBudget) {
-      setError(`Budget insufficiente! Disponibili: ${teamBudget} FM`);
+      const actualAvailableBudget = calculateTeamBudget(selectedTeamId);
+      setError(`Budget insufficiente! Disponibili: ${actualAvailableBudget} FM`);
       return;
     }
     
