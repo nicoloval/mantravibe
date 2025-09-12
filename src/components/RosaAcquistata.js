@@ -463,7 +463,7 @@ const RosaAcquistata = ({
     flexWrap: 'wrap'
   };
 
-  const formationButtonStyle = {
+  const formationButtonStyle = useMemo(() => ({
     padding: windowWidth <= 768 ? '0.375rem 0.75rem' : '0.5rem 1rem',
     border: '1px solid #d1d5db',
     borderRadius: '0.375rem',
@@ -473,16 +473,16 @@ const RosaAcquistata = ({
     cursor: 'pointer',
     transition: 'all 0.2s',
     fontWeight: '500'
-  };
+  }), [windowWidth]);
 
-  const formationButtonActiveStyle = {
+  const formationButtonActiveStyle = useMemo(() => ({
     ...formationButtonStyle,
     borderColor: '#3b82f6',
     backgroundColor: '#eff6ff',
     color: '#3b82f6',
     border: '2px solid #3b82f6',
     boxShadow: '0 4px 6px rgba(59, 130, 246, 0.1)'
-  };
+  }), [formationButtonStyle]);
 
   const formationDisplayStyle = {
     padding: '1.5rem',

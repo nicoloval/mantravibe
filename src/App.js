@@ -5,7 +5,7 @@ import RosaAcquistata from './components/RosaAcquistata';
 import MantraGiocatoriTab from './components/MantraGiocatoriTab';
 import SquadreTab from './components/SquadreTab';
 import Settings from './components/Settings';
-import { canAffordPlayer, getTotalFantamilioni, loadBudget, loadPlayerStatus, saveBudget, savePlayerStatus, updatePlayerStatus } from './utils/storage';
+import { loadBudget, loadPlayerStatus, saveBudget, savePlayerStatus, updatePlayerStatus } from './utils/storage';
 
 const App = () => {
   // Stati principali
