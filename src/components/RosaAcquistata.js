@@ -3,6 +3,7 @@
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTeamColorCoding } from '../utils/dataUtils';
+import { rankFormations, processPlayersForRanking, DEFAULT_CONFIG } from '../utils/formationRanking';
 
 const RosaAcquistata = ({ 
   players = [],
@@ -19,6 +20,7 @@ const RosaAcquistata = ({
   const [selectedTeamId, setSelectedTeamId] = useState(null);
   const [formations, setFormations] = useState({});
   const [selectedFormation, setSelectedFormation] = useState('4-3-3');
+  const [formationRankings, setFormationRankings] = useState([]);
   
   // Search and filter state
   const [searchTerm, setSearchTerm] = useState('');
@@ -56,6 +58,7 @@ const RosaAcquistata = ({
     
       loadFormations();
   }, []);
+
 
   // Initialize selected team when teams are available
   useEffect(() => {
@@ -209,6 +212,7 @@ const RosaAcquistata = ({
       };
     }).filter(Boolean);
   }, [selectedTeam, players]);
+
 
   // Get available roles from roleMapping
   const availableRoles = useMemo(() => {
@@ -1680,22 +1684,104 @@ const RosaAcquistata = ({
     };
   }, [selectedTeam, players, formations, appetibilitaData, getPlayerRole, translateRoleToItalian]);
 
-  // Helper function to group formations by their starting number (3 vs 4)
+  // Compute formation rankings using UI's existing calculation logic
+  useEffect(() => {
+    console.log('🔍 DEBUG: ===== ROSA ACQUISTATA RANKING UPDATE =====');
+    console.log('🔍 DEBUG: Formations loaded:', Object.keys(formations).length);
+    console.log('🔍 DEBUG: Team players:', teamPlayers.length);
+    
+    if (Object.keys(formations).length > 0) {
+      // Use the UI's existing getFormationStats function for each formation
+      const rankings = Object.keys(formations).map(formationCode => {
+        const stats = getFormationStats(formationCode);
+        console.log(`🔍 DEBUG: Formation ${formationCode} stats:`, stats);
+        
+        // Calculate score based on UI values
+        const starterFilled = stats.occupiedPositions;
+        const starterTotal = 11;
+        const starterFraction = starterFilled / starterTotal;
+        
+        // Estimate backup coverage (simplified - could be improved)
+        const backupSlotsWithCoverage = Math.max(0, starterFilled - 1); // Assume some backup coverage
+        const backupFraction = backupSlotsWithCoverage / starterTotal;
+        
+        // Unusable players penalty
+        const unusablePlayers = stats.unassignedPlayers;
+        const unusablePenalty = Math.min(20, 20 * (unusablePlayers / Math.max(teamPlayers.length, 1)));
+        
+        // Calculate score (0-100)
+        const starterScore = 50 * starterFraction; // 0-50 points for starters
+        const backupScore = 30 * backupFraction;   // 0-30 points for backups
+        const totalScore = Math.max(0, Math.min(100, starterScore + backupScore - unusablePenalty));
+        
+        console.log(`🔍 DEBUG: Formation ${formationCode} scoring:`, {
+          starterFilled,
+          starterScore: starterScore.toFixed(2),
+          backupScore: backupScore.toFixed(2),
+          unusablePenalty: unusablePenalty.toFixed(2),
+          totalScore: totalScore.toFixed(2)
+        });
+        
+        return {
+          code: formationCode,
+          score: totalScore,
+          breakdown: {
+            starterFilled,
+            starterTotal,
+            starterFraction,
+            backupSlotsWithCoverage,
+            backupFraction,
+            unusablePlayers,
+            notes: [`UI-based calculation: ${starterFilled}/11 starters, ${unusablePlayers} unusable`]
+          }
+        };
+      });
+      
+      // Sort by score descending
+      rankings.sort((a, b) => b.score - a.score);
+      
+      setFormationRankings(rankings);
+      console.log('🔍 DEBUG: Rankings set:', rankings.map(r => ({ code: r.code, score: r.score.toFixed(1) })));
+    } else {
+      console.log('🔍 DEBUG: Skipping ranking - no formations loaded');
+    }
+  }, [teamPlayers, formations, getFormationStats]);
+
+  // Helper function to group formations by their starting number (3 vs 4) and sort by ranking
   const getGroupedFormations = useCallback(() => {
     const formationsList = Object.keys(formations);
     const formations3 = formationsList.filter(f => f.startsWith('3-'));
     const formations4 = formationsList.filter(f => f.startsWith('4-'));
     
-    return {
-      formations3: formations3.sort(),
-      formations4: formations4.sort()
+    // Sort by ranking score (highest first)
+    const sortByRanking = (formationList) => {
+      return formationList.sort((a, b) => {
+        const rankingA = formationRankings.find(r => r.code === a);
+        const rankingB = formationRankings.find(r => r.code === b);
+        
+        if (rankingA && rankingB) {
+          return rankingB.score - rankingA.score; // Descending order (highest score first)
+        } else if (rankingA) {
+          return -1; // A has ranking, B doesn't - A comes first
+        } else if (rankingB) {
+          return 1; // B has ranking, A doesn't - B comes first
+        } else {
+          return a.localeCompare(b); // Fallback to alphabetical
+        }
+      });
     };
-  }, [formations]);
+    
+    return {
+      formations3: sortByRanking(formations3),
+      formations4: sortByRanking(formations4)
+    };
+  }, [formations, formationRankings]);
 
   // Helper function to render formation buttons
   const renderFormationButtons = useCallback((formationList) => {
     return formationList.map(formation => {
       const stats = getFormationStats(formation);
+      const ranking = formationRankings.find(r => r.code === formation);
       console.log(`📊 FORMATION ${formation} stats:`, stats);
       
       return (
@@ -1705,7 +1791,21 @@ const RosaAcquistata = ({
           style={selectedFormation === formation ? formationButtonActiveStyle : formationButtonStyle}
         >
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
-            <span>{formation}</span>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+              <span>{formation}</span>
+              {ranking && (
+                <span style={{ 
+                  fontSize: '0.7rem', 
+                  fontWeight: 'bold',
+                  color: ranking.score >= 80 ? '#22c55e' : ranking.score >= 50 ? '#f59e0b' : '#ef4444',
+                  backgroundColor: ranking.score >= 80 ? '#dcfce7' : ranking.score >= 50 ? '#fef3c7' : '#fee2e2',
+                  padding: '1px 4px',
+                  borderRadius: '3px'
+                }}>
+                  {Math.round(ranking.score)}
+                </span>
+              )}
+            </div>
             <div style={{ display: 'flex', gap: '8px', fontSize: '0.75rem' }}>
               <span style={{ color: '#22c55e', fontWeight: 'bold' }}>
                 {stats.occupiedPositions}
@@ -1721,7 +1821,7 @@ const RosaAcquistata = ({
         </button>
       );
     });
-  }, [getFormationStats, selectedFormation, formationButtonActiveStyle, formationButtonStyle]);
+  }, [getFormationStats, selectedFormation, formationButtonActiveStyle, formationButtonStyle, formationRankings]);
 
   // Get reserve players with formation assignment logic (same as main formation but with unassigned players)
   const getReservePlayers = useMemo(() => {
@@ -2235,6 +2335,22 @@ const RosaAcquistata = ({
             }}>
               <h3 style={{ textAlign: 'center', marginBottom: '0.5rem', fontSize: '1.625rem', fontWeight: '600', color: '#374151' }}>
               Formazione {selectedFormation}
+              {(() => {
+                const ranking = formationRankings.find(r => r.code === selectedFormation);
+                return ranking ? (
+                  <span style={{ 
+                    marginLeft: '0.5rem',
+                    fontSize: '1rem', 
+                    fontWeight: 'bold',
+                    color: ranking.score >= 80 ? '#22c55e' : ranking.score >= 50 ? '#f59e0b' : '#ef4444',
+                    backgroundColor: ranking.score >= 80 ? '#dcfce7' : ranking.score >= 50 ? '#fef3c7' : '#fee2e2',
+                    padding: '2px 8px',
+                    borderRadius: '4px'
+                  }}>
+                    Score: {Math.round(ranking.score)}
+                  </span>
+                ) : null;
+              })()}
             </h3>
               <div style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '1rem', flexWrap: 'wrap' }}>
                 <span style={{ color: '#22c55e', fontWeight: 'bold', fontSize: '1.25rem' }}>
