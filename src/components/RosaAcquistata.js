@@ -757,29 +757,19 @@ const RosaAcquistata = ({
 
   // Calculate stats for ALL formations only when team players change (not when formation selection changes)
   const allFormationStats = useMemo(() => {
-    console.log('🔄 RECALCULATING allFormationStats - team players changed');
-    console.log('🔄 Team players count:', teamPlayers.length);
-    console.log('🔄 Selected team:', selectedTeam?.name);
     if (!selectedTeam || !selectedTeam.players || !teamPlayers.length) {
-      console.log('🔄 Early return - no team or players');
       return {};
     }
 
     const stats = {};
     
     // Calculate stats for each formation using the EXACT same logic as getPlayersByFormationRoles
-    console.log('🔄 Processing formations:', Object.keys(formations));
     Object.keys(formations).forEach(formationName => {
-      console.log(`🔄 Processing formation: ${formationName}`);
       const formation = formations[formationName];
       if (!formation || !formation.positions) {
-        console.log(`🔄 Skipping formation ${formationName} - no formation or positions`);
         stats[formationName] = { occupiedPositions: 0, unassignedPlayers: 0 };
         return;
       }
-      
-      console.log(`🔄 Starting calculation for ${formationName}...`);
-      console.log(`🔄 Formation positions for ${formationName}:`, formation.positions);
 
       // Use the exact same logic as getPlayersByFormationRoles but for this specific formation
       // Get formation roles the same way as the main function
@@ -907,8 +897,6 @@ const RosaAcquistata = ({
         };
       }).filter(Boolean);
       
-      console.log(`🔄 Team players count for ${formationName}:`, teamPlayersWithRoles.length);
-      
       // Assign players to positions (EXACT same logic as main function)
       const availablePlayers = [...teamPlayersWithRoles];
       const assignedPlayerIds = new Set();
@@ -1005,83 +993,10 @@ const RosaAcquistata = ({
         totalUsablePlayers: totalUsablePlayers
       };
       
-      console.log(`✅ Completed calculation for ${formationName}:`, stats[formationName]);
-      console.log(`✅ Assigned players for ${formationName}:`, Array.from(assignedPlayerIds));
-      console.log(`✅ Players with no possible roles for ${formationName}:`, playersWithNoPossibleRoles.length);
       
-      console.log(`📈 Formation ${formationName} stats:`, {
-        occupiedPositions: occupiedPositions,
-        unassignedPlayers: unusedPlayersCount,
-        totalTeamPlayers: teamPlayersWithRoles.length,
-        assignedPlayerIds: assignedPlayerIds.size,
-        formationRoles: formationRolesArray
-      });
       
-      // Debug: Show which players are assigned and which are unused
-      console.log(`🔍 DEBUG ${formationName} - Assigned players:`, Array.from(assignedPlayerIds));
-      console.log(`🔍 DEBUG ${formationName} - Players with no possible roles:`, 
-        teamPlayersWithRoles.filter(playerData => {
-          if (assignedPlayerIds.has(playerData.playerId)) return false;
-          const possibleRoles = playerData.possibleRoles || [];
-          return possibleRoles.length === 0;
-        }).map(p => ({ name: p.player.Nome, possibleRoles: p.possibleRoles }))
-      );
       
-      // Debug: Show all players and their roles
-      console.log(`🔍 DEBUG ${formationName} - All players and their roles:`, 
-        teamPlayersWithRoles.map(p => ({ 
-          name: p.player.Nome, 
-          possibleRoles: p.possibleRoles.map(r => r.role),
-          unusedRoles: p.unusedRoles.map(r => r.role),
-          assigned: assignedPlayerIds.has(p.playerId)
-        }))
-      );
       
-      // DEBUG: Check what the cached calculation shows vs what the main function shows
-      console.log(`🔍 CACHED CALCULATION DEBUG ${formationName}:`);
-      try {
-        console.log(`  - Cached occupiedPositions: ${occupiedPositions}`);
-        console.log(`  - Cached unusedPlayersCount: ${unusedPlayersCount}`);
-        console.log(`  - Cached playersWithNoPossibleRoles: ${playersWithNoPossibleRoles ? playersWithNoPossibleRoles.length : 'undefined'}`);
-        console.log(`  - Cached playersByRole keys:`, Object.keys(playersByRole));
-        console.log(`  - Cached playersByRole counts:`, Object.keys(playersByRole).map(role => `${role}: ${playersByRole[role] ? playersByRole[role].length : 'undefined'}`));
-        console.log(`  - Cached assignedPlayerIds:`, Array.from(assignedPlayerIds));
-        console.log(`  - Cached teamPlayersWithRoles count:`, teamPlayersWithRoles ? teamPlayersWithRoles.length : 'undefined');
-      } catch (error) {
-        console.error(`❌ ERROR in cached calculation debug for ${formationName}:`, error);
-      }
-      
-      // DEBUG: Check if this is a "3" or "4" formation and log specific info
-      if (formationName.startsWith('3')) {
-        console.log(`🟢 FORMATION 3-* DEBUG ${formationName}:`, {
-          occupiedPositions,
-          unusedPlayersCount,
-          formationRoles: formationRolesArray,
-          teamPlayersCount: teamPlayersWithRoles.length
-        });
-      } else if (formationName.startsWith('4')) {
-        console.log(`🔴 FORMATION 4-* DEBUG ${formationName}:`, {
-          occupiedPositions,
-          unusedPlayersCount,
-          formationRoles: formationRolesArray,
-          teamPlayersCount: teamPlayersWithRoles.length
-        });
-        
-        // Extra debug for problematic 4-* formations
-        if (formationName === '4-3-3' || formationName === '4-3-1-2' || formationName === '4-4-1-1') {
-          console.log(`🚨 PROBLEMATIC FORMATION ${formationName} DETAILED DEBUG:`);
-          console.log(`  - Formation positions:`, formation.positions);
-          console.log(`  - Formation roles array:`, formationRolesArray);
-          console.log(`  - Team players with roles:`, teamPlayersWithRoles.map(p => ({
-            name: p.player.Nome,
-            possibleRoles: p.possibleRoles.map(r => r.role),
-            assigned: assignedPlayerIds.has(p.playerId)
-          })));
-          console.log(`  - Assigned player IDs:`, Array.from(assignedPlayerIds));
-          console.log(`  - Players by role counts:`, Object.keys(playersByRole).map(role => `${role}: ${playersByRole[role].length}`));
-          console.log(`  - Final stats:`, { occupiedPositions, unusedPlayersCount });
-        }
-      }
     });
     
     return stats;
@@ -1390,39 +1305,13 @@ const RosaAcquistata = ({
     // Count players in "Giocatori con ruoli non utilizzati" - use the actual formation box data
     const unusedPlayersCount = playersByRole['UNUSED'] ? playersByRole['UNUSED'].length : 0;
     
-    console.log('=== MAIN FUNCTION STATS ===');
-    console.log('Total assigned players:', totalAssignedPlayers);
-    console.log('Unused players count:', unusedPlayersCount);
-    console.log('Total team players:', teamPlayers.length);
-    console.log('Assigned player IDs:', assignedPlayerIds.size);
-    console.log('=== MAIN FUNCTION DEBUG ===');
-    console.log('🔍 MAIN - Assigned players:', Array.from(assignedPlayerIds));
-    console.log('🔍 MAIN - Players with no possible roles:', 
-      teamPlayers.filter(playerData => {
-        if (assignedPlayerIds.has(playerData.playerId)) return false;
-        const possibleRoles = playerData.possibleRoles || [];
-        return possibleRoles.length === 0;
-      }).map(p => ({ name: p.player.Nome, possibleRoles: p.possibleRoles }))
-    );
     
-    // DEBUG: Check what the formation box actually shows vs what we calculate
-    console.log('🔍 FORMATION BOX DEBUG:');
-    console.log('  - Formation box shows players by role:', Object.keys(playersByRole).map(role => `${role}: ${playersByRole[role].length}`));
-    console.log('  - Formation box shows unused players:', playersByRole['UNUSED']?.length || 0);
-    console.log('  - Our calculated totalAssignedPlayers:', totalAssignedPlayers);
-    console.log('  - Our calculated unusedPlayersCount:', unusedPlayersCount);
-    console.log('  - Cached stats (what buttons show):', cachedStats);
     
     // Calculate occupied positions from actual formation box data (exclude UNUSED)
     const occupiedPositions = Object.keys(playersByRole)
       .filter(role => role !== 'UNUSED')
       .reduce((total, role) => total + (playersByRole[role]?.length || 0), 0);
     
-    console.log('🔍 CALCULATION COMPARISON:');
-    console.log('  - OLD: totalAssignedPlayers =', totalAssignedPlayers);
-    console.log('  - NEW: occupiedPositions from playersByRole =', occupiedPositions);
-    console.log('  - OLD: unusedPlayersCount =', unusedPlayersCount);
-    console.log('  - NEW: unusedPlayersCount from playersByRole =', playersByRole['UNUSED']?.length || 0);
     
     // Calculate total usable players (occupied positions + reserve players)
     // Reserve players are those who have possible roles but weren't assigned to positions
@@ -1957,14 +1846,9 @@ const RosaAcquistata = ({
     // Trigger comprehensive debug for the selected team
     const team = teams.find(t => t.id === teamId);
     if (team) {
-      console.log(`🔍 DEBUG: [${team.name}] ===== LA MIA ROSA TAB - TEAM SELECTION DEBUG =====`);
-      console.log(`🔍 DEBUG: [${team.name}] LA MIA ROSA TAB - Team data:`, team);
-      console.log(`🔍 DEBUG: [${team.name}] LA MIA ROSA TAB - Team players: ${team.players?.length || 0}`);
-      console.log(`🔍 DEBUG: [${team.name}] LA MIA ROSA TAB - First few players:`, team.players?.slice(0, 3));
       
       // Calculate and show formation rankings for this team
       if (Object.keys(formations).length > 0) {
-        console.log(`🔍 DEBUG: [${team.name}] ===== LA MIA ROSA TAB - FORMATION RANKINGS FOR SELECTED TEAM =====`);
         
         const teamRankings = Object.keys(formations).map(formationCode => {
           // Calculate stats for this specific team (not using selectedTeam)
@@ -2015,7 +1899,6 @@ const RosaAcquistata = ({
             }
           };
           
-          console.log(`🔍 DEBUG: [${team.name}] LA MIA ROSA TAB - Formation ${formationCode}:`, formationDebug);
           
           return { code: formationCode, score: totalScore };
         });
@@ -2029,9 +1912,6 @@ const RosaAcquistata = ({
           finalScore: ranking.score
         }));
         
-        console.log(`🔍 DEBUG: [${team.name}] ===== LA MIA ROSA TAB - ALL FORMATIONS SUMMARY =====`);
-        console.log(`🔍 DEBUG: [${team.name}] LA MIA ROSA TAB - All formations with scores:`, allFormationsDebug);
-        console.log(`🔍 DEBUG: [${team.name}] ===== LA MIA ROSA TAB - END TEAM SELECTION DEBUG =====`);
       }
     }
   }, [teams, formations, getFormationStatsForTeam]);
@@ -2118,7 +1998,6 @@ const RosaAcquistata = ({
     return formationList.map(formation => {
       const stats = getFormationStats(formation);
       const ranking = formationRankings.find(r => r.code === formation);
-      console.log(`📊 FORMATION ${formation} stats:`, stats);
       
       return (
         <button

@@ -149,15 +149,12 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     
     // Map roles.csv roles using Italian role names (Ruolo column)
     roles.forEach(role => {
-      console.log('🔍 Raw role object:', role);
       const hexColor = colorNameToHex[role.Color] || '#6b7280';
       mapping[role.Ruolo] = hexColor; // Use Italian role name as key
-      console.log(`🎨 Role ${role.Role} (${role.Ruolo}): "${role.Color}" -> ${hexColor}`);
     });
     
     // Fallback mapping based on roles.csv structure when Color field is empty
     if (Object.values(mapping).every(color => color === '#6b7280')) {
-      console.log('🎨 Using fallback color mapping due to empty Color fields');
       const fallbackMapping = {
         'P': '#f97316',    // G -> Orange
         'Dc': '#22c55e',   // CB -> Green
@@ -179,7 +176,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       });
     }
     
-    console.log('🎨 Final role color mapping (Italian keys):', mapping);
     return mapping;
   }, [roles]);
 
@@ -221,7 +217,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     });
     
     const skillsArray = Array.from(skillsSet).sort();
-    console.log('🎯 Available skills found:', skillsArray);
     return skillsArray;
   }, [players]);
 
@@ -263,10 +258,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   // Filter and sort players
   const filteredAndSortedPlayers = useMemo(() => {
     // Debug logging for playerStatus
-    if (hideAcquired) {
-      console.log('🔍 DEBUG: playerStatus object:', playerStatus);
-      console.log('🔍 DEBUG: hideAcquired is:', hideAcquired);
-    }
     
     let filtered = players.filter(player => {
       const matchesSearch = !searchTerm || 
@@ -326,9 +317,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       const isNotAcquired = !hideAcquired || !playerStatusValue || (playerStatusValue && playerStatusValue.status !== 'acquired');
       
       // Debug logging
-      if (hideAcquired) {
-        console.log('🔍 DEBUG: Player:', player.Nome, 'ID:', player.player_id, 'Status:', playerStatusValue, 'Will show:', isNotAcquired);
-      }
       
       return matchesSearch && matchesRole && matchesSkills && isNotAcquired;
     });
@@ -1308,7 +1296,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               type="checkbox"
               checked={hideAcquired}
               onChange={(e) => {
-                console.log('🔍 DEBUG: Toggle changed to:', e.target.checked);
                 setHideAcquired(e.target.checked);
                 // Save to localStorage
                 localStorage.setItem('giocatoriHideAcquired', JSON.stringify(e.target.checked));

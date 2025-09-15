@@ -17,7 +17,7 @@ const App = () => {
   
   // Debug effect to track rolesData changes
   useEffect(() => {
-    console.log('🔍 DEBUG: rolesData state changed:', rolesData);
+    // rolesData state changed
   }, [rolesData]);
   const [appetibilitaData, setAppetibilitaData] = useState({});
   const [loading, setLoading] = useState(false);
@@ -81,9 +81,6 @@ const App = () => {
 
   // Function to synchronize teams with player status
   const synchronizeTeamsWithPlayerStatus = useCallback((teamsData, playerStatusData) => {
-    console.log('🔍 DEBUG: Synchronizing teams with player status');
-    console.log('🔍 DEBUG: Teams before sync:', teamsData);
-    console.log('🔍 DEBUG: Player status before sync:', playerStatusData);
     
     // Filter out players from teams that are not in player status as 'acquired'
     const synchronizedTeams = teamsData.map(team => ({
@@ -92,19 +89,17 @@ const App = () => {
         const playerStatus = playerStatusData[player.id];
         const isAcquired = playerStatus && playerStatus.status === 'acquired';
         if (!isAcquired) {
-          console.log(`🔍 DEBUG: Removing player ${player.id} (${player.Nome}) from team ${team.id} - not acquired in player status`);
+          // Remove player from team - not acquired in player status
         }
         return isAcquired;
       })
     }));
     
-    console.log('🔍 DEBUG: Teams after sync:', synchronizedTeams);
     return synchronizedTeams;
   }, []);
 
   // Handle teams changes from SquadreTab
   const handleTeamsChange = useCallback((newTeams) => {
-    console.log('🔍 DEBUG: handleTeamsChange called with:', newTeams);
     setTeams(newTeams);
   }, []);
 
@@ -117,11 +112,8 @@ const App = () => {
   useEffect(() => {
     // Non salvare durante l'inizializzazione
     if (!isInitialized) {
-      console.log('Salvataggio stato normale saltato - app non ancora inizializzata');
       return;
     }
-    
-    console.log('Salvando stato giocatori normali:', Object.keys(normalPlayerStatus).length, 'giocatori');
     savePlayerStatus(normalPlayerStatus, 'normal');
   }, [normalPlayerStatus, isInitialized]);
 
@@ -129,11 +121,8 @@ const App = () => {
   useEffect(() => {
     // Non salvare durante l'inizializzazione
     if (!isInitialized) {
-      console.log('Salvataggio stato mantra saltato - app non ancora inizializzata');
       return;
     }
-    
-    console.log('Salvando stato giocatori mantra:', Object.keys(mantraPlayerStatus).length, 'giocatori');
     savePlayerStatus(mantraPlayerStatus, 'mantra');
   }, [mantraPlayerStatus, isInitialized]);
 
@@ -141,11 +130,8 @@ const App = () => {
   useEffect(() => {
     // Non salvare durante l'inizializzazione
     if (!isInitialized) {
-      console.log('Salvataggio budget normale saltato - app non ancora inizializzata');
       return;
     }
-    
-    console.log('Salvando budget normale:', normalBudget);
     saveBudget(normalBudget, 'normal');
   }, [normalBudget, isInitialized]);
 
@@ -153,11 +139,8 @@ const App = () => {
   useEffect(() => {
     // Non salvare durante l'inizializzazione
     if (!isInitialized) {
-      console.log('Salvataggio budget mantra saltato - app non ancora inizializzata');
       return;
     }
-    
-    console.log('Salvando budget mantra:', mantraBudget);
     saveBudget(mantraBudget, 'mantra');
   }, [mantraBudget, isInitialized]);
 
@@ -165,13 +148,11 @@ const App = () => {
   useEffect(() => {
     if (!isInitialized || teams.length === 0) return;
     
-    console.log('🔍 DEBUG: Player status changed, synchronizing teams...');
     const synchronizedTeams = synchronizeTeamsWithPlayerStatus(teams, mantraPlayerStatus);
     
     // Only update if there are changes
     const hasChanges = JSON.stringify(teams) !== JSON.stringify(synchronizedTeams);
     if (hasChanges) {
-      console.log('🔍 DEBUG: Teams need to be updated due to player status changes');
       setTeams(synchronizedTeams);
     }
   }, [mantraPlayerStatus, isInitialized, teams, synchronizeTeamsWithPlayerStatus]);
@@ -200,18 +181,13 @@ const App = () => {
       }
 
       // Carica roles.csv
-      console.log('🔍 DEBUG: Starting to load roles.csv...');
       const rolesResponse = await fetch(`/data/roles.csv?t=${Date.now()}`);
-      console.log('🔍 DEBUG: Roles response status:', rolesResponse.status, rolesResponse.ok);
       
       if (rolesResponse.ok) {
         const rolesText = await rolesResponse.text();
-        console.log('🔍 DEBUG: Raw CSV text:', rolesText);
         const rolesLines = rolesText.split('\n').filter(line => line.trim());
-        console.log('🔍 DEBUG: CSV lines:', rolesLines);
         const roles = rolesLines.slice(1).map(line => {
           const parts = line.split(',');
-          console.log('🔍 DEBUG: Parsing line:', line, 'Parts:', parts);
           return { 
             Role: parts[0]?.trim() || '', 
             Ruolo: parts[1]?.trim() || '', 
@@ -219,12 +195,8 @@ const App = () => {
           };
         }).filter(role => {
           const isValid = role.Role && role.Ruolo; // Make Color optional for now
-          console.log('🔍 DEBUG: Role validation:', role, 'Valid:', isValid);
           return isValid;
         }); // Only keep complete entries
-        
-        console.log('🔍 DEBUG: Parsed roles from CSV:', roles);
-        console.log('🔍 DEBUG: Setting rolesData with:', roles.length, 'roles');
         setRolesData(roles);
       } else {
         console.error('🔍 DEBUG: Failed to load roles.csv:', rolesResponse.status, rolesResponse.statusText);
@@ -267,10 +239,6 @@ const App = () => {
     const normalSavedBudget = loadBudget('normal');
     const mantraSavedBudget = loadBudget('mantra');
     
-    console.log('Caricamento iniziale - Stato normale trovato:', Object.keys(normalStatus).length, 'giocatori');
-    console.log('Caricamento iniziale - Stato mantra trovato:', Object.keys(mantraStatus).length, 'giocatori');
-    console.log('Caricamento iniziale - Budget normale trovato:', normalSavedBudget);
-    console.log('Caricamento iniziale - Budget mantra trovato:', mantraSavedBudget);
     
     setNormalPlayerStatus(normalStatus);
     setMantraPlayerStatus(mantraStatus);
@@ -283,7 +251,6 @@ const App = () => {
       const teamsData = savedTeams ? JSON.parse(savedTeams) : [];
       const validTeams = Array.isArray(teamsData) ? teamsData : [];
       setTeams(validTeams);
-      console.log('🔍 DEBUG: Loaded teams from localStorage:', validTeams);
     } catch (error) {
       console.error('Error loading teams from localStorage:', error);
       setTeams([]);
@@ -297,11 +264,7 @@ const App = () => {
 
   // Gestione status giocatori
   const handlePlayerStatusChange = (playerId, status, fantamilioni = null) => {
-    console.log('🔍 DEBUG: handlePlayerStatusChange called with:', playerId, status, fantamilioni, 'mode: mantra');
-    console.log('🔍 DEBUG: Current mantraPlayerStatus before update:', mantraPlayerStatus);
-    
     const newStatus = updatePlayerStatus(mantraPlayerStatus, playerId, status, fantamilioni);
-    console.log('🔍 DEBUG: New status after update:', newStatus);
     setMantraPlayerStatus(newStatus);
   };
 
@@ -317,7 +280,6 @@ const App = () => {
       // Add player to the selected team
       if (teamId) {
         const teamIdInt = parseInt(teamId);
-        console.log('Adding player to team:', teamIdInt, playerToAcquire.Nome, fantamilioni);
         
         // Update teams state directly
         setTeams(prevTeams => {
@@ -332,7 +294,6 @@ const App = () => {
           
           // Save to localStorage
           localStorage.setItem('fantacalcio_teams', JSON.stringify(updatedTeams));
-          console.log('Updated teams:', updatedTeams);
           
           return updatedTeams;
         });

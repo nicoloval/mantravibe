@@ -71,7 +71,6 @@ const FantamilioniBar = ({
     const teamIdStr = String(teamId);
     const team = teams.find(t => String(t.id) === teamIdStr);
     if (!team) {
-      console.log('🔍 DEBUG: Team not found for ID:', teamId, 'Available teams:', teams.map(t => ({ id: t.id, name: t.name })));
       return 0;
     }
     
@@ -93,13 +92,6 @@ const FantamilioniBar = ({
     const reservedForRemaining = playersNeeded * 1; // Reserve 1 FM per player still needed
     const maxBid = Math.max(0, availableBudget - reservedForRemaining);
     
-    console.log('🔍 DEBUG: Max amount calculation for team', teamId, ':', {
-      availableBudget,
-      currentPlayers,
-      playersNeeded,
-      reservedForRemaining,
-      maxBid
-    });
     
     return maxBid;
   }, [teams, minPlayers, calculateTeamBudget]);
@@ -445,14 +437,9 @@ const FantamilioniBar = ({
     // Trigger comprehensive debug for the selected team
     const team = teams.find(t => String(t.id) === String(teamId));
     if (team) {
-      console.log(`🔍 DEBUG: [${team.name}] ===== FANTAMILIONI BAR - TEAM SELECTION DEBUG =====`);
-      console.log(`🔍 DEBUG: [${team.name}] FANTAMILIONI BAR - Team data:`, team);
-      console.log(`🔍 DEBUG: [${team.name}] FANTAMILIONI BAR - Team players: ${team.players?.length || 0}`);
-      console.log(`🔍 DEBUG: [${team.name}] FANTAMILIONI BAR - First few players:`, team.players?.slice(0, 3));
       
       // Calculate and show formation rankings for this team
       if (Object.keys(formations).length > 0) {
-        console.log(`🔍 DEBUG: [${team.name}] ===== FANTAMILIONI BAR - FORMATION RANKINGS FOR SELECTED TEAM =====`);
         
         const teamRankings = Object.keys(formations).map(formationCode => {
           const stats = getFormationStatsForTeam(team, formationCode);
@@ -476,33 +463,7 @@ const FantamilioniBar = ({
           const totalScore = Math.max(0, Math.min(100, starterScore + backupScore - unusablePenalty));
           
           // Create comprehensive debug object for this formation
-          const formationDebug = {
-            formationCode,
-            inputs: {
-              occupiedPositions: starterFilled,
-              totalPositions: starterTotal,
-              starterFraction: starterFraction,
-              backupSlotsWithCoverage: backupSlotsWithCoverage,
-              backupFraction: backupFraction,
-              unusablePlayers: unusablePlayers,
-              totalTeamPlayers: team.players?.length || 0,
-              stats: stats
-            },
-            calculations: {
-              starterScore: starterScore,
-              backupScore: backupScore,
-              unusablePenalty: unusablePenalty,
-              totalScore: totalScore
-            },
-            formulas: {
-              starterScore: `50 * ${starterFraction.toFixed(3)} = ${starterScore.toFixed(2)}`,
-              backupScore: `30 * ${backupFraction.toFixed(3)} = ${backupScore.toFixed(2)}`,
-              unusablePenalty: `min(30, 30 * (${unusablePlayers} / ${team.players?.length || 1})) = ${unusablePenalty.toFixed(2)}`,
-              totalScore: `${starterScore.toFixed(2)} + ${backupScore.toFixed(2)} - ${unusablePenalty.toFixed(2)} = ${totalScore.toFixed(2)}`
-            }
-          };
           
-          console.log(`🔍 DEBUG: [${team.name}] FANTAMILIONI BAR - Formation ${formationCode}:`, formationDebug);
           
           return { code: formationCode, score: totalScore };
         });
@@ -511,14 +472,7 @@ const FantamilioniBar = ({
         teamRankings.sort((a, b) => b.score - a.score);
         
         // Create comprehensive summary
-        const allFormationsDebug = teamRankings.map(ranking => ({
-          formationCode: ranking.code,
-          finalScore: ranking.score
-        }));
         
-        console.log(`🔍 DEBUG: [${team.name}] ===== FANTAMILIONI BAR - ALL FORMATIONS SUMMARY =====`);
-        console.log(`🔍 DEBUG: [${team.name}] FANTAMILIONI BAR - All formations with scores:`, allFormationsDebug);
-        console.log(`🔍 DEBUG: [${team.name}] ===== FANTAMILIONI BAR - END TEAM SELECTION DEBUG =====`);
       }
     }
   }, [teams, formations, getFormationStatsForTeam]);
@@ -578,7 +532,6 @@ const FantamilioniBar = ({
                     
                     return playerRoles.map((role, idx) => {
                       const italianRole = translateRoleToItalian(role);
-                      console.log('🔍 DEBUG: Role translation:', { original: role, translated: italianRole, roleMapping });
                       return (
                         <span key={idx} style={{
                           padding: '2px 6px',

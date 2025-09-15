@@ -15,7 +15,6 @@ const ROLE_PRIORITY = ['Pc', 'A', 'T', 'W', 'C', 'E', 'M', 'Ds', 'Dd', 'Dc', 'B'
  */
 export function canPlay(player, allowedRoles) {
   const result = player.roles.some(role => allowedRoles.includes(role));
-  console.log(`🔍 DEBUG: canPlay(${player.name}, [${allowedRoles.join(',')}]) - Player roles: [${player.roles.join(',')}] - Result: ${result}`);
   return result;
 }
 
@@ -29,7 +28,6 @@ function hopcroftKarpMatching(slots, players) {
   const n = slots.length;
   const m = players.length;
   
-  console.log(`🔍 DEBUG: Hopcroft-Karp matching - ${n} slots, ${m} players`);
   
   // Build adjacency list
   const adj = Array(n).fill().map(() => []);
@@ -38,20 +36,13 @@ function hopcroftKarpMatching(slots, players) {
       const canPlayResult = canPlay(players[j], slots[i].allowedRoles);
       if (canPlayResult) {
         adj[i].push(j);
-        console.log(`🔍 DEBUG: Player ${players[j].name} (${players[j].roles}) can play slot ${i} (${slots[i].allowedRoles})`);
       }
     }
   }
   
-  console.log('🔍 DEBUG: Adjacency list:', adj.map((edges, i) => ({ 
-    slot: i, 
-    allowedRoles: slots[i].allowedRoles, 
-    compatiblePlayers: edges.map(j => `${players[j].name}(${players[j].roles.join(',')})`)
-  })));
   
   // Check if any slots have compatible players
-  const totalCompatible = adj.reduce((sum, edges) => sum + edges.length, 0);
-  console.log(`🔍 DEBUG: Total compatible player-slot pairs: ${totalCompatible}`);
+  // const totalCompatible = adj.reduce((sum, edges) => sum + edges.length, 0);
   
   // Hopcroft-Karp implementation
   const pairU = Array(n).fill(-1);
@@ -101,30 +92,28 @@ function hopcroftKarpMatching(slots, players) {
     return true;
   }
   
-  let matching = 0; // Track number of matches found
+  // let matching = 0; // Track number of matches found
   while (bfs()) {
     for (let u = 0; u < n; u++) {
       if (pairU[u] === -1) {
         if (dfs(u)) {
-          matching++;
+          // matching++;
         }
       }
     }
   }
   
   // matching variable is used for debugging/logging purposes
-  console.log(`🔍 DEBUG: Found ${matching} matches in hopcroftKarpMatching`);
+  // const matching = pairU.filter(x => x !== -1).length;
   
   // Convert to assignment map
   const assignment = new Map();
   for (let i = 0; i < n; i++) {
     if (pairU[i] !== -1) {
       assignment.set(i, pairU[i]);
-      console.log(`🔍 DEBUG: Assignment - Slot ${i} (${slots[i].allowedRoles}) → Player ${players[pairU[i]].name} (${players[pairU[i]].roles})`);
     }
   }
   
-  console.log(`🔍 DEBUG: Final assignment: ${assignment.size}/${n} slots filled`);
   return assignment;
 }
 
@@ -227,13 +216,8 @@ export function evaluateFormationFit(players, formation, config) {
     allowedRoles
   }));
   
-  console.log(`🔍 DEBUG: Evaluating formation with ${slots.length} slots`);
-  console.log(`🔍 DEBUG: Players available:`, players.length);
-  console.log(`🔍 DEBUG: Players:`, players.map(p => ({ name: p.name, roles: p.roles })));
-  console.log(`🔍 DEBUG: Slots:`, slots.map(s => ({ id: s.id, allowedRoles: s.allowedRoles })));
   
   if (players.length === 0) {
-    console.log('🔍 DEBUG: ERROR - No players provided to ranking algorithm!');
     return { score: 0, breakdown: { starterFilled: 0, starterTotal: 11, starterFraction: 0, backupSlotsWithCoverage: 0, backupFraction: 0, roleDeficitUnits: 0, unusablePlayers: 0, notes: ['No players available'] } };
   }
   
@@ -243,7 +227,6 @@ export function evaluateFormationFit(players, formation, config) {
   const starterTotal = 11;
   const starterFraction = starterFilled / starterTotal;
   
-  console.log(`🔍 DEBUG: Assignment result: ${starterFilled}/${starterTotal} slots filled`);
   
   // 2) Identify bench candidates and compute backup coverage
   const usedPlayerIndices = new Set(assignment.values());
@@ -315,17 +298,6 @@ export function evaluateFormationFit(players, formation, config) {
   // Ensure score is between 0 and 100
   score = Math.max(0, Math.min(100, score));
   
-  console.log(`🔍 DEBUG: Absolute scoring breakdown:`, {
-    starterScore: starterScore.toFixed(2),
-    backupScore: backupScore.toFixed(2),
-    unusablePenalty: unusablePenalty.toFixed(2),
-    totalScore: score.toFixed(2),
-    breakdown: {
-      starterFilled: `${starterFilled}/11`,
-      backupCoverage: `${backupSlotsWithCoverage}/11`,
-      unusablePlayers: unusablePlayers
-    }
-  });
   
   const breakdown = {
     starterFilled,
@@ -371,19 +343,12 @@ export const DEFAULT_CONFIG = {
 export function rankFormations(players, formations, config = DEFAULT_CONFIG) {
   const results = [];
   
-  console.log('🔍 DEBUG: ===== FORMATION RANKING =====');
-  console.log('🔍 DEBUG: Ranking formations with', players.length, 'players');
-  console.log('🔍 DEBUG: Available formations:', Object.keys(formations));
-  console.log('🔍 DEBUG: Players for ranking:', players.map(p => ({ name: p.name, roles: p.roles })));
   
   if (players.length === 0) {
-    console.log('🔍 DEBUG: WARNING - No players available for ranking!');
   }
   
   for (const [code, formation] of Object.entries(formations)) {
-    console.log(`🔍 DEBUG: ===== EVALUATING FORMATION ${code} =====`);
     const { score, breakdown } = evaluateFormationFit(players, formation, config);
-    console.log(`🔍 DEBUG: Formation ${code} - Final Score: ${score.toFixed(2)}`, breakdown);
     results.push({
       code,
       score,
@@ -419,10 +384,6 @@ export function rankFormations(players, formations, config = DEFAULT_CONFIG) {
     return a.code.localeCompare(b.code);
   });
   
-  console.log('🔍 DEBUG: Final rankings:', results.map(r => ({ 
-    code: r.code, 
-    score: r.score.toFixed(1)
-  })));
   
   return results;
 }
@@ -452,26 +413,18 @@ const ROLE_MAPPING = {
  * @returns {Array} Processed players for ranking
  */
 export function processPlayersForRanking(players, playerStatus) {
-  console.log('🔍 DEBUG: ===== PLAYER PROCESSING =====');
-  console.log('🔍 DEBUG: Total players in dataset:', players.length);
-  console.log('🔍 DEBUG: Player status object keys:', Object.keys(playerStatus).length);
-  console.log('🔍 DEBUG: Player status sample:', Object.entries(playerStatus).slice(0, 10));
   
   const acquiredPlayers = players.filter(player => {
     const status = playerStatus[player.id]?.status;
     const isAcquired = status === 'acquired';
-    console.log(`🔍 DEBUG: Player ${player.name} (ID: ${player.id}) - Status: ${status} - Acquired: ${isAcquired}`);
     return isAcquired;
   });
   
-  console.log('🔍 DEBUG: Acquired players count:', acquiredPlayers.length);
-  console.log('🔍 DEBUG: Acquired players:', acquiredPlayers.map(p => ({ name: p.name, id: p.id, ruolo: p.Ruolo })));
   
   const processedPlayers = acquiredPlayers.map(player => {
     const englishRoles = player.Ruolo ? player.Ruolo.split(',').map(r => r.trim()) : [];
     const italianRoles = englishRoles.map(role => ROLE_MAPPING[role] || role).filter(role => role);
     
-    console.log(`🔍 DEBUG: Processing ${player.name} - Raw Ruolo: "${player.Ruolo}" - English roles: [${englishRoles.join(',')}] - Italian roles: [${italianRoles.join(',')}]`);
     
     return {
       id: player.id,
@@ -480,7 +433,5 @@ export function processPlayersForRanking(players, playerStatus) {
     };
   });
   
-  console.log('🔍 DEBUG: Final processed players for ranking:', processedPlayers);
-  console.log('🔍 DEBUG: ===== END PLAYER PROCESSING =====');
   return processedPlayers;
 }
