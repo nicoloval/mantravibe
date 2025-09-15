@@ -48,9 +48,29 @@ const App = () => {
 
   // Flag per evitare salvataggi durante l'inizializzazione
   const [isInitialized, setIsInitialized] = useState(false);
+  
+  // Popup state for the declaration
+  const [showDeclarationPopup, setShowDeclarationPopup] = useState(() => {
+    try {
+      return !localStorage.getItem('declarationAccepted');
+    } catch {
+      return true;
+    }
+  });
 
   // Stati per la barra fantamilioni
   const [playerToAcquire, setPlayerToAcquire] = useState(null);
+
+  // Handle declaration acceptance
+  const handleDeclarationAccept = useCallback(() => {
+    try {
+      localStorage.setItem('declarationAccepted', 'true');
+      setShowDeclarationPopup(false);
+    } catch (error) {
+      console.error('Error saving declaration acceptance:', error);
+      setShowDeclarationPopup(false);
+    }
+  }, []);
 
   // Settings state
   const [showSettings, setShowSettings] = useState(false);
@@ -488,6 +508,67 @@ const App = () => {
 
   return (
     <Router>
+      {/* Declaration Popup */}
+      {showDeclarationPopup && (
+        <div style={{
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white',
+            padding: '30px',
+            borderRadius: '12px',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+            maxWidth: '400px',
+            width: '90%',
+            textAlign: 'center'
+          }}>
+            <h2 style={{
+              margin: '0 0 20px 0',
+              fontSize: '24px',
+              color: '#1f2937',
+              fontWeight: 'bold'
+            }}>
+              Dichiarazione Obbligatoria
+            </h2>
+            <p style={{
+              margin: '0 0 25px 0',
+              fontSize: '18px',
+              color: '#374151',
+              lineHeight: '1.5'
+            }}>
+              Per usare quest'app devi dichiarare che Nicolò doveva vincere lo scorso anno
+            </p>
+            <button
+              onClick={handleDeclarationAccept}
+              style={{
+                backgroundColor: '#3b82f6',
+                color: 'white',
+                border: 'none',
+                padding: '12px 24px',
+                borderRadius: '8px',
+                fontSize: '16px',
+                fontWeight: '600',
+                cursor: 'pointer',
+                transition: 'background-color 0.2s'
+              }}
+              onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
+              onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+            >
+              Lo dichiaro
+            </button>
+          </div>
+        </div>
+      )}
+      
       <Routes>
         <Route path="/player/:id" element={
           <PlayerPage 
