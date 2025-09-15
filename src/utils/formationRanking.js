@@ -101,7 +101,7 @@ function hopcroftKarpMatching(slots, players) {
     return true;
   }
   
-  let matching = 0;
+  let matching = 0; // Track number of matches found
   while (bfs()) {
     for (let u = 0; u < n; u++) {
       if (pairU[u] === -1) {
@@ -111,6 +111,9 @@ function hopcroftKarpMatching(slots, players) {
       }
     }
   }
+  
+  // matching variable is used for debugging/logging purposes
+  console.log(`🔍 DEBUG: Found ${matching} matches in hopcroftKarpMatching`);
   
   // Convert to assignment map
   const assignment = new Map();
@@ -247,7 +250,7 @@ export function evaluateFormationFit(players, formation, config) {
   const bench = players.filter((_, index) => !usedPlayerIndices.has(index));
   
   let backupSlotsWithCoverage = 0;
-  const missingStarters = starterTotal - starterFilled;
+  // const missingStarters = starterTotal - starterFilled; // Removed unused variable
   
   for (let i = 0; i < slots.length; i++) {
     if (assignment.has(i)) {

@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import FantamilioniModal from './components/FantamilioniModal';
+import FantamilioniBar from './components/FantamilioniBar';
 import Header from './components/Header';
 import RosaAcquistata from './components/RosaAcquistata';
 import MantraGiocatoriTab from './components/MantraGiocatoriTab';
@@ -13,6 +13,7 @@ const App = () => {
   // Stati principali
   const [mantraData, setMantraData] = useState([]);
   const [rolesData, setRolesData] = useState([]);
+  const [formations, setFormations] = useState({});
   
   // Debug effect to track rolesData changes
   useEffect(() => {
@@ -48,8 +49,7 @@ const App = () => {
   // Flag per evitare salvataggi durante l'inizializzazione
   const [isInitialized, setIsInitialized] = useState(false);
 
-  // Stati per la modal fantamilioni
-  const [showFantamilioniModal, setShowFantamilioniModal] = useState(false);
+  // Stati per la barra fantamilioni
   const [playerToAcquire, setPlayerToAcquire] = useState(null);
 
   // Settings state
@@ -221,6 +221,16 @@ const App = () => {
         setError('File appetibilita.json non trovato nella cartella public/assets/.');
         return;
       }
+
+      // Carica formations
+      const formationsResponse = await fetch('/assets/mantra_formations_positions.json');
+      if (formationsResponse.ok) {
+        const formationsJson = await formationsResponse.json();
+        setFormations(formationsJson);
+      } else {
+        setError('File mantra_formations_positions.json non trovato nella cartella public/assets/.');
+        return;
+      }
     } catch (err) {
       setError('Errore nel caricamento dei dati Mantra.');
       console.error('Errore caricamento Mantra:', err);
@@ -278,14 +288,10 @@ const App = () => {
   // Gestione acquisto giocatore con fantamilioni
   const handlePlayerAcquire = (player) => {
     setPlayerToAcquire(player);
-    setShowFantamilioniModal(true);
   };
 
-  const handleFantamilioniConfirm = (fantamilioni, teamId) => {
+  const handleFantamilioniConfirm = (teamId, fantamilioni) => {
     if (playerToAcquire) {
-      // Team-specific budget check is handled in FantamilioniModal
-      // No need for global budget check here
-      
       handlePlayerStatusChange(playerToAcquire.id, 'acquired', fantamilioni);
       
       // Add player to the selected team
@@ -317,7 +323,6 @@ const App = () => {
         }
       }
       
-      setShowFantamilioniModal(false);
       setPlayerToAcquire(null);
     }
   };
@@ -340,7 +345,6 @@ const App = () => {
 
 
   const handleFantamilioniCancel = () => {
-    setShowFantamilioniModal(false);
     setPlayerToAcquire(null);
   };
 
@@ -494,6 +498,7 @@ const App = () => {
         } />
         <Route path="/*" element={
           <div style={containerStyle}>
+
       {/* Settings Gear Button */}
       <button 
         style={{
@@ -519,6 +524,20 @@ const App = () => {
       {/* Header */}
       <Header 
         dataCount={mantraData.length}
+      />
+
+      {/* Fantamilioni Bar */}
+      <FantamilioniBar
+        player={playerToAcquire}
+        teams={teams}
+        formations={formations}
+        players={mantraData}
+        appetibilitaData={appetibilitaData}
+        roleMapping={rolesData}
+        roles={rolesData} // Add roles parameter for enhancedRoleMapping
+        currentTeamFormationRankings={[]} // Will be populated from RosaAcquistata later
+        onConfirm={handleFantamilioniConfirm}
+        onCancel={handleFantamilioniCancel}
       />
 
       {/* Navigation Tabs - solo se ci sono dati */}
@@ -632,18 +651,6 @@ const App = () => {
           </>
         )}
       </div>
-
-      {/* Modal Fantamilioni */}
-      {showFantamilioniModal && (
-        <FantamilioniModal
-          player={playerToAcquire}
-          onConfirm={handleFantamilioniConfirm}
-          onCancel={handleFantamilioniCancel}
-          teams={teams || []}
-          maxPlayers={maxPlayers}
-          minPlayers={minPlayers}
-        />
-      )}
 
       {/* Settings Modal */}
       <Settings

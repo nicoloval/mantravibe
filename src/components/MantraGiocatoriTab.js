@@ -2119,6 +2119,9 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                         } else {
                           roles = [player['Ruolo Mantra']];
                         }
+                      } else if (player.Ruolo) {
+                        // Fallback to regular Ruolo field if Ruolo Mantra is not available
+                        roles = [player.Ruolo];
                       }
                       
                       return roles.length > 0 ? (
