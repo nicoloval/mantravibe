@@ -2804,14 +2804,40 @@ const RosaAcquistata = ({
               fontWeight: '600', 
               color: '#374151' 
             }}>
-              Riserve ({Object.keys(getReservePlayers.positionAssignments || {}).length})
+              Riserve ({(() => {
+                const currentFormation = formations[selectedFormation];
+                if (!currentFormation || !currentFormation.positions) return '0/11';
+                
+                const reservePlayersByRole = getReservePlayers.playersByRole || {};
+                let filledPositions = 0;
+                
+                currentFormation.positions.forEach(positionRoles => {
+                  const hasPlayer = positionRoles.some(role => 
+                    reservePlayersByRole[role] && reservePlayersByRole[role].length > 0
+                  );
+                  if (hasPlayer) filledPositions++;
+                });
+                
+                return `${filledPositions}/11`;
+              })()})
           </h3>
             
-            {getReservePlayers.playersByRole && Object.keys(getReservePlayers.playersByRole).length > 0 ? (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '0.375rem' }}>
-                {Object.entries(getReservePlayers.playersByRole).map(([role, players]) => {
-                  if (players.length === 0) return null;
-                  
+              {(() => {
+                // Get the current formation positions
+                const currentFormation = formations[selectedFormation];
+                if (!currentFormation || !currentFormation.positions) {
+                  return (
+                    <div style={{ 
+                      textAlign: 'center', 
+                      color: '#6b7280', 
+                      fontSize: '0.875rem',
+                      padding: '2rem 1rem'
+                    }}>
+                      Nessuna formazione selezionata
+                    </div>
+                  );
+                }
                   
                   // Convert role to Italian and get color using roles.csv mapping
                   const roleToItalianAndColor = (role) => {
@@ -2831,8 +2857,8 @@ const RosaAcquistata = ({
                         'A': 'A',      // Attacker/Forward
                         'PC': 'Pc',    // Center Forward
                         'T': 'T',      // Trequartista
-                        'Dd': 'Dd',    // Right Back
-                        'Ds': 'Ds',    // Left Back
+                      'DD': 'Dd',    // Right Back
+                      'DS': 'Ds',    // Left Back
                         'Dm': 'Dm',    // Defensive Midfielder
                         'Cm': 'Cm',    // Central Midfielder
                         'Am': 'Am',    // Attacking Midfielder
@@ -2851,35 +2877,55 @@ const RosaAcquistata = ({
                     };
                   };
                   
-                  const roleInfo = roleToItalianAndColor(role);
-                  
-                  return players.map((player, playerIndex) => (
-                    <div key={`${role}-${playerIndex}`} style={{
+                // Get reserve players by role for this formation
+                const reservePlayersByRole = getReservePlayers.playersByRole || {};
+
+                // Render all 11 positions
+                return currentFormation.positions.map((positionRoles, positionIndex) => {
+                  // Find players assigned to any of the roles for this position
+                  const playersInPosition = [];
+                  positionRoles.forEach(role => {
+                    if (reservePlayersByRole[role]) {
+                      playersInPosition.push(...reservePlayersByRole[role]);
+                    }
+                  });
+
+                  // Get the primary role (first role in the array) for display
+                  const primaryRole = positionRoles[0];
+                  const roleInfo = roleToItalianAndColor(primaryRole);
+
+                  return (
+                    <div key={`position-${positionIndex}`} style={{
                       display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
+                      flexDirection: 'column',
+                      gap: '0.25rem',
                       padding: '0.5rem',
                       backgroundColor: 'white',
                       borderRadius: '0.25rem',
                       border: '1px solid #e2e8f0',
                       fontSize: '0.75rem'
                     }}>
-                      <div>
-                        <div 
-                          style={{ fontWeight: '600', color: '#3b82f6', fontSize: '0.875rem', cursor: 'pointer' }}
-                          onClick={() => navigate(`/player/${player.player_id}`)}
-                          title="Click to view player details"
-                        >
-                          {player.Nome}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: '#6b7280' }}>
-                          {player.Squadra}
-                        </div>
-                      </div>
-                      <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                      {/* Position header with role */}
+                      <div style={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        marginBottom: '0.25rem'
+                      }}>
                         <span style={{
+                          fontSize: '0.75rem',
+                          fontWeight: '600',
+                          color: '#374151'
+                        }}>
+                          Posizione {positionIndex + 1}
+                        </span>
+                        <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                          {positionRoles.map((role, roleIndex) => {
+                            const roleInfoForRole = roleToItalianAndColor(role);
+                            return (
+                              <span key={roleIndex} style={{
                           padding: '0.125rem 0.375rem',
-                          backgroundColor: roleInfo.color, // roleInfo.color is already a hex color
+                                backgroundColor: roleInfoForRole.color,
                           color: 'white',
                           borderRadius: '0.25rem',
                           fontSize: '0.625rem',
@@ -2887,23 +2933,55 @@ const RosaAcquistata = ({
                           minWidth: '1.5rem',
                           textAlign: 'center'
                         }}>
-                          {roleInfo.italian}
+                                {roleInfoForRole.italian}
                         </span>
+                            );
+                          })}
                       </div>
                     </div>
-                  ));
-                }).filter(Boolean).flat()}
+
+                      {/* Players in this position */}
+                      {playersInPosition.length > 0 ? (
+                        playersInPosition.map((player, playerIndex) => (
+                          <div key={`${positionIndex}-${playerIndex}`} style={{
+                            display: 'flex',
+                            justifyContent: 'space-between',
+                            alignItems: 'center',
+                            padding: '0.25rem 0.5rem',
+                            backgroundColor: '#f8fafc',
+                            borderRadius: '0.25rem',
+                            border: '1px solid #e2e8f0'
+                          }}>
+                            <div>
+                              <div 
+                                style={{ fontWeight: '600', color: '#3b82f6', fontSize: '0.75rem', cursor: 'pointer' }}
+                                onClick={() => navigate(`/player/${player.player_id}`)}
+                                title="Click to view player details"
+                              >
+                                {player.Nome}
               </div>
+                              <div style={{ fontSize: '0.625rem', color: '#6b7280' }}>
+                                {player.Squadra}
+                              </div>
+                            </div>
+                          </div>
+                        ))
             ) : (
               <div style={{ 
-                textAlign: 'center', 
-                color: '#6b7280', 
-                fontSize: '0.875rem',
-                padding: '2rem 1rem'
-              }}>
-                Nessuna riserva
+                          padding: '0.25rem 0.5rem',
+                          color: '#9ca3af',
+                          fontSize: '0.625rem',
+                          fontStyle: 'italic',
+                          textAlign: 'center'
+                        }}>
+                          Nessun giocatore
               </div>
             )}
+                    </div>
+                  );
+                });
+              })()}
+            </div>
           </div>
           </div>
       )}

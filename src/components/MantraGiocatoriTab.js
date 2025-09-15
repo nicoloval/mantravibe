@@ -67,6 +67,19 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     return savedMode || 'table';
   });
   
+  // Card sorting state
+  const [cardSortConfig, setCardSortConfig] = useState(() => {
+    const savedSort = localStorage.getItem('giocatoriCardSort');
+    if (savedSort) {
+      try {
+        return JSON.parse(savedSort);
+      } catch (error) {
+        console.error('Error parsing saved card sort:', error);
+      }
+    }
+    return { key: 'maxFantaindex', direction: 'desc' };
+  });
+  
   // Card details visibility state
   const [showCardDetails, setShowCardDetails] = useState(() => {
     const savedDetails = localStorage.getItem('giocatoriShowCardDetails');
@@ -323,8 +336,12 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
     // Sort players
     if (displayMode === 'cards') {
-      // For card display mode, always sort by max between Fantaindex and FPEDIA
+      // For card display mode, use the selected card sort configuration
       filtered.sort((a, b) => {
+        let aVal, bVal;
+        
+        switch (cardSortConfig.key) {
+          case 'maxFantaindex':
         const aFantaindex = a['Fantaindex  2025-2026'];
         const aFpedia = a['Punteggio FPEDIA'];
         const bFantaindex = b['Fantaindex  2025-2026'];
@@ -352,17 +369,242 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         }
         
         // Calculate max values for each player (ignoring N/A)
-        const aMax = Math.max(
+            aVal = Math.max(
           aFantaindexValid ? aFantaindex : -Infinity,
           aFpediaValid ? aFpedia : -Infinity
         );
-        const bMax = Math.max(
+            bVal = Math.max(
           bFantaindexValid ? bFantaindex : -Infinity,
           bFpediaValid ? bFpedia : -Infinity
         );
+            break;
+          case 'fantaindex':
+            aVal = !isMissingData(a['Fantaindex  2025-2026']) ? a['Fantaindex  2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Fantaindex  2025-2026']) ? b['Fantaindex  2025-2026'] : -Infinity;
+            break;
+          case 'fpedia':
+            aVal = !isMissingData(a['Punteggio FPEDIA']) ? a['Punteggio FPEDIA'] : -Infinity;
+            bVal = !isMissingData(b['Punteggio FPEDIA']) ? b['Punteggio FPEDIA'] : -Infinity;
+            break;
+          case 'nome':
+            aVal = a.Nome || '';
+            bVal = b.Nome || '';
+            break;
+          case 'squadra':
+            aVal = a.Squadra || '';
+            bVal = b.Squadra || '';
+            break;
+          case 'prezzo':
+            aVal = typeof a.Prezzo === 'number' ? a.Prezzo : 0;
+            bVal = typeof b.Prezzo === 'number' ? b.Prezzo : 0;
+            break;
+          case 'appetibilita':
+            aVal = typeof a.Appetibilità === 'number' ? a.Appetibilità : 0;
+            bVal = typeof b.Appetibilità === 'number' ? b.Appetibilità : 0;
+            break;
+          case 'trend':
+            aVal = a.Trend || '';
+            bVal = b.Trend || '';
+            break;
+          case 'convenienzaFstats':
+            aVal = !isMissingData(a['Convenienza FSTATS 2025-2026']) ? a['Convenienza FSTATS 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Convenienza FSTATS 2025-2026']) ? b['Convenienza FSTATS 2025-2026'] : -Infinity;
+            break;
+          case 'convenienzaFpedia':
+            aVal = !isMissingData(a['Convenienza FPEDIA']) ? a['Convenienza FPEDIA'] : -Infinity;
+            bVal = !isMissingData(b['Convenienza FPEDIA']) ? b['Convenienza FPEDIA'] : -Infinity;
+            break;
+          case 'buonInvestimento':
+            aVal = !isMissingData(a['Buon Investimento']) ? a['Buon Investimento'] : -Infinity;
+            bVal = !isMissingData(b['Buon Investimento']) ? b['Buon Investimento'] : -Infinity;
+            break;
+          case 'resistenzaInfortuni':
+            aVal = !isMissingData(a['Resistenza Infortuni']) ? a['Resistenza Infortuni'] : -Infinity;
+            bVal = !isMissingData(b['Resistenza Infortuni']) ? b['Resistenza Infortuni'] : -Infinity;
+            break;
+          case 'infortunato':
+            aVal = a['Infortunato'] === true ? 1 : 0;
+            bVal = b['Infortunato'] === true ? 1 : 0;
+            break;
+          case 'nuovoAcquisto':
+            aVal = a['Nuovo Acquisto'] === true ? 1 : 0;
+            bVal = b['Nuovo Acquisto'] === true ? 1 : 0;
+            break;
+          case 'presenzePreviste':
+            aVal = a['Presenze Previste'] || '';
+            bVal = b['Presenze Previste'] || '';
+            break;
+          case 'golPrevisti':
+            aVal = a['Gol Previsti'] || '';
+            bVal = b['Gol Previsti'] || '';
+            break;
+          case 'assistPrevisti':
+            aVal = a['Assist Previsti'] || '';
+            bVal = b['Assist Previsti'] || '';
+            break;
+          case 'fantamedia':
+            aVal = !isMissingData(a['Fantamedia 2025-2026']) ? a['Fantamedia 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Fantamedia 2025-2026']) ? b['Fantamedia 2025-2026'] : -Infinity;
+            break;
+          case 'media':
+            aVal = !isMissingData(a['Media 2025-2026']) ? a['Media 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Media 2025-2026']) ? b['Media 2025-2026'] : -Infinity;
+            break;
+          case 'presenze':
+            aVal = !isMissingData(a['Presenze 2025-2026']) ? a['Presenze 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Presenze 2025-2026']) ? b['Presenze 2025-2026'] : -Infinity;
+            break;
+          case 'minutiGiocati':
+            aVal = !isMissingData(a['Minuti Giocati 2025-2026']) ? a['Minuti Giocati 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Minuti Giocati 2025-2026']) ? b['Minuti Giocati 2025-2026'] : -Infinity;
+            break;
+          case 'matchesWithGrade':
+            aVal = !isMissingData(a['Matches With Grade 2025-2026']) ? a['Matches With Grade 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Matches With Grade 2025-2026']) ? b['Matches With Grade 2025-2026'] : -Infinity;
+            break;
+          case 'gol':
+            aVal = !isMissingData(a['Gol 2025-2026']) ? a['Gol 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Gol 2025-2026']) ? b['Gol 2025-2026'] : -Infinity;
+            break;
+          case 'assist':
+            aVal = !isMissingData(a['Assist 2025-2026']) ? a['Assist 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Assist 2025-2026']) ? b['Assist 2025-2026'] : -Infinity;
+            break;
+          case 'goals90min':
+            aVal = !isMissingData(a['Goals90min 2025-2026']) ? a['Goals90min 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Goals90min 2025-2026']) ? b['Goals90min 2025-2026'] : -Infinity;
+            break;
+          case 'goalsFromOpenPlays':
+            aVal = !isMissingData(a['Goals From Open Plays 2025-2026']) ? a['Goals From Open Plays 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Goals From Open Plays 2025-2026']) ? b['Goals From Open Plays 2025-2026'] : -Infinity;
+            break;
+          case 'rigori':
+            aVal = !isMissingData(a['Rigori 2025-2026']) ? a['Rigori 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Rigori 2025-2026']) ? b['Rigori 2025-2026'] : -Infinity;
+            break;
+          case 'gkPenaltiesSaved':
+            aVal = !isMissingData(a['GK Penalties Saved 2025-2026']) ? a['GK Penalties Saved 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['GK Penalties Saved 2025-2026']) ? b['GK Penalties Saved 2025-2026'] : -Infinity;
+            break;
+          case 'gkCleanSheets':
+            aVal = !isMissingData(a['GK Clean Sheets 2025-2026']) ? a['GK Clean Sheets 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['GK Clean Sheets 2025-2026']) ? b['GK Clean Sheets 2025-2026'] : -Infinity;
+            break;
+          case 'gkConcededGoals':
+            aVal = !isMissingData(a['GK Conceded Goals 2025-2026']) ? a['GK Conceded Goals 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['GK Conceded Goals 2025-2026']) ? b['GK Conceded Goals 2025-2026'] : -Infinity;
+            break;
+          case 'xA':
+            aVal = !isMissingData(a['xA 2025-2026']) ? a['xA 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['xA 2025-2026']) ? b['xA 2025-2026'] : -Infinity;
+            break;
+          case 'xGFromOpenPlays':
+            aVal = !isMissingData(a['xG From Open Plays 2025-2026']) ? a['xG From Open Plays 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['xG From Open Plays 2025-2026']) ? b['xG From Open Plays 2025-2026'] : -Infinity;
+            break;
+          case 'xGFromOpenPlays90min':
+            aVal = !isMissingData(a['xG From Open Plays/90min 2025-2026']) ? a['xG From Open Plays/90min 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['xG From Open Plays/90min 2025-2026']) ? b['xG From Open Plays/90min 2025-2026'] : -Infinity;
+            break;
+          case 'xA90min':
+            aVal = !isMissingData(a['xA90min 2025-2026']) ? a['xA90min 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['xA90min 2025-2026']) ? b['xA90min 2025-2026'] : -Infinity;
+            break;
+          case 'ammonizioni':
+            aVal = !isMissingData(a['Ammonizioni 2025-2026']) ? a['Ammonizioni 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Ammonizioni 2025-2026']) ? b['Ammonizioni 2025-2026'] : -Infinity;
+            break;
+          case 'espulsioni':
+            aVal = !isMissingData(a['Espulsioni 2025-2026']) ? a['Espulsioni 2025-2026'] : -Infinity;
+            bVal = !isMissingData(b['Espulsioni 2025-2026']) ? b['Espulsioni 2025-2026'] : -Infinity;
+            break;
+          // 2024-2025 season data
+          case 'fantamedia2024':
+            aVal = !isMissingData(a['Fantamedia 2024-2025']) ? a['Fantamedia 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['Fantamedia 2024-2025']) ? b['Fantamedia 2024-2025'] : -Infinity;
+            break;
+          case 'media2024':
+            aVal = !isMissingData(a['Media 2024-2025']) ? a['Media 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['Media 2024-2025']) ? b['Media 2024-2025'] : -Infinity;
+            break;
+          case 'presenze2024':
+            aVal = !isMissingData(a['Presenze 2024-2025']) ? a['Presenze 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['Presenze 2024-2025']) ? b['Presenze 2024-2025'] : -Infinity;
+            break;
+          case 'minutiGiocati2024':
+            aVal = !isMissingData(a['Minuti Giocati 2024-2025']) ? a['Minuti Giocati 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['Minuti Giocati 2024-2025']) ? b['Minuti Giocati 2024-2025'] : -Infinity;
+            break;
+          case 'gol2024':
+            aVal = !isMissingData(a['Gol 2024']) ? a['Gol 2024'] : -Infinity;
+            bVal = !isMissingData(b['Gol 2024']) ? b['Gol 2024'] : -Infinity;
+            break;
+          case 'assist2024':
+            aVal = !isMissingData(a['Assist 2024-2025']) ? a['Assist 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['Assist 2024-2025']) ? b['Assist 2024-2025'] : -Infinity;
+            break;
+          case 'goals90min2024':
+            aVal = !isMissingData(a['Goals90min 2024-2025']) ? a['Goals90min 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['Goals90min 2024-2025']) ? b['Goals90min 2024-2025'] : -Infinity;
+            break;
+          case 'goalsFromOpenPlays2024':
+            aVal = !isMissingData(a['Goals From Open Plays 2024-2025']) ? a['Goals From Open Plays 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['Goals From Open Plays 2024-2025']) ? b['Goals From Open Plays 2024-2025'] : -Infinity;
+            break;
+          case 'rigori2024':
+            aVal = !isMissingData(a['Rigori 2024-2025']) ? a['Rigori 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['Rigori 2024-2025']) ? b['Rigori 2024-2025'] : -Infinity;
+            break;
+          case 'gkPenaltiesSaved2024':
+            aVal = !isMissingData(a['GK Penalties Saved 2024-2025']) ? a['GK Penalties Saved 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['GK Penalties Saved 2024-2025']) ? b['GK Penalties Saved 2024-2025'] : -Infinity;
+            break;
+          case 'gkCleanSheets2024':
+            aVal = !isMissingData(a['GK Clean Sheets 2024-2025']) ? a['GK Clean Sheets 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['GK Clean Sheets 2024-2025']) ? b['GK Clean Sheets 2024-2025'] : -Infinity;
+            break;
+          case 'gkConcededGoals2024':
+            aVal = !isMissingData(a['GK Conceded Goals 2024-2025']) ? a['GK Conceded Goals 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['GK Conceded Goals 2024-2025']) ? b['GK Conceded Goals 2024-2025'] : -Infinity;
+            break;
+          case 'xA2024':
+            aVal = !isMissingData(a['xA 2024-2025']) ? a['xA 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['xA 2024-2025']) ? b['xA 2024-2025'] : -Infinity;
+            break;
+          case 'xGFromOpenPlays2024':
+            aVal = !isMissingData(a['xG From Open Plays 2024-2025']) ? a['xG From Open Plays 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['xG From Open Plays 2024-2025']) ? b['xG From Open Plays 2024-2025'] : -Infinity;
+            break;
+          case 'xGFromOpenPlays90min2024':
+            aVal = !isMissingData(a['xG From Open Plays/90min 2024-2025']) ? a['xG From Open Plays/90min 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['xG From Open Plays/90min 2024-2025']) ? b['xG From Open Plays/90min 2024-2025'] : -Infinity;
+            break;
+          case 'xA90min2024':
+            aVal = !isMissingData(a['xA90min 2024-2025']) ? a['xA90min 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['xA90min 2024-2025']) ? b['xA90min 2024-2025'] : -Infinity;
+            break;
+          case 'ammonizioni2024':
+            aVal = !isMissingData(a['Ammonizioni 2024-2025']) ? a['Ammonizioni 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['Ammonizioni 2024-2025']) ? b['Ammonizioni 2024-2025'] : -Infinity;
+            break;
+          case 'espulsioni2024':
+            aVal = !isMissingData(a['Espulsioni 2024-2025']) ? a['Espulsioni 2024-2025'] : -Infinity;
+            bVal = !isMissingData(b['Espulsioni 2024-2025']) ? b['Espulsioni 2024-2025'] : -Infinity;
+            break;
+          default:
+            aVal = 0;
+            bVal = 0;
+        }
         
-        // Sort in descending order (highest values first)
-        return bMax - aMax;
+        if (typeof aVal === 'string' && typeof bVal === 'string') {
+          return cardSortConfig.direction === 'asc' 
+            ? aVal.localeCompare(bVal)
+            : bVal.localeCompare(aVal);
+        } else {
+          return cardSortConfig.direction === 'asc' 
+            ? aVal - bVal
+            : bVal - aVal;
+        }
       });
     } else if (sortConfig.key) {
       // For table mode, use the selected sort column
@@ -393,7 +635,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     }
 
     return filtered;
-  }, [players, searchTerm, selectedRoles, selectedSkills, sortConfig, hideAcquired, playerStatus, displayMode]);
+  }, [players, searchTerm, selectedRoles, selectedSkills, sortConfig, hideAcquired, playerStatus, displayMode, cardSortConfig]);
 
   const handleSort = (key) => {
     setSortConfig(prevConfig => ({
@@ -540,11 +782,22 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   };
 
   // Helper function to format values (int vs float)
-  const formatValue = (value) => {
+  const formatValue = (value, fieldName = '') => {
     if (typeof value === 'number') {
       if (isMissingData(value)) return 'N/A';
-      // Check if it's an integer (even if stored as float)
-      if (Number.isInteger(value)) {
+      
+      // Fields that should always be displayed as integers
+      const integerFields = [
+        'Gol 2025-2026', 'Assist 2025-2026', 'Presenze 2025-2026', 'Minuti Giocati 2025-2026', 'Matches With Grade 2025-2026',
+        'Gol 2024', 'Assist 2024-2025', 'Presenze 2024-2025', 'Minuti Giocati 2024-2025', 'Matches With Grade 2024-2025',
+        'GK Penalties Saved 2025-2026', 'GK Clean Sheets 2025-2026', 'GK Conceded Goals 2025-2026',
+        'GK Penalties Saved 2024-2025', 'GK Clean Sheets 2024-2025', 'GK Conceded Goals 2024-2025',
+        'Rigori 2025-2026', 'Rigori 2024-2025', 'Ammonizioni 2025-2026', 'Ammonizioni 2024-2025',
+        'Espulsioni 2025-2026', 'Espulsioni 2024-2025', 'Goals From Open Plays 2025-2026', 'Goals From Open Plays 2024-2025'
+      ];
+      
+      // If it's an integer field or the value is an integer, display without decimals
+      if (integerFields.includes(fieldName) || Number.isInteger(value)) {
         return value.toString();
       } else {
         return value.toFixed(2);
@@ -1184,6 +1437,111 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             {showCardDetails ? 'Nascondi Dettagli' : 'Mostra Dettagli'}
           </button>
         )}
+        
+        {/* Card Sorting Menu - Only show in card mode */}
+        {displayMode === 'cards' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+              Ordina per:
+            </span>
+            <select
+              value={cardSortConfig.key}
+              onChange={(e) => {
+                const newSort = { ...cardSortConfig, key: e.target.value };
+                setCardSortConfig(newSort);
+                localStorage.setItem('giocatoriCardSort', JSON.stringify(newSort));
+              }}
+              style={{
+                padding: '0.5rem',
+                fontSize: '0.875rem',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                backgroundColor: 'white',
+                color: '#374151',
+                cursor: 'pointer'
+              }}
+            >
+              <option value="maxFantaindex">Max Fantaindex/FPEDIA</option>
+              <option value="fantaindex">Fantaindex 2025-2026</option>
+              <option value="fpedia">Punteggio FPEDIA</option>
+              <option value="nome">Nome</option>
+              <option value="squadra">Squadra</option>
+              <option value="prezzo">Prezzo</option>
+              <option value="appetibilita">Appetibilità</option>
+              <option value="trend">Trend</option>
+              <option value="convenienzaFstats">Convenienza FSTATS</option>
+              <option value="convenienzaFpedia">Convenienza FPEDIA</option>
+              <option value="buonInvestimento">Buon Investimento</option>
+              <option value="resistenzaInfortuni">Resistenza Infortuni</option>
+              <option value="infortunato">Infortunato</option>
+              <option value="nuovoAcquisto">Nuovo Acquisto</option>
+              <option value="presenzePreviste">Presenze Previste</option>
+              <option value="golPrevisti">Gol Previsti</option>
+              <option value="assistPrevisti">Assist Previsti</option>
+              <option value="fantamedia">Fantamedia 2025-2026</option>
+              <option value="media">Media 2025-2026</option>
+              <option value="presenze">Presenze 2025-2026</option>
+              <option value="minutiGiocati">Minuti Giocati 2025-2026</option>
+              <option value="matchesWithGrade">Matches With Grade 2025-2026</option>
+              <option value="gol">Gol 2025-2026</option>
+              <option value="assist">Assist 2025-2026</option>
+              <option value="goals90min">Goals90min 2025-2026</option>
+              <option value="goalsFromOpenPlays">Goals From Open Plays 2025-2026</option>
+              <option value="rigori">Rigori 2025-2026</option>
+              <option value="gkPenaltiesSaved">GK Penalties Saved 2025-2026</option>
+              <option value="gkCleanSheets">GK Clean Sheets 2025-2026</option>
+              <option value="gkConcededGoals">GK Conceded Goals 2025-2026</option>
+              <option value="xA">xA 2025-2026</option>
+              <option value="xGFromOpenPlays">xG From Open Plays 2025-2026</option>
+              <option value="xGFromOpenPlays90min">xG From Open Plays/90min 2025-2026</option>
+              <option value="xA90min">xA90min 2025-2026</option>
+              <option value="ammonizioni">Ammonizioni 2025-2026</option>
+              <option value="espulsioni">Espulsioni 2025-2026</option>
+              <option value="fantamedia2024">Fantamedia 2024-2025</option>
+              <option value="media2024">Media 2024-2025</option>
+              <option value="presenze2024">Presenze 2024-2025</option>
+              <option value="minutiGiocati2024">Minuti Giocati 2024-2025</option>
+              <option value="gol2024">Gol 2024-2025</option>
+              <option value="assist2024">Assist 2024-2025</option>
+              <option value="goals90min2024">Goals90min 2024-2025</option>
+              <option value="goalsFromOpenPlays2024">Goals From Open Plays 2024-2025</option>
+              <option value="rigori2024">Rigori 2024-2025</option>
+              <option value="gkPenaltiesSaved2024">GK Penalties Saved 2024-2025</option>
+              <option value="gkCleanSheets2024">GK Clean Sheets 2024-2025</option>
+              <option value="gkConcededGoals2024">GK Conceded Goals 2024-2025</option>
+              <option value="xA2024">xA 2024-2025</option>
+              <option value="xGFromOpenPlays2024">xG From Open Plays 2024-2025</option>
+              <option value="xGFromOpenPlays90min2024">xG From Open Plays/90min 2024-2025</option>
+              <option value="xA90min2024">xA90min 2024-2025</option>
+              <option value="ammonizioni2024">Ammonizioni 2024-2025</option>
+              <option value="espulsioni2024">Espulsioni 2024-2025</option>
+            </select>
+            <button
+              onClick={() => {
+                const newSort = { 
+                  ...cardSortConfig, 
+                  direction: cardSortConfig.direction === 'asc' ? 'desc' : 'asc' 
+                };
+                setCardSortConfig(newSort);
+                localStorage.setItem('giocatoriCardSort', JSON.stringify(newSort));
+              }}
+              style={{
+                padding: '0.5rem',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                border: '1px solid #d1d5db',
+                borderRadius: '0.375rem',
+                backgroundColor: '#f3f4f6',
+                color: '#374151',
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              title={`Ordine ${cardSortConfig.direction === 'asc' ? 'crescente' : 'decrescente'}`}
+            >
+              {cardSortConfig.direction === 'asc' ? '↑' : '↓'}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Column Visibility Controls - Only show in table mode */}
@@ -1762,12 +2120,18 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                   </div>
                 )}
                 
-                {/* Always Visible Stats */}
+                {/* Section 1: Qualitative and Prediction Stats */}
+                <div style={{ 
+                  backgroundColor: '#f0f9ff', 
+                  padding: '0.5rem', 
+                  borderRadius: '0.375rem', 
+                  marginBottom: '0.5rem' 
+                }}>
                 <div style={cardStatsGrid2Style}>
                   {['Fantaindex  2025-2026', 'Punteggio FPEDIA'].map((statColumn, statIndex) => {
                     const value = player[statColumn];
                     const isMissing = isMissingData(value);
-                    const displayValue = formatValue(value);
+                    const displayValue = formatValue(value, statColumn);
                     
                     return (
                       <div key={statIndex} style={statItemStyle}>
@@ -1789,7 +2153,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                   {['Convenienza FSTATS 2025-2026', 'Convenienza FPEDIA', 'Buon Investimento'].map((statColumn, statIndex) => {
                     const value = player[statColumn];
                     const isMissing = isMissingData(value);
-                    const displayValue = formatValue(value);
+                    const displayValue = formatValue(value, statColumn);
                     
                     return (
                       <div key={statIndex} style={statItemStyle}>
@@ -1805,6 +2169,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                       </div>
                     );
                   })}
+                  </div>
                 </div>
                 
                 {/* Conditional Stats - Only show when details are enabled */}
@@ -1814,7 +2179,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                       {['Resistenza Infortuni', 'Infortunato', 'Nuovo Acquisto'].map((statColumn, statIndex) => {
                         const value = player[statColumn];
                         const isMissing = isMissingData(value);
-                        const displayValue = formatValue(value);
+                        const displayValue = formatValue(value, statColumn);
                         
                         return (
                           <div key={statIndex} style={statItemStyle}>
@@ -1836,7 +2201,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                       {['Presenze Previste', 'Gol Previsti', 'Assist Previsti'].map((statColumn, statIndex) => {
                         const value = player[statColumn];
                         const isMissing = isMissingData(value);
-                        const displayValue = formatValue(value);
+                        const displayValue = formatValue(value, statColumn);
                         
                         return (
                           <div key={statIndex} style={statItemStyle}>
@@ -1854,11 +2219,18 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                       })}
                     </div>
                     
+                    {/* Section 2: 2025-2026 Season Stats */}
+                    <div style={{ 
+                      backgroundColor: '#f0fdf4', 
+                      padding: '0.5rem', 
+                      borderRadius: '0.375rem', 
+                      marginBottom: '0.5rem' 
+                    }}>
                     <div style={cardStatsGrid2Style}>
                       {['Fantamedia 2025-2026', 'Media 2025-2026'].map((statColumn, statIndex) => {
                         const value = player[statColumn];
                         const isMissing = isMissingData(value);
-                        const displayValue = formatValue(value);
+                          const displayValue = formatValue(value, statColumn);
                         
                         return (
                           <div key={statIndex} style={statItemStyle}>
@@ -1880,7 +2252,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                       {['Presenze 2025-2026', 'Minuti Giocati 2025-2026', 'Matches With Grade 2025-2026'].map((statColumn, statIndex) => {
                         const value = player[statColumn];
                         const isMissing = isMissingData(value);
-                        const displayValue = formatValue(value);
+                          const displayValue = formatValue(value, statColumn);
                         
                         return (
                           <div key={statIndex} style={statItemStyle}>
@@ -1904,7 +2276,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                         {['Gol 2025-2026', 'Assist 2025-2026'].map((statColumn, statIndex) => {
                           const value = player[statColumn];
                           const isMissing = isMissingData(value);
-                          const displayValue = formatValue(value);
+                            const displayValue = formatValue(value, statColumn);
                           
                           return (
                             <div key={statIndex} style={statItemStyle}>
@@ -1929,7 +2301,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                         {['xG From Open Plays 2025-2026', 'xA 2025-2026'].map((statColumn, statIndex) => {
                           const value = player[statColumn];
                           const isMissing = isMissingData(value);
-                          const displayValue = formatValue(value);
+                            const displayValue = formatValue(value, statColumn);
                           
                           return (
                             <div key={statIndex} style={statItemStyle}>
@@ -1954,7 +2326,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                         {['GK Penalties Saved 2025-2026', 'GK Clean Sheets 2025-2026', 'GK Conceded Goals 2025-2026'].map((statColumn, statIndex) => {
                           const value = player[statColumn];
                           const isMissing = isMissingData(value);
-                          const displayValue = formatValue(value);
+                          const displayValue = formatValue(value, statColumn);
                           
                           return (
                             <div key={statIndex} style={statItemStyle}>
@@ -1972,6 +2344,109 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                         })}
                       </div>
                     )}
+                    </div>
+                    
+                    {/* Section 3: 2024-2025 Season Stats */}
+                    <div style={{ 
+                      backgroundColor: '#fef3c7', 
+                      padding: '0.5rem', 
+                      borderRadius: '0.375rem', 
+                      marginBottom: '0.5rem' 
+                    }}>
+                      <div style={cardStatsGrid2Style}>
+                        {['Fantamedia 2024-2025', 'Media 2024-2025'].map((statColumn, statIndex) => {
+                          const value = player[statColumn];
+                          const isMissing = isMissingData(value);
+                          const displayValue = formatValue(value, statColumn);
+                          
+                          return (
+                            <div key={statIndex} style={statItemStyle}>
+                              <div style={{
+                                ...statValueStyle,
+                                color: isMissing ? '#dc2626' : '#1f2937'
+                              }}>
+                                {displayValue}
+                              </div>
+                              <div style={statLabelStyle}>
+                                {statColumn}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      <div style={cardStatsGridStyle}>
+                        {['Presenze 2024-2025', 'Minuti Giocati 2024-2025', 'Matches With Grade 2024-2025'].map((statColumn, statIndex) => {
+                          const value = player[statColumn];
+                          const isMissing = isMissingData(value);
+                          const displayValue = formatValue(value, statColumn);
+                          
+                          return (
+                            <div key={statIndex} style={statItemStyle}>
+                              <div style={{
+                                ...statValueStyle,
+                                color: isMissing ? '#dc2626' : '#1f2937'
+                              }}>
+                                {displayValue}
+                              </div>
+                              <div style={statLabelStyle}>
+                                {statColumn}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                      
+                      {/* Non-goalkeeper 2024-2025 stats */}
+                      {!isGK && (
+                        <div style={cardStatsGrid2Style}>
+                          {['Gol 2024', 'Assist 2024-2025'].map((statColumn, statIndex) => {
+                            const value = player[statColumn];
+                            const isMissing = isMissingData(value);
+                            const displayValue = formatValue(value, statColumn);
+                          
+                          return (
+                            <div key={statIndex} style={statItemStyle}>
+                              <div style={{
+                                ...statValueStyle,
+                                color: isMissing ? '#dc2626' : '#1f2937'
+                              }}>
+                                {displayValue}
+                              </div>
+                              <div style={statLabelStyle}>
+                                {statColumn}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                      
+                      {/* Non-goalkeeper 2024-2025 xG/xA stats */}
+                      {!isGK && (
+                        <div style={cardStatsGrid2Style}>
+                          {['xG From Open Plays 2024-2025', 'xA 2024-2025'].map((statColumn, statIndex) => {
+                            const value = player[statColumn];
+                            const isMissing = isMissingData(value);
+                            const displayValue = formatValue(value, statColumn);
+                            
+                            return (
+                              <div key={statIndex} style={statItemStyle}>
+                                <div style={{
+                                  ...statValueStyle,
+                                  color: isMissing ? '#dc2626' : '#1f2937'
+                                }}>
+                                  {displayValue}
+                                </div>
+                                <div style={statLabelStyle}>
+                                  {statColumn}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
                     
                   </>
                 )}
@@ -2004,6 +2479,9 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
           <table style={tableStyle}>
           <thead>
             <tr>
+              <ColumnHeader columnName="#" content="#">
+                  #
+              </ColumnHeader>
               <ColumnHeader columnName="Azioni" content="Azioni">
                   Azioni
               </ColumnHeader>
@@ -2040,8 +2518,23 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               const status = getPlayerStatus(playerId);
               const fantamilioni = getPlayerFantamilioni(playerId);
               
+              // Alternating row background color
+              const rowStyle = {
+                backgroundColor: index % 2 === 0 ? '#ffffff' : '#f8f9fa'
+              };
+              
               return (
-                <tr key={index}>
+                <tr key={index} style={rowStyle}>
+                  <td style={tdStyle}>
+                    <div style={{ 
+                      textAlign: 'center', 
+                      fontWeight: '500', 
+                      color: '#6b7280',
+                      fontSize: '0.875rem'
+                    }}>
+                      {index + 1}
+                    </div>
+                  </td>
                   <td style={tdStyle}>
                     <div style={actionsStyle}>
                       {status === 'acquired' && (
