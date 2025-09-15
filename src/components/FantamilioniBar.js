@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { getTeamColorCoding } from '../utils/dataUtils';
+import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
 
 const FantamilioniBar = ({ 
   player, 
@@ -691,33 +692,46 @@ const FantamilioniBar = ({
                   try {
                     if (!formations || Object.keys(formations).length === 0) return [];
                     
-                    // Calculate current rankings for all formations (using same logic as RosaAcquistata)
-                    const currentRankings = Object.keys(formations).map(formationCode => {
-                      const stats = getFormationStatsForTeam(team, formationCode);
-                      
-                      // Same calculation as RosaAcquistata
-                      const starterFilled = stats.occupiedPositions;
-                      const starterTotal = 11;
-                      const starterFraction = starterFilled / starterTotal;
-                      
-                      // Calculate backup coverage (same as RosaAcquistata)
-                      const backupSlotsWithCoverage = Math.min(starterTotal, stats.totalUsablePlayers || 0);
-                      const backupFraction = backupSlotsWithCoverage / starterTotal;
-                      
-                      // Unusable players penalty (same as RosaAcquistata)
-                      const unusablePlayers = stats.unassignedPlayers;
-                      const unusablePenalty = Math.min(30, 30 * (unusablePlayers / Math.max(team.players?.length || 1, 1)));
-                      
-                      // Calculate score (0-100) - same as RosaAcquistata
-                      const starterScore = 50 * starterFraction; // 0-50 points for starters
-                      const backupScore = 30 * backupFraction;   // 0-30 points for backups
-                      const totalScore = Math.max(0, Math.min(100, starterScore + backupScore - unusablePenalty));
-                      
-                      return { code: formationCode, score: totalScore };
-                    });
+                    // Try to get cached current rankings first (without player)
+                    const cacheKey = `team_${team.id}_players_${team.players?.length || 0}`;
+                    const cachedCurrentRankings = getCachedData(CACHE_CONFIG.FORMATION_RANKINGS, cacheKey);
                     
-                    // Sort by score descending
-                    currentRankings.sort((a, b) => b.score - a.score);
+                    // Use cached current rankings if available, otherwise calculate fresh
+                    let currentRankings;
+                    if (cachedCurrentRankings && Array.isArray(cachedCurrentRankings)) {
+                      currentRankings = cachedCurrentRankings;
+                    } else {
+                      // Calculate current rankings for all formations (using same logic as RosaAcquistata)
+                      currentRankings = Object.keys(formations).map(formationCode => {
+                        const stats = getFormationStatsForTeam(team, formationCode);
+                        
+                        // Same calculation as RosaAcquistata
+                        const starterFilled = stats.occupiedPositions;
+                        const starterTotal = 11;
+                        const starterFraction = starterFilled / starterTotal;
+                        
+                        // Calculate backup coverage (same as RosaAcquistata)
+                        const backupSlotsWithCoverage = Math.min(starterTotal, stats.totalUsablePlayers || 0);
+                        const backupFraction = backupSlotsWithCoverage / starterTotal;
+                        
+                        // Unusable players penalty (same as RosaAcquistata)
+                        const unusablePlayers = stats.unassignedPlayers;
+                        const unusablePenalty = Math.min(30, 30 * (unusablePlayers / Math.max(team.players?.length || 1, 1)));
+                        
+                        // Calculate score (0-100) - same as RosaAcquistata
+                        const starterScore = 50 * starterFraction; // 0-50 points for starters
+                        const backupScore = 30 * backupFraction;   // 0-30 points for backups
+                        const totalScore = Math.max(0, Math.min(100, starterScore + backupScore - unusablePenalty));
+                        
+                        return { code: formationCode, score: totalScore };
+                      });
+                      
+                      // Sort by score descending
+                      currentRankings.sort((a, b) => b.score - a.score);
+                      
+                      // Cache the current rankings (all formations, not just top 3)
+                      setCachedData(CACHE_CONFIG.FORMATION_RANKINGS, currentRankings, cacheKey);
+                    }
                     
                     // Get top 3 formations
                     const top3Formations = currentRankings.slice(0, 3);
@@ -920,4 +934,4 @@ const FantamilioniBar = ({
   );
 };
 
-export default FantamilioniBar;
+export default React.memo(FantamilioniBar);

@@ -566,6 +566,8 @@ const App = () => {
       {/* Header */}
       <Header 
         dataCount={mantraData.length}
+        teams={teams}
+        players={mantraData}
       />
 
       {/* Fantamilioni Bar */}
@@ -688,7 +690,7 @@ const App = () => {
             )}
 
             {activeTab === 'squadre' && (
-              <SquadreTab budget={currentBudget} teams={teams} onTeamsChange={handleTeamsChange} maxPlayers={maxPlayers} />
+              <SquadreTab budget={currentBudget} teams={teams} onTeamsChange={handleTeamsChange} maxPlayers={maxPlayers} players={mantraData} />
             )}
           </>
         )}

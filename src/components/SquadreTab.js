@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getTeamColorCoding } from '../utils/dataUtils';
+import { calculateBudgetStats, getRoleCategoryColor, getRoleCategoryName } from '../utils/budgetStats';
 
-const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }) => {
+const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, players = [] }) => {
   // Window width state for responsive design
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
 
@@ -792,6 +793,47 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
                   </div>
                 );
               })()}
+              
+              {/* Role spending percentages for this team */}
+              {(() => {
+                const teamBudgetStats = calculateBudgetStats([team], players);
+                const roleCategories = ['defenders', 'midfielders', 'wingers', 'attackers'];
+                
+                return (
+                  <div style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.125rem',
+                    marginTop: '0.25rem',
+                    fontSize: '0.6rem'
+                  }}>
+                    {roleCategories.map(category => {
+                      const percentage = teamBudgetStats.rolePercentages[category];
+                      const color = getRoleCategoryColor(category);
+                      const roleName = getRoleCategoryName(category);
+                      
+                      return (
+                        <div key={category} style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '0.125rem 0.25rem',
+                          backgroundColor: color + '15',
+                          borderRadius: '0.25rem',
+                          border: `1px solid ${color}30`
+                        }}>
+                          <span style={{ color: color, fontWeight: '500' }}>
+                            {roleName}
+                          </span>
+                          <span style={{ color: color, fontWeight: '600' }}>
+                            {percentage.toFixed(1)}%
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Players List - Always Visible */}
@@ -902,4 +944,4 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30 }
   );
 };
 
-export default SquadreTab;
+export default React.memo(SquadreTab);

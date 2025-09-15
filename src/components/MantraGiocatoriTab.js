@@ -1,5 +1,6 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
 
 const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusChange, onPlayerAcquire, roles = [] }) => {
   const navigate = useNavigate();
@@ -137,6 +138,12 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
   // Create role color mapping from roles.csv
   const roleColorMapping = useMemo(() => {
+    // Try to get cached role mapping first
+    const cachedMapping = getCachedData(CACHE_CONFIG.ROLE_MAPPING, 'color_mapping');
+    if (cachedMapping) {
+      return cachedMapping;
+    }
+
     const colorNameToHex = {
       'Orange': '#f97316',
       'Green': '#22c55e', 
@@ -176,10 +183,13 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       });
     }
     
+    // Cache the calculated role mapping
+    setCachedData(CACHE_CONFIG.ROLE_MAPPING, mapping, 'color_mapping');
+    
     return mapping;
   }, [roles]);
 
-  // Enhanced role mapping that includes formation roles
+  // Enhanced role mapping that includes formation roles - memoized for performance
   const enhancedRoleMapping = useMemo(() => {
     const mapping = {};
     roles.forEach(role => {
@@ -255,7 +265,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     return typeof value === 'number' && value < 0;
   };
 
-  // Filter and sort players
+  // Filter and sort players - memoized for performance
   const filteredAndSortedPlayers = useMemo(() => {
     // Debug logging for playerStatus
     
@@ -769,8 +779,8 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     return roleMap[role] || { italian: role, color: '#6b7280' };
   };
 
-  // Helper function to format values (int vs float)
-  const formatValue = (value, fieldName = '') => {
+  // Helper function to format values (int vs float) - memoized for performance
+  const formatValue = useCallback((value, fieldName = '') => {
     if (typeof value === 'number') {
       if (isMissingData(value)) return 'N/A';
       
@@ -792,15 +802,15 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       }
     }
     return String(value || '-');
-  };
+  }, []);
 
-  // Helper function to check if player is goalkeeper
-  const isGoalkeeper = (mantraRoles) => {
+  // Helper function to check if player is goalkeeper - memoized for performance
+  const isGoalkeeper = useCallback((mantraRoles) => {
     return mantraRoles.some(role => role === 'G' || role === 'P');
-  };
+  }, []);
 
-  // Helper function to get skill color
-  const getSkillColor = (skill) => {
+  // Helper function to get skill color - memoized for performance
+  const getSkillColor = useCallback((skill) => {
     // Categorical color scheme for skills - consistent with table display
     const skillColorMap = {
       'Outsider': '#f59e0b',      // Orange
@@ -820,7 +830,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       'Rigorista': '#ef4444'      // Red-500
     };
     return skillColorMap[skill] || '#6b7280';
-  };
+  }, []);
 
   // Simple Column Header component with tooltip
   const ColumnHeader = ({ children, content, columnName, onClick }) => {
@@ -2716,4 +2726,4 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   );
 };
 
-export default MantraGiocatoriTab;
+export default React.memo(MantraGiocatoriTab);

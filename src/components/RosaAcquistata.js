@@ -3,6 +3,7 @@
 import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTeamColorCoding } from '../utils/dataUtils';
+import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
 import { rankFormations, processPlayersForRanking, DEFAULT_CONFIG } from '../utils/formationRanking';
 
 const RosaAcquistata = ({ 
@@ -761,6 +762,13 @@ const RosaAcquistata = ({
       return {};
     }
 
+    // Try to get cached data first
+    const cacheKey = `team_${selectedTeam.id}_players_${teamPlayers.length}`;
+    const cachedStats = getCachedData(CACHE_CONFIG.FORMATION_STATS, cacheKey);
+    if (cachedStats) {
+      return cachedStats;
+    }
+
     const stats = {};
     
     // Calculate stats for each formation using the EXACT same logic as getPlayersByFormationRoles
@@ -999,10 +1007,13 @@ const RosaAcquistata = ({
       
     });
     
+    // Cache the calculated stats
+    setCachedData(CACHE_CONFIG.FORMATION_STATS, stats, cacheKey);
+    
     return stats;
   }, [selectedTeam, teamPlayers, formations, appetibilitaData, roleMapping, players]); // Only recalculate when team players change
 
-  // Get cached formation data for the selected formation (no recalculation needed)
+  // Get cached formation data for the selected formation (no recalculation needed) - memoized for performance
   const getPlayersByFormationRoles = useMemo(() => {
     if (!selectedTeam || !selectedTeam.players || !formations[selectedFormation]) {
       return { playersByRole: {}, positionAssignments: {}, occupiedPositions: 0, unassignedPlayers: 0 };
@@ -1919,6 +1930,13 @@ const RosaAcquistata = ({
   // Compute formation rankings using UI's existing calculation logic (without debug)
   useEffect(() => {
     if (Object.keys(formations).length > 0) {
+      // Try to get cached rankings first
+      const cacheKey = `team_${selectedTeam?.id || 'none'}_players_${teamPlayers.length}`;
+      const cachedRankings = getCachedData(CACHE_CONFIG.FORMATION_RANKINGS, cacheKey);
+      if (cachedRankings) {
+        setFormationRankings(cachedRankings);
+        return;
+      }
       // Use the UI's existing getFormationStats function for each formation
       const rankings = Object.keys(formations).map(formationCode => {
         const stats = getFormationStats(formationCode);
@@ -1959,12 +1977,15 @@ const RosaAcquistata = ({
       // Sort by score descending
       rankings.sort((a, b) => b.score - a.score);
       
+      // Cache the calculated rankings
+      setCachedData(CACHE_CONFIG.FORMATION_RANKINGS, rankings, cacheKey);
+      
       setFormationRankings(rankings);
     }
-  }, [teamPlayers, formations, getFormationStats, selectedTeam?.players?.length]);
+  }, [teamPlayers, formations, getFormationStats, selectedTeam?.players?.length, selectedTeam?.id]);
 
-  // Helper function to group formations by their starting number (3 vs 4) and sort by ranking
-  const getGroupedFormations = useCallback(() => {
+  // Helper function to group formations by their starting number (3 vs 4) and sort by ranking - memoized
+  const getGroupedFormations = useMemo(() => {
     const formationsList = Object.keys(formations);
     const formations3 = formationsList.filter(f => f.startsWith('3-'));
     const formations4 = formationsList.filter(f => f.startsWith('4-'));
@@ -2038,7 +2059,7 @@ const RosaAcquistata = ({
     });
   }, [getFormationStats, selectedFormation, formationButtonActiveStyle, formationButtonStyle, formationRankings]);
 
-  // Get reserve players with formation assignment logic (same as main formation but with unassigned players)
+  // Get reserve players with formation assignment logic (same as main formation but with unassigned players) - memoized
   const getReservePlayers = useMemo(() => {
     if (!selectedTeam || !selectedTeam.players || !formations[selectedFormation]) return { playersByRole: {}, positionAssignments: {} };
     
@@ -2406,7 +2427,7 @@ const RosaAcquistata = ({
 
         {/* Formation Selector - Grouped by starting number */}
         {Object.keys(formations).length > 0 && (() => {
-          const { formations3, formations4 } = getGroupedFormations();
+          const { formations3, formations4 } = getGroupedFormations;
           return (
             <div style={groupedFormationSelectorStyle}>
               {/* Formations starting with 3 */}
@@ -2499,7 +2520,7 @@ const RosaAcquistata = ({
 
       {/* Formation Selector - Grouped by starting number */}
       {Object.keys(formations).length > 0 && (() => {
-        const { formations3, formations4 } = getGroupedFormations();
+        const { formations3, formations4 } = getGroupedFormations;
               return (
           <div style={groupedFormationSelectorStyle}>
             {/* Formations starting with 3 */}
@@ -2690,12 +2711,20 @@ const RosaAcquistata = ({
                 const reservePlayersByRole = getReservePlayers.playersByRole || {};
                 let filledPositions = 0;
                 
+                // Count filled positions (no duplicates across positions)
+                const assignedPlayerIds = new Set();
                 currentFormation.positions.forEach(positionRoles => {
-                  const hasPlayer = positionRoles.some(role => 
-                    reservePlayersByRole[role] && reservePlayersByRole[role].length > 0
-                  );
-                  if (hasPlayer) filledPositions++;
+                  positionRoles.forEach(role => {
+                    if (reservePlayersByRole[role]) {
+                      reservePlayersByRole[role].forEach(player => {
+                        if (!assignedPlayerIds.has(player.id)) {
+                          assignedPlayerIds.add(player.id);
+                        }
+                      });
+                    }
+                  });
                 });
+                filledPositions = assignedPlayerIds.size;
                 
                 return `${filledPositions}/11`;
               })()})
@@ -2759,13 +2788,21 @@ const RosaAcquistata = ({
                 // Get reserve players by role for this formation
                 const reservePlayersByRole = getReservePlayers.playersByRole || {};
 
+                // Track which players have already been assigned to positions
+                const assignedPlayerIds = new Set();
+
                 // Render all 11 positions
                 return currentFormation.positions.map((positionRoles, positionIndex) => {
-                  // Find players assigned to any of the roles for this position
+                  // Find players assigned to any of the roles for this position (no duplicates across positions)
                   const playersInPosition = [];
                   positionRoles.forEach(role => {
                     if (reservePlayersByRole[role]) {
-                      playersInPosition.push(...reservePlayersByRole[role]);
+                      reservePlayersByRole[role].forEach(player => {
+                        if (!assignedPlayerIds.has(player.id)) {
+                          playersInPosition.push(player);
+                          assignedPlayerIds.add(player.id);
+                        }
+                      });
                     }
                   });
 
@@ -3306,4 +3343,4 @@ const RosaAcquistata = ({
   );
 };
 
-export default RosaAcquistata;
+export default React.memo(RosaAcquistata);

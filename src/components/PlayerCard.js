@@ -65,13 +65,6 @@ const PlayerCard = ({
     }
   }
 
-  function getStatusColor(status) {
-    switch (status) {
-      case 'acquired': return '#10b981';
-      case 'unavailable': return '#ef4444';
-      default: return 'transparent';
-    }
-  }
 
   // Statistiche base (sempre visibili)
   const baseStats = [
@@ -364,4 +357,4 @@ const PlayerCard = ({
   );
 };
 
-export default PlayerCard;
+export default React.memo(PlayerCard);
