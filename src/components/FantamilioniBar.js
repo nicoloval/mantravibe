@@ -20,6 +20,7 @@ const FantamilioniBar = ({
   const [selectedTeamId, setSelectedTeamId] = useState('');
   const [error, setError] = useState('');
   const [teamBudget, setTeamBudget] = useState(0);
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   // const [formationRankings, setFormationRankings] = useState({}); // Removed unused state
 
   // Helper function to get player role (same as RosaAcquistata)
@@ -132,6 +133,18 @@ const FantamilioniBar = ({
     return roleColorMap[role] || '#6b7280';
   }, []);
 
+
+  // Window resize listener for responsive design
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowWidth(window.innerWidth);
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+    };
+  }, []);
 
   // Update team budget when selected team changes
   useEffect(() => {
@@ -520,18 +533,24 @@ const FantamilioniBar = ({
     }}>
       {player ? (
         <>
-          {/* Two Main Boxes Layout */}
-          <div style={{ display: 'flex', gap: '20px', alignItems: 'flex-start' }}>
+          {/* Two Main Boxes Layout - Responsive */}
+          <div style={{ 
+            display: 'flex', 
+            gap: '20px', 
+            alignItems: 'flex-start',
+            flexDirection: windowWidth <= 768 ? 'column' : 'row'
+          }}>
             
             {/* LEFT BOX: Player Info, Buttons, Price */}
             <div style={{ 
-              flex: '0 0 400px', 
+              flex: windowWidth <= 768 ? 'none' : '0 0 400px', 
+              width: windowWidth <= 768 ? '100%' : 'auto',
               padding: '12px', 
               backgroundColor: '#f8fafc', 
               borderRadius: '8px',
               border: '1px solid #e2e8f0',
               fontSize: '16px', // Reduced font size for more compact layout
-              height: '280px', // Fixed height to match team boxes
+              height: windowWidth <= 768 ? 'auto' : '280px', // Auto height on mobile
               display: 'flex',
               flexDirection: 'column',
               justifyContent: 'space-between'
@@ -698,7 +717,13 @@ const FantamilioniBar = ({
             </div>
 
             {/* RIGHT BOX: Team Buttons with Formation Rankings */}
-            <div style={{ flex: 1, display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+            <div style={{ 
+              flex: 1, 
+              display: 'grid', 
+              gridTemplateColumns: windowWidth <= 768 ? 'repeat(2, 1fr)' : 'repeat(4, 1fr)', 
+              gap: '8px',
+              width: windowWidth <= 768 ? '100%' : 'auto'
+            }}>
               {teams && Array.isArray(teams) ? teams.map(team => {
                 const isSelected = selectedTeamId === String(team.id);
                 const playerCount = (team.players || []).length;
@@ -792,18 +817,18 @@ const FantamilioniBar = ({
                   backgroundColor: isSelected ? '#eff6ff' : colorCoding.colors.background,
                   color: isSelected ? '#3b82f6' : colorCoding.colors.text,
                   cursor: isDisabled ? 'not-allowed' : 'pointer',
-                  fontSize: '20px',
+                  fontSize: windowWidth <= 768 ? '16px' : '20px', // Smaller font on mobile
                   fontWeight: '600',
                   transition: 'all 0.2s',
                   textAlign: 'center',
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '2px',
-                  height: '160px', // Slightly taller than before
+                  height: windowWidth <= 768 ? '140px' : '160px', // Shorter on mobile
                   justifyContent: 'flex-start',
                   opacity: isDisabled ? 0.6 : 1,
-                  minWidth: '180px', // Wider buttons
-                  maxWidth: '200px', // Wider max width
+                  minWidth: windowWidth <= 768 ? '140px' : '180px', // Smaller on mobile
+                  maxWidth: windowWidth <= 768 ? '160px' : '200px', // Smaller on mobile
                   flexShrink: 0,
                   width: '100%'
                 };
@@ -830,15 +855,28 @@ const FantamilioniBar = ({
                     style={buttonStyle}
                   >
                     {/* Team Name */}
-                    <div style={{ fontWeight: 'bold', fontSize: '20px', textAlign: 'center', lineHeight: '1.0' }}>
+                    <div style={{ 
+                      fontWeight: 'bold', 
+                      fontSize: windowWidth <= 768 ? '16px' : '20px', 
+                      textAlign: 'center', 
+                      lineHeight: '1.0' 
+                    }}>
                       {team.name}
                     </div>
                     
                     {/* Budget and Player Count */}
-                    <div style={budgetStyle}>
+                    <div style={{
+                      ...budgetStyle,
+                      fontSize: windowWidth <= 768 ? '14px' : '18px'
+                    }}>
                       {teamRemainingBudget} FM
                     </div>
-                    <div style={{ fontSize: '17px', color: '#666', textAlign: 'center', lineHeight: '1.0' }}>
+                    <div style={{ 
+                      fontSize: windowWidth <= 768 ? '13px' : '17px', 
+                      color: '#666', 
+                      textAlign: 'center', 
+                      lineHeight: '1.0' 
+                    }}>
                       {playerCount}/30
                     </div>
                     
@@ -848,7 +886,7 @@ const FantamilioniBar = ({
                         marginTop: '2px', 
                         borderTop: '1px solid rgba(0,0,0,0.1)', 
                         paddingTop: '2px', 
-                        fontSize: '18px',
+                        fontSize: windowWidth <= 768 ? '14px' : '18px',
                         flex: 1,
                         display: 'flex',
                         flexDirection: 'column',
@@ -868,7 +906,7 @@ const FantamilioniBar = ({
                               color: '#000000',
                               textAlign: 'right',
                               display: 'inline-block',
-                              width: '70px' // Fixed width for consistent colon alignment
+                              width: windowWidth <= 768 ? '50px' : '70px' // Smaller on mobile
                             }}>
                               {formation.code}:
                             </span>
@@ -877,16 +915,16 @@ const FantamilioniBar = ({
                               fontWeight: '500',
                               textAlign: 'right',
                               display: 'inline-block',
-                              width: '25px'
+                              width: windowWidth <= 768 ? '20px' : '25px' // Smaller on mobile
                             }}>
                               {formation.currentScore}
                             </span>
                             <span style={{ 
                               color: '#666',
-                              fontSize: '16px',
+                              fontSize: windowWidth <= 768 ? '12px' : '16px',
                               textAlign: 'center',
                               display: 'inline-block',
-                              width: '15px'
+                              width: windowWidth <= 768 ? '12px' : '15px' // Smaller on mobile
                             }}>
                               →
                             </span>
@@ -895,7 +933,7 @@ const FantamilioniBar = ({
                               fontWeight: '500',
                               textAlign: 'right',
                               display: 'inline-block',
-                              width: '25px'
+                              width: windowWidth <= 768 ? '20px' : '25px' // Smaller on mobile
                             }}>
                               {formation.newScore}
                             </span>
