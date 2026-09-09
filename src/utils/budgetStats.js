@@ -1,4 +1,5 @@
 // Budget statistics utility functions
+import { theme } from '../theme';
 
 /**
  * Calculate budget statistics for all teams
@@ -188,14 +189,7 @@ function categorizeRole(role) {
  * @returns {string} Color code
  */
 export function getRoleCategoryColor(category) {
-  const colors = {
-    goalkeepers: '#f97316',  // Orange
-    defenders: '#10b981',    // Green
-    midfielders: '#3b82f6',  // Blue
-    wingers: '#8b5cf6',      // Purple
-    attackers: '#ef4444'     // Red
-  };
-  return colors[category] || '#6b7280';
+  return theme.roleCategory[category] || theme.textMuted;
 }
 
 /**

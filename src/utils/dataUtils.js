@@ -1,4 +1,5 @@
 // src/utils/dataUtils.js - Versione aggiornata con original ranking
+import { theme } from '../theme';
 
 const SEASON_STAT_PREFIXES = ['Presenze', 'Minuti Giocati', 'Gol', 'Assist', 'xG', 'xA', 'Ammonizioni', 'Espulsioni'];
 const SEASON_FIELD_REGEX = new RegExp(`^(?:${SEASON_STAT_PREFIXES.join('|')}) (\\d{4}-\\d{4})$`);
@@ -335,22 +336,22 @@ export const getTeamColorCoding = (team, teams, minPlayers = 21, maxPlayers = 30
   // Define color schemes
   const colorSchemes = {
     green: {
-      border: '#10b981',
-      background: '#f0fdf4',
-      text: '#10b981',
-      budget: '#059669'
+      border: theme.success,
+      background: 'rgba(52, 211, 153, 0.12)',
+      text: theme.success,
+      budget: theme.success
     },
     red: {
-      border: '#dc2626',
-      background: '#fef2f2',
-      text: '#dc2626',
-      budget: '#dc2626'
+      border: theme.danger,
+      background: 'rgba(248, 113, 113, 0.12)',
+      text: theme.danger,
+      budget: theme.danger
     },
     default: {
-      border: '#d1d5db',
-      background: 'white',
-      text: '#374151',
-      budget: '#059669'
+      border: theme.border,
+      background: theme.surfaceAlt,
+      text: theme.text,
+      budget: theme.success
     }
   };
   
@@ -362,8 +363,8 @@ export const getTeamColorCoding = (team, teams, minPlayers = 21, maxPlayers = 30
     colors: colorSchemes[status],
     hasLessBudget,
     budgetHighlight: hasLessBudget ? {
-      backgroundColor: '#fef3c7',
-      border: '2px solid #f59e0b',
+      backgroundColor: 'rgba(251, 191, 36, 0.16)',
+      border: `2px solid ${theme.warning}`,
       borderRadius: '4px',
       padding: '2px 6px'
     } : {}

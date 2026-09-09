@@ -8,6 +8,7 @@ import SquadreTab from './components/SquadreTab';
 import Settings from './components/Settings';
 import PlayerPage from './components/PlayerPage';
 import { loadBudget, loadPlayerStatus, saveBudget, savePlayerStatus, updatePlayerStatus } from './utils/storage';
+import { theme, applyThemeMode, getStoredThemeMode } from './theme';
 
 const App = () => {
   // Stati principali
@@ -74,6 +75,14 @@ const App = () => {
 
   // Settings state
   const [showSettings, setShowSettings] = useState(false);
+
+  // Light/dark theme mode - index.html applies the stored choice before React mounts (to
+  // avoid a flash of the wrong theme); this just keeps this component's state, the toggle
+  // button's icon, and localStorage in sync with it from here on.
+  const [themeMode, setThemeMode] = useState(getStoredThemeMode);
+  const toggleThemeMode = useCallback(() => {
+    setThemeMode(prev => applyThemeMode(prev === 'light' ? 'dark' : 'light'));
+  }, []);
 
 
   // Teams state for Squadre tab
@@ -354,15 +363,16 @@ const App = () => {
   // Stili
   const containerStyle = {
     minHeight: '100vh',
-    backgroundColor: '#f8fafc'
+    backgroundColor: theme.bg,
+    color: theme.text
   };
 
   const tabsContainerStyle = {
     display: 'flex',
     justifyContent: 'center',
     padding: '0 1rem',
-    backgroundColor: 'white',
-    borderBottom: '1px solid #e2e8f0'
+    backgroundColor: theme.surface,
+    borderBottom: `1px solid ${theme.border}`
   };
 
   const tabButtonStyle = {
@@ -372,7 +382,7 @@ const App = () => {
     cursor: 'pointer',
     fontSize: '1rem',
     fontWeight: '500',
-    color: '#64748b',
+    color: theme.textMuted,
     display: 'flex',
     alignItems: 'center',
     gap: '0.5rem',
@@ -383,8 +393,8 @@ const App = () => {
 
   const activeTabStyle = {
     ...tabButtonStyle,
-    color: '#1e293b',
-    borderBottomColor: '#3b82f6',
+    color: theme.text,
+    borderBottomColor: theme.pink,
     fontWeight: '600'
   };
 
@@ -486,10 +496,11 @@ const App = () => {
           zIndex: 1000
         }}>
           <div style={{
-            backgroundColor: 'white',
+            backgroundColor: theme.surface,
             padding: '30px',
             borderRadius: '12px',
-            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.2)',
+            boxShadow: '0 10px 25px rgba(0, 0, 0, 0.5)',
+            border: `1px solid ${theme.border}`,
             maxWidth: '400px',
             width: '90%',
             textAlign: 'center'
@@ -497,7 +508,7 @@ const App = () => {
             <h2 style={{
               margin: '0 0 20px 0',
               fontSize: '24px',
-              color: '#1f2937',
+              color: theme.text,
               fontWeight: 'bold'
             }}>
               Dichiarazione Obbligatoria
@@ -505,7 +516,7 @@ const App = () => {
             <p style={{
               margin: '0 0 25px 0',
               fontSize: '18px',
-              color: '#374151',
+              color: theme.textMuted,
               lineHeight: '1.5'
             }}>
               Per usare quest'app devi dichiarare che Nicolò doveva vincere lo scorso anno
@@ -513,7 +524,7 @@ const App = () => {
             <button
               onClick={handleDeclarationAccept}
               style={{
-                backgroundColor: '#3b82f6',
+                backgroundColor: theme.pink,
                 color: 'white',
                 border: 'none',
                 padding: '12px 24px',
@@ -523,8 +534,8 @@ const App = () => {
                 cursor: 'pointer',
                 transition: 'background-color 0.2s'
               }}
-              onMouseEnter={(e) => e.target.style.backgroundColor = '#2563eb'}
-              onMouseLeave={(e) => e.target.style.backgroundColor = '#3b82f6'}
+              onMouseEnter={(e) => e.target.style.backgroundColor = theme.pinkHover}
+              onMouseLeave={(e) => e.target.style.backgroundColor = theme.pink}
             >
               Lo dichiaro
             </button>
@@ -543,33 +554,16 @@ const App = () => {
         <Route path="/*" element={
           <div style={containerStyle}>
 
-      {/* Settings Gear Button */}
-      <button 
-        style={{
-          position: 'fixed',
-          top: '20px',
-          right: '20px',
-          background: 'none',
-          color: '#374151',
-          border: 'none',
-          fontSize: '2rem',
-          cursor: 'pointer',
-          transition: 'transform 0.2s',
-          zIndex: 100
-        }}
-        onClick={() => setShowSettings(true)}
-        title="Settings"
-        onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
-        onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-      >
-        ⚙️
-      </button>
-
-      {/* Header */}
+      {/* Header - the settings gear and theme toggle render as part of its single row, so
+          they stay vertically aligned with the title/bar/stats instead of floating at a fixed
+          pixel offset that assumed a taller, multi-row header. */}
       <Header
         dataCount={mantraData.length}
         teams={teams.length > 0 ? [teams[0]] : []}
         players={mantraData}
+        themeMode={themeMode}
+        onToggleTheme={toggleThemeMode}
+        onOpenSettings={() => setShowSettings(true)}
       />
 
       {/* Fantamilioni Bar */}
@@ -596,13 +590,13 @@ const App = () => {
               style={activeTab === tab.id ? activeTabStyle : tabButtonStyle}
               onMouseEnter={(e) => {
                 if (activeTab !== tab.id) {
-                  e.target.style.color = '#374151';
-                  e.target.style.backgroundColor = '#f8fafc';
+                  e.target.style.color = theme.text;
+                  e.target.style.backgroundColor = theme.surfaceHover;
                 }
               }}
               onMouseLeave={(e) => {
                 if (activeTab !== tab.id) {
-                  e.target.style.color = '#64748b';
+                  e.target.style.color = theme.textMuted;
                   e.target.style.backgroundColor = 'transparent';
                 }
               }}
@@ -621,7 +615,7 @@ const App = () => {
             padding: '3rem',
             textAlign: 'center',
             fontSize: '1.125rem',
-            color: '#64748b'
+            color: theme.textMuted
           }}>
             <div style={{ marginBottom: '1rem', fontSize: '2rem' }}>⏳</div>
             Caricamento dati in corso...
@@ -633,10 +627,10 @@ const App = () => {
             padding: '2rem',
             margin: '2rem auto',
             maxWidth: '600px',
-            backgroundColor: '#fef2f2',
-            border: '1px solid #fecaca',
+            backgroundColor: 'rgba(248, 113, 113, 0.12)',
+            border: `1px solid ${theme.danger}`,
             borderRadius: '0.5rem',
-            color: '#dc2626',
+            color: theme.danger,
             textAlign: 'center'
           }}>
             <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️</div>
@@ -652,7 +646,7 @@ const App = () => {
             padding: '3rem',
             textAlign: 'center',
             fontSize: '1.125rem',
-            color: '#64748b'
+            color: theme.textMuted
           }}>
             <div style={{ marginBottom: '1rem', fontSize: '3rem' }}>⚽</div>
             <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>

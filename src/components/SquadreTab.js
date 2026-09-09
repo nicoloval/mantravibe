@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { getTeamColorCoding } from '../utils/dataUtils';
 import { calculateBudgetStats, getRoleCategoryColor, getRoleCategoryName } from '../utils/budgetStats';
+import { theme } from '../theme';
 
 const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, players = [] }) => {
   // Window width state for responsive design
@@ -373,52 +374,52 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
   const teamCountLabelStyle = {
     fontSize: '1rem',
     fontWeight: '500',
-    color: '#374151'
+    color: theme.text
   };
 
   const buttonStyle = {
     padding: '0.5rem 1rem',
-    border: '1px solid #d1d5db',
+    border: `1px solid ${theme.border}`,
     borderRadius: '0.375rem',
     fontSize: '0.875rem',
     fontWeight: '500',
     cursor: 'pointer',
     transition: 'all 0.2s',
-    backgroundColor: 'white',
-    color: '#374151'
+    backgroundColor: theme.surfaceAlt,
+    color: theme.text
   };
 
   const addButtonStyle = {
     ...buttonStyle,
-    borderColor: '#10b981',
-    color: '#10b981'
+    borderColor: theme.success,
+    color: theme.success
   };
 
   const removeButtonStyle = {
     ...buttonStyle,
-    borderColor: '#ef4444',
-    color: '#ef4444'
+    borderColor: theme.danger,
+    color: theme.danger
   };
 
   const resetButtonStyle = {
     ...buttonStyle,
-    borderColor: '#6b7280',
-    color: '#6b7280',
+    borderColor: theme.textFaint,
+    color: theme.textMuted,
     fontSize: '0.75rem',
     padding: '0.375rem 0.75rem'
   };
 
   const buttonHoverStyle = {
     transform: 'translateY(-1px)',
-    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)'
+    boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)'
   };
 
   const teamBoxStyle = {
-    backgroundColor: 'white',
-    border: '2px solid #e5e7eb',
+    backgroundColor: theme.surface,
+    border: `2px solid ${theme.border}`,
     borderRadius: '0.5rem',
     padding: windowWidth <= 768 ? '0.375rem' : '0.25rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
     transition: 'all 0.2s',
     cursor: 'pointer',
     minWidth: windowWidth <= 768 ? '120px' : '130px',
@@ -429,8 +430,8 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
 
   const teamBoxHoverStyle = {
     ...teamBoxStyle,
-    borderColor: '#3b82f6',
-    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)'
+    borderColor: theme.pink,
+    boxShadow: '0 4px 12px rgba(236, 72, 153, 0.2)'
   };
 
   const teamNameInputStyle = {
@@ -439,7 +440,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
     backgroundColor: 'transparent',
     fontSize: windowWidth <= 768 ? '0.875rem' : '1rem', // Increased by 4 points (0.25rem)
     fontWeight: '600',
-    color: '#1f2937',
+    color: theme.text,
     textAlign: 'center',
     marginBottom: '0.25rem',
     padding: windowWidth <= 768 ? '0.1rem' : '0.125rem',
@@ -450,12 +451,12 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
 
   const teamNameInputFocusStyle = {
     ...teamNameInputStyle,
-    backgroundColor: '#f3f4f6'
+    backgroundColor: theme.surfaceHover
   };
 
   const budgetLabelStyle = {
     fontSize: '0.7rem',
-    color: '#6b7280',
+    color: theme.textMuted,
     marginBottom: '0.25rem',
     textAlign: 'center'
   };
@@ -473,7 +474,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
     flexDirection: 'row',
     padding: '0.125rem 0.375rem',
     marginBottom: '0.125rem',
-    backgroundColor: '#f9fafb',
+    backgroundColor: theme.surfaceAlt,
     borderRadius: '0.25rem',
     fontSize: '0.7rem',
     cursor: 'grab',
@@ -484,14 +485,14 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
 
   const playerNameStyle = {
     fontWeight: '500',
-    color: '#1f2937',
+    color: theme.text,
     fontSize: '0.7rem',
     marginBottom: '0.05rem'
   };
 
   const playerSurnameStyle = {
     fontWeight: '600',
-    color: '#1f2937',
+    color: theme.text,
     fontSize: '0.7rem',
     marginBottom: '0.125rem'
   };
@@ -510,7 +511,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
 
   const playerDetailsStyle = {
     fontSize: '0.65rem',
-    color: '#6b7280',
+    color: theme.textMuted,
     textAlign: 'left'
   };
 
@@ -537,7 +538,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
 
   const playerCountStyle = {
     fontSize: '0.65rem',
-    color: '#6b7280',
+    color: theme.textMuted,
     textAlign: 'center',
     marginBottom: '0.125rem',
     fontWeight: '500'
@@ -557,20 +558,20 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
   // W, T, A, Pc), as found directly in player['Ruolo Mantra'] - no translation needed.
   const getRoleInfo = (role) => {
     const roleColorMap = {
-      'P': '#f97316',    // Orange
-      'Dc': '#22c55e',   // Green
-      'B': '#22c55e',    // Green
-      'Dd': '#22c55e',   // Green
-      'Ds': '#22c55e',   // Green
-      'E': '#3b82f6',    // Blue
-      'M': '#3b82f6',    // Blue
-      'C': '#3b82f6',    // Blue
-      'W': '#a855f7',    // Purple
-      'T': '#a855f7',    // Purple
-      'A': '#ef4444',    // Red
-      'Pc': '#ef4444'    // Red
+      'P': theme.roleCategory.goalkeepers,
+      'Dc': theme.roleCategory.defenders,
+      'B': theme.roleCategory.defenders,
+      'Dd': theme.roleCategory.defenders,
+      'Ds': theme.roleCategory.defenders,
+      'E': theme.roleCategory.midfielders,
+      'M': theme.roleCategory.midfielders,
+      'C': theme.roleCategory.midfielders,
+      'W': theme.roleCategory.wingers,
+      'T': theme.roleCategory.wingers,
+      'A': theme.roleCategory.attackers,
+      'Pc': theme.roleCategory.attackers
     };
-    return { italian: role, color: roleColorMap[role] || '#6b7280' };
+    return { italian: role, color: roleColorMap[role] || theme.textMuted };
   };
 
   // Function to parse mantra roles (copied from RosaAcquistata and MantraGiocatoriTab)
@@ -615,12 +616,12 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
 
   const remainingBudgetPositiveStyle = {
     ...remainingBudgetStyle,
-    color: '#059669'
+    color: theme.success
   };
 
   const remainingBudgetNegativeStyle = {
     ...remainingBudgetStyle,
-    color: '#dc2626'
+    color: theme.danger
   };
 
 
@@ -694,12 +695,21 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
           
           // Get centralized color coding
           const colorCoding = getTeamColorCoding(team, localTeams, 21, maxPlayers);
-          
+          // colorCoding.colors.border is a plain hex for green/red status, but a CSS var()
+          // (theme.border, so it can flip with light/dark mode) for the neutral 'default'
+          // status - var() strings can't take a hex alpha suffix, so the glow color is picked
+          // from a fixed set instead of appending one to colorCoding.colors.border directly.
+          const glowShadowColor = colorCoding.status === 'green'
+            ? 'rgba(52, 211, 153, 0.25)'
+            : colorCoding.status === 'red'
+            ? 'rgba(248, 113, 113, 0.25)'
+            : 'rgba(148, 150, 170, 0.25)';
+
           const firstTeamStyle = isFirstTeam ? {
             ...teamBoxStyle,
             backgroundColor: colorCoding.colors.background,
             border: `3px solid ${colorCoding.colors.border}`,
-            boxShadow: `0 0 20px ${colorCoding.colors.border}40, 0 4px 12px rgba(0, 0, 0, 0.1)`,
+            boxShadow: `0 0 20px ${glowShadowColor}, 0 4px 12px rgba(0, 0, 0, 0.1)`,
             position: 'relative'
           } : {
             ...teamBoxStyle,
@@ -710,15 +720,15 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
           // Add drag over styling
           const dragOverStyle = isDraggedOver && canAcceptDrop ? {
             ...firstTeamStyle,
-            border: isFirstTeam ? '3px solid #3b82f6' : '2px solid #3b82f6',
-            backgroundColor: '#f0f9ff',
-            boxShadow: isFirstTeam ? '0 0 25px rgba(59, 130, 246, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15)' : '0 4px 12px rgba(59, 130, 246, 0.15)'
+            border: isFirstTeam ? `3px solid ${theme.pink}` : `2px solid ${theme.pink}`,
+            backgroundColor: theme.pinkSoft,
+            boxShadow: isFirstTeam ? '0 0 25px rgba(236, 72, 153, 0.4), 0 4px 12px rgba(0, 0, 0, 0.3)' : '0 4px 12px rgba(236, 72, 153, 0.2)'
           } : firstTeamStyle;
-          
+
           const firstTeamHoverStyle = isFirstTeam ? {
             ...firstTeamStyle,
-            borderColor: '#16a34a',
-            boxShadow: '0 0 25px rgba(34, 197, 94, 0.4), 0 4px 12px rgba(0, 0, 0, 0.15)'
+            borderColor: theme.success,
+            boxShadow: '0 0 25px rgba(52, 211, 153, 0.35), 0 4px 12px rgba(0, 0, 0, 0.3)'
           } : teamBoxHoverStyle;
           
           return (
@@ -746,13 +756,13 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
                   top: '-30px',
                   left: '50%',
                   transform: 'translateX(-50%)',
-                  backgroundColor: '#22c55e',
+                  backgroundColor: theme.success,
                   color: 'white',
                   padding: '4px 12px',
                   borderRadius: '12px',
                   fontSize: '0.75rem',
                   fontWeight: '600',
-                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+                  boxShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
                   zIndex: 10
                 }}>
                   La tua squadra
@@ -822,9 +832,9 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
                           justifyContent: 'space-between',
                           alignItems: 'center',
                           padding: '0.125rem 0.25rem',
-                          backgroundColor: color + '15',
+                          backgroundColor: color + '26',
                           borderRadius: '0.25rem',
-                          border: `1px solid ${color}30`
+                          border: `1px solid ${color}55`
                         }}>
                           <span style={{ color: color, fontWeight: '500' }}>
                             {roleName}
@@ -860,8 +870,8 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
                       style={{
                         ...playerItemStyle,
                         opacity: isDragged ? 0.5 : 1,
-                        backgroundColor: isDraggedOver ? '#e5e7eb' : '#f9fafb',
-                        border: isDraggedOver ? '2px dashed #3b82f6' : 'none',
+                        backgroundColor: isDraggedOver ? theme.surfaceHover : theme.surfaceAlt,
+                        border: isDraggedOver ? `2px dashed ${theme.pink}` : 'none',
                         cursor: isDragged ? 'grabbing' : 'grab'
                       }}
                     >
@@ -885,7 +895,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
                             height: '14px',
                             borderRadius: '50%',
                           border: 'none',
-                          backgroundColor: '#ef4444',
+                          backgroundColor: theme.danger,
                           color: 'white',
                           fontSize: '10px',
                           fontWeight: 'bold',
@@ -893,7 +903,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.1)',
+                          boxShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
                           transition: 'all 0.2s',
                           flexShrink: 0
                         }}
@@ -902,7 +912,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
                           e.target.style.transform = 'scale(1.1)';
                         }}
                         onMouseLeave={(e) => {
-                          e.target.style.backgroundColor = '#ef4444';
+                          e.target.style.backgroundColor = theme.danger;
                           e.target.style.transform = 'scale(1)';
                         }}
                         title="Rimuovi giocatore"
@@ -939,7 +949,7 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
           </div>
           );
         }) : (
-          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: '#6b7280' }}>
+          <div style={{ gridColumn: '1 / -1', textAlign: 'center', padding: '2rem', color: theme.textMuted }}>
             Nessuna squadra disponibile
           </div>
         )}

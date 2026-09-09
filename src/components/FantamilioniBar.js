@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { getTeamColorCoding } from '../utils/dataUtils';
 import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
+import { theme } from '../theme';
 
 const FantamilioniBar = ({ 
   player, 
@@ -98,20 +99,20 @@ const FantamilioniBar = ({
   // Pc), as found directly in player['Ruolo Mantra'] - no translation needed.
   const getRoleColor = useCallback((role) => {
     const roleColorMap = {
-      'P': '#f97316',    // Orange
-      'Dc': '#22c55e',   // Green
-      'B': '#22c55e',    // Green
-      'Dd': '#22c55e',   // Green
-      'Ds': '#22c55e',   // Green
-      'E': '#3b82f6',    // Blue
-      'M': '#3b82f6',    // Blue
-      'C': '#3b82f6',    // Blue
-      'W': '#a855f7',    // Purple
-      'T': '#a855f7',    // Purple
-      'A': '#ef4444',    // Red
-      'Pc': '#ef4444'    // Red
+      'P': theme.roleCategory.goalkeepers,
+      'Dc': theme.roleCategory.defenders,
+      'B': theme.roleCategory.defenders,
+      'Dd': theme.roleCategory.defenders,
+      'Ds': theme.roleCategory.defenders,
+      'E': theme.roleCategory.midfielders,
+      'M': theme.roleCategory.midfielders,
+      'C': theme.roleCategory.midfielders,
+      'W': theme.roleCategory.wingers,
+      'T': theme.roleCategory.wingers,
+      'A': theme.roleCategory.attackers,
+      'Pc': theme.roleCategory.attackers
     };
-    return roleColorMap[role] || '#6b7280';
+    return roleColorMap[role] || theme.textMuted;
   }, []);
 
 
@@ -471,11 +472,11 @@ const FantamilioniBar = ({
 
   return (
     <div style={{
-      minHeight: '100px',
-      padding: '20px',
-      backgroundColor: '#ffffff',
-      borderBottom: '1px solid #e5e7eb',
-      boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.1)'
+      minHeight: player ? '100px' : 'auto',
+      padding: player ? '20px' : '10px 20px',
+      backgroundColor: theme.surface,
+      borderBottom: `1px solid ${theme.border}`,
+      boxShadow: '0 1px 3px 0 rgba(0, 0, 0, 0.3)'
     }}>
       {player ? (
         <>
@@ -491,10 +492,11 @@ const FantamilioniBar = ({
             <div style={{ 
               flex: windowWidth <= 768 ? 'none' : '0 0 400px', 
               width: windowWidth <= 768 ? '100%' : 'auto',
-              padding: '12px', 
-              backgroundColor: '#f8fafc', 
+              padding: '12px',
+              backgroundColor: theme.surfaceAlt,
               borderRadius: '8px',
-              border: '1px solid #e2e8f0',
+              border: `1px solid ${theme.border}`,
+              color: theme.text,
               fontSize: '16px', // Reduced font size for more compact layout
               height: windowWidth <= 768 ? 'auto' : '280px', // Auto height on mobile
               display: 'flex',
@@ -504,7 +506,7 @@ const FantamilioniBar = ({
               {/* Player Name and Roles */}
               <div style={{ marginBottom: '10px' }}>
                 <div style={{ fontWeight: 'bold', fontSize: '20px', marginBottom: '3px' }}>{player.Nome}</div>
-                <div style={{ fontSize: '16px', color: '#666', marginBottom: '6px' }}>{player.Squadra}</div>
+                <div style={{ fontSize: '16px', color: theme.textMuted, marginBottom: '6px' }}>{player.Squadra}</div>
                 {/* Player Roles */}
                 <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
                   {(() => {
@@ -547,13 +549,13 @@ const FantamilioniBar = ({
                   onClick={handleCancel}
                   style={{
                     padding: '6px 12px',
-                    border: '1px solid #d1d5db',
+                    border: `1px solid ${theme.border}`,
                     borderRadius: '6px',
                     fontSize: '16px',
                     fontWeight: '500',
                     cursor: 'pointer',
-                    backgroundColor: '#f3f4f6',
-                    color: '#374151'
+                    backgroundColor: theme.surfaceHover,
+                    color: theme.text
                   }}
                 >
                   Annulla
@@ -569,7 +571,7 @@ const FantamilioniBar = ({
                     fontSize: '16px',
                     fontWeight: '500',
                     cursor: (!fantamilioni || parseInt(fantamilioni) <= 0 || parseInt(fantamilioni) > teamBudget || teamBudget <= 0 || !selectedTeamId) ? 'not-allowed' : 'pointer',
-                    backgroundColor: (!fantamilioni || parseInt(fantamilioni) <= 0 || parseInt(fantamilioni) > teamBudget || teamBudget <= 0 || !selectedTeamId) ? '#9ca3af' : '#3b82f6'
+                    backgroundColor: (!fantamilioni || parseInt(fantamilioni) <= 0 || parseInt(fantamilioni) > teamBudget || teamBudget <= 0 || !selectedTeamId) ? theme.textFaint : theme.pink
                   }}
                 >
                   Conferma
@@ -587,20 +589,22 @@ const FantamilioniBar = ({
                     placeholder="0"
                     style={{
                       padding: '8px 12px',
-                      border: '1px solid #d1d5db',
+                      border: `1px solid ${theme.border}`,
                       borderRadius: '6px',
                       fontSize: '16px',
-                      width: '80px'
+                      width: '80px',
+                      backgroundColor: theme.surface,
+                      color: theme.text
                     }}
                   />
-                  <span style={{ fontSize: '16px', color: '#666' }}>FM</span>
+                  <span style={{ fontSize: '16px', color: theme.textMuted }}>FM</span>
                 </div>
               </div>
 
               {/* Quick Price Suggestions */}
               {selectedTeamId && (
                 <div>
-                  <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '3px', color: '#666' }}>Suggerimenti:</div>
+                  <div style={{ fontSize: '14px', fontWeight: '500', marginBottom: '3px', color: theme.textMuted }}>Suggerimenti:</div>
                   <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' }}>
                     {[1, 5, 10, 20, 50].filter(amount => amount <= teamBudget).map(amount => (
                       <button
@@ -608,11 +612,11 @@ const FantamilioniBar = ({
                         onClick={() => setFantamilioni(amount.toString())}
                         style={{
                           padding: '4px 8px',
-                          border: '1px solid #d1d5db',
+                          border: `1px solid ${theme.border}`,
                           borderRadius: '4px',
                           fontSize: '14px',
-                          backgroundColor: fantamilioni === amount.toString() ? '#3b82f6' : '#f3f4f6',
-                          color: fantamilioni === amount.toString() ? 'white' : '#374151',
+                          backgroundColor: fantamilioni === amount.toString() ? theme.pink : theme.surfaceHover,
+                          color: fantamilioni === amount.toString() ? 'white' : theme.text,
                           cursor: 'pointer'
                         }}
                       >
@@ -624,11 +628,11 @@ const FantamilioniBar = ({
                         onClick={() => setFantamilioni(calculateMaxAmount(selectedTeamId).toString())}
                         style={{
                           padding: '4px 8px',
-                          border: '1px solid #d1d5db',
+                          border: `1px solid ${theme.border}`,
                           borderRadius: '4px',
                           fontSize: '14px',
-                          backgroundColor: fantamilioni === calculateMaxAmount(selectedTeamId).toString() ? '#3b82f6' : '#f3f4f6',
-                          color: fantamilioni === calculateMaxAmount(selectedTeamId).toString() ? 'white' : '#374151',
+                          backgroundColor: fantamilioni === calculateMaxAmount(selectedTeamId).toString() ? theme.pink : theme.surfaceHover,
+                          color: fantamilioni === calculateMaxAmount(selectedTeamId).toString() ? 'white' : theme.text,
                           cursor: 'pointer'
                         }}
                       >
@@ -641,12 +645,12 @@ const FantamilioniBar = ({
 
               {/* Budget Display */}
               {selectedTeamId && (
-                <div style={{ marginTop: '8px', padding: '8px', backgroundColor: '#f0f9ff', borderRadius: '6px', border: '1px solid #bae6fd' }}>
-                  <div style={{ fontSize: '14px', fontWeight: '500', color: '#0369a1' }}>
+                <div style={{ marginTop: '8px', padding: '8px', backgroundColor: theme.blueSoft, borderRadius: '6px', border: `1px solid ${theme.blue}` }}>
+                  <div style={{ fontSize: '14px', fontWeight: '500', color: theme.text }}>
                     Budget: {teamBudget} FM
                   </div>
                   {teamBudget > 0 && (
-                    <div style={{ fontSize: '12px', color: '#0284c7', marginTop: '1px' }}>
+                    <div style={{ fontSize: '12px', color: theme.textMuted, marginTop: '1px' }}>
                       Max: {calculateMaxAmount(selectedTeamId)} FM
                     </div>
                   )}
@@ -655,7 +659,7 @@ const FantamilioniBar = ({
 
               {/* Error Message */}
               {error && (
-                <div style={{ color: '#ef4444', fontSize: '14px', fontWeight: '500', marginTop: '5px' }}>
+                <div style={{ color: theme.danger, fontSize: '14px', fontWeight: '500', marginTop: '5px' }}>
                   {error}
                 </div>
               )}
@@ -770,10 +774,10 @@ const FantamilioniBar = ({
                 // Determine button style using centralized color coding
                 let buttonStyle = {
                   padding: '6px',
-                  border: `2px solid ${isSelected ? '#3b82f6' : colorCoding.colors.border}`,
+                  border: `2px solid ${isSelected ? theme.pink : colorCoding.colors.border}`,
                   borderRadius: '8px',
-                  backgroundColor: isSelected ? '#eff6ff' : colorCoding.colors.background,
-                  color: isSelected ? '#3b82f6' : colorCoding.colors.text,
+                  backgroundColor: isSelected ? theme.pinkSoft : colorCoding.colors.background,
+                  color: isSelected ? theme.pink : colorCoding.colors.text,
                   cursor: isDisabled ? 'not-allowed' : 'pointer',
                   fontSize: windowWidth <= 768 ? '16px' : '20px', // Smaller font on mobile
                   fontWeight: '600',
@@ -796,7 +800,7 @@ const FantamilioniBar = ({
                 let budgetStyle = { fontSize: '18px', color: budgetColor, textAlign: 'center', lineHeight: '1.0' };
                 
                 if (isSelected) {
-                  budgetColor = '#3b82f6';
+                  budgetColor = theme.pink;
                   budgetStyle.color = budgetColor;
                 } else if (colorCoding.hasLessBudget) {
                   // Apply yellow highlighting for teams with less budget than first team
@@ -829,21 +833,21 @@ const FantamilioniBar = ({
                     }}>
                       {teamRemainingBudget} FM
                     </div>
-                    <div style={{ 
-                      fontSize: windowWidth <= 768 ? '13px' : '17px', 
-                      color: '#666', 
-                      textAlign: 'center', 
-                      lineHeight: '1.0' 
+                    <div style={{
+                      fontSize: windowWidth <= 768 ? '13px' : '17px',
+                      color: theme.textMuted,
+                      textAlign: 'center',
+                      lineHeight: '1.0'
                     }}>
                       {playerCount}/30
                     </div>
-                    
+
                     {/* Formation Rankings - properly aligned */}
                     {formationRankings.length > 0 && (
-                      <div style={{ 
-                        marginTop: '2px', 
-                        borderTop: '1px solid rgba(0,0,0,0.1)', 
-                        paddingTop: '2px', 
+                      <div style={{
+                        marginTop: '2px',
+                        borderTop: '1px solid rgba(255,255,255,0.12)',
+                        paddingTop: '2px',
                         fontSize: windowWidth <= 768 ? '14px' : '18px',
                         flex: 1,
                         display: 'flex',
@@ -859,17 +863,17 @@ const FantamilioniBar = ({
                             alignItems: 'center',
                             whiteSpace: 'nowrap' // Prevent wrapping
                           }}>
-                            <span style={{ 
+                            <span style={{
                               fontWeight: '500',
-                              color: '#000000',
+                              color: theme.text,
                               textAlign: 'right',
                               display: 'inline-block',
                               width: windowWidth <= 768 ? '50px' : '70px' // Smaller on mobile
                             }}>
                               {formation.code}:
                             </span>
-                            <span style={{ 
-                              color: '#ef4444',
+                            <span style={{
+                              color: theme.danger,
                               fontWeight: '500',
                               textAlign: 'right',
                               display: 'inline-block',
@@ -877,8 +881,8 @@ const FantamilioniBar = ({
                             }}>
                               {formation.currentScore}
                             </span>
-                            <span style={{ 
-                              color: '#666',
+                            <span style={{
+                              color: theme.textMuted,
                               fontSize: windowWidth <= 768 ? '12px' : '16px',
                               textAlign: 'center',
                               display: 'inline-block',
@@ -886,8 +890,8 @@ const FantamilioniBar = ({
                             }}>
                               →
                             </span>
-                            <span style={{ 
-                              color: '#22c55e',
+                            <span style={{
+                              color: theme.success,
                               fontWeight: '500',
                               textAlign: 'right',
                               display: 'inline-block',
@@ -902,20 +906,20 @@ const FantamilioniBar = ({
                   </button>
                 );
               }) : (
-                <div style={{ color: '#666', fontSize: '20px', padding: '20px' }}>Nessuna squadra disponibile</div>
+                <div style={{ color: theme.textMuted, fontSize: '20px', padding: '20px' }}>Nessuna squadra disponibile</div>
               )}
             </div>
           </div>
         </>
       ) : (
-        /* Empty state - just show a placeholder */
-        <div style={{ 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
+        /* Empty state - slim hint bar instead of a tall centered placeholder */
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           width: '100%',
-          color: '#9ca3af',
-          fontSize: '20px',
+          color: theme.textFaint,
+          fontSize: '13px',
           fontWeight: '500'
         }}>
           🛒 Clicca su "Compra" per iniziare l'acquisto di un giocatore

@@ -2,6 +2,26 @@ import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
 import { getSeasonLabels } from '../utils/dataUtils';
+import { theme } from '../theme';
+
+// Tiny 2-point trend line (previous season -> current season) for a single stat.
+const Sparkline = ({ prev, cur, width = 46, height = 18 }) => {
+  if (typeof prev !== 'number' || typeof cur !== 'number' || prev < 0 || cur < 0) return null;
+  const max = Math.max(prev, cur, 0);
+  const min = Math.min(prev, cur, 0);
+  const range = (max - min) || 1;
+  const y = (v) => height - 3 - ((v - min) / range) * (height - 6);
+  const x0 = 3;
+  const x1 = width - 3;
+  const trendColor = cur > prev ? theme.success : cur < prev ? theme.danger : theme.textFaint;
+  return (
+    <svg width={width} height={height} style={{ display: 'block', flexShrink: 0 }}>
+      <line x1={x0} y1={y(prev)} x2={x1} y2={y(cur)} stroke={trendColor} strokeWidth="2" strokeLinecap="round" />
+      <circle cx={x0} cy={y(prev)} r="2" fill={theme.textFaint} />
+      <circle cx={x1} cy={y(cur)} r="2.5" fill={trendColor} />
+    </svg>
+  );
+};
 
 const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusChange, onPlayerAcquire, roles = [] }) => {
   const navigate = useNavigate();
@@ -119,36 +139,36 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     }
 
     const colorNameToHex = {
-      'Orange': '#f97316',
-      'Green': '#22c55e', 
-      'Blue': '#3b82f6',
-      'Purple': '#a855f7',
-      'Red': '#ef4444'
+      'Orange': theme.roleCategory.goalkeepers,
+      'Green': theme.roleCategory.defenders,
+      'Blue': theme.roleCategory.midfielders,
+      'Purple': theme.roleCategory.wingers,
+      'Red': theme.roleCategory.attackers
     };
-    
+
     const mapping = {};
-    
+
     // Map roles.csv roles using Italian role names (Ruolo column)
     roles.forEach(role => {
-      const hexColor = colorNameToHex[role.Color] || '#6b7280';
+      const hexColor = colorNameToHex[role.Color] || theme.textMuted;
       mapping[role.Ruolo] = hexColor; // Use Italian role name as key
     });
-    
+
     // Fallback mapping based on roles.csv structure when Color field is empty
-    if (Object.values(mapping).every(color => color === '#6b7280')) {
+    if (Object.values(mapping).every(color => color === theme.textMuted)) {
       const fallbackMapping = {
-        'P': '#f97316',    // G -> Orange
-        'Dc': '#22c55e',   // CB -> Green
-        'B': '#22c55e',    // LA -> Green
-        'Dd': '#22c55e',   // RB -> Green
-        'Ds': '#22c55e',   // LB -> Green
-        'E': '#3b82f6',    // E -> Blue
-        'M': '#3b82f6',    // DM -> Blue
-        'C': '#3b82f6',    // M -> Blue
-        'W': '#a855f7',    // W -> Purple
-        'T': '#a855f7',    // OM -> Purple
-        'A': '#ef4444',    // F -> Red
-        'Pc': '#ef4444'    // CF -> Red
+        'P': theme.roleCategory.goalkeepers,
+        'Dc': theme.roleCategory.defenders,
+        'B': theme.roleCategory.defenders,
+        'Dd': theme.roleCategory.defenders,
+        'Ds': theme.roleCategory.defenders,
+        'E': theme.roleCategory.midfielders,
+        'M': theme.roleCategory.midfielders,
+        'C': theme.roleCategory.midfielders,
+        'W': theme.roleCategory.wingers,
+        'T': theme.roleCategory.wingers,
+        'A': theme.roleCategory.attackers,
+        'Pc': theme.roleCategory.attackers
       };
       
       // Apply fallback mapping
@@ -465,20 +485,20 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   // roles.csv's Ruolo column, see roleColorMapping above for the roles.csv-driven version.
   const getRoleColor = (role) => {
     const roleColorMap = {
-      'P': '#f97316',    // Orange
-      'Dc': '#22c55e',   // Green
-      'B': '#22c55e',    // Green
-      'Dd': '#22c55e',   // Green
-      'Ds': '#22c55e',   // Green
-      'E': '#3b82f6',    // Blue
-      'M': '#3b82f6',    // Blue
-      'C': '#3b82f6',    // Blue
-      'W': '#a855f7',    // Purple
-      'T': '#a855f7',    // Purple
-      'A': '#ef4444',    // Red
-      'Pc': '#ef4444'    // Red
+      'P': theme.roleCategory.goalkeepers,
+      'Dc': theme.roleCategory.defenders,
+      'B': theme.roleCategory.defenders,
+      'Dd': theme.roleCategory.defenders,
+      'Ds': theme.roleCategory.defenders,
+      'E': theme.roleCategory.midfielders,
+      'M': theme.roleCategory.midfielders,
+      'C': theme.roleCategory.midfielders,
+      'W': theme.roleCategory.wingers,
+      'T': theme.roleCategory.wingers,
+      'A': theme.roleCategory.attackers,
+      'Pc': theme.roleCategory.attackers
     };
-    return roleColorMap[role] || '#6b7280';
+    return roleColorMap[role] || theme.textMuted;
   };
 
   // Helper function to get role display info. `role` is already the display-ready Mantra
@@ -503,6 +523,34 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     }
     return String(value || '-');
   }, []);
+
+  // Per-match averages (goals/assists/xG/xA/minutes divided by appearances) for the card
+  // detail view's prev->cur trend. Raw per-season totals aren't comparable between a season
+  // that's only a few matches old and a full previous season, so the sparkline there was
+  // mostly showing "current season hasn't happened yet" rather than an actual trend - dividing
+  // by Presenze keeps both seasons on the same (per-appearance) scale.
+  const PER_MATCH_BASES = ['Minuti Giocati', 'Gol', 'Assist', 'xG', 'xA'];
+  const PER_MATCH_LABELS = {
+    'Minuti Giocati': 'Min/Partita',
+    'Gol': 'Gol/Partita',
+    'Assist': 'Assist/Partita',
+    'xG': 'xG/Partita',
+    'xA': 'xA/Partita'
+  };
+
+  const getPerMatchAverage = (player, base, season) => {
+    const presenze = player[`Presenze ${season}`];
+    const raw = player[`${base} ${season}`];
+    if (isMissingData(presenze) || isMissingData(raw) || presenze <= 0) return undefined;
+    return raw / presenze;
+  };
+
+  const formatPerMatchValue = (value, base) => {
+    if (typeof value !== 'number') return '-';
+    // Minutes-per-appearance reads as a whole number (e.g. "68"), like the raw minutes
+    // field does; goals/assists/xG/xA per appearance are fractional, so keep 2 decimals.
+    return base === 'Minuti Giocati' ? Math.round(value).toString() : value.toFixed(2);
+  };
 
   // Simple Column Header component with tooltip
   const ColumnHeader = ({ children, content, columnName, onClick }) => {
@@ -610,26 +658,37 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
   const inputStyle = {
     padding: '0.5rem',
-    border: '1px solid #d1d5db',
+    border: `1px solid ${theme.border}`,
     borderRadius: '0.375rem',
     fontSize: '0.875rem',
-    minWidth: '200px'
+    minWidth: '200px',
+    backgroundColor: theme.surfaceAlt,
+    color: theme.text
   };
 
 
   const tableContainerStyle = {
-    backgroundColor: 'white',
+    backgroundColor: theme.surface,
     borderRadius: '0.5rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
+    border: `1px solid ${theme.border}`,
     overflow: 'visible',
     maxWidth: '100%',
     position: 'relative',
     zIndex: 1
   };
 
+  // overflowX: 'auto' here implicitly forces overflow-y to a non-'visible' value too (per the
+  // CSS overflow spec), turning this div into a scroll container - position: sticky on the
+  // header row only works while it's scrolling in a *real* scroll container. Since the div's
+  // height was previously unbounded (grows to fit content), it never scrolled internally, so
+  // the "scroll container" it silently became had nothing to stick within, and the header just
+  // scrolled away with the rest of the page. Bounding the height and making the y-overflow
+  // scrollable makes that scroll container real, so the sticky header actually stays put.
   const tableWrapperStyle = {
     overflowX: 'auto',
-    overflowY: 'visible',
+    overflowY: 'auto',
+    maxHeight: '75vh',
     maxWidth: '100%'
   };
 
@@ -639,13 +698,15 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     borderCollapse: 'collapse'
   };
 
+  // Sticky header: stays pinned while scrolling a long player list, so column labels
+  // (and the click-to-sort affordance) remain visible without scrolling back up.
   const thStyle = {
-    backgroundColor: '#f8fafc',
+    backgroundColor: theme.surfaceAlt,
     padding: '0.5rem 0.375rem',
     textAlign: 'left',
     fontWeight: '600',
-    color: '#374151',
-    borderBottom: '1px solid #e5e7eb',
+    color: theme.text,
+    borderBottom: `1px solid ${theme.border}`,
     cursor: 'pointer',
     userSelect: 'none',
     position: 'sticky',
@@ -658,10 +719,11 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
   const tdStyle = {
     padding: '0.5rem 0.375rem',
-    borderBottom: '1px solid #f3f4f6',
+    borderBottom: `1px solid ${theme.borderSoft}`,
     fontSize: '0.75rem',
     minWidth: '60px', // Much smaller minimum width
-    whiteSpace: 'nowrap'
+    whiteSpace: 'nowrap',
+    color: theme.text
   };
 
 
@@ -674,35 +736,35 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   // Style for missing data cells (-1.00 values)
   const missingDataTdStyle = {
     ...tdStyle,
-    backgroundColor: '#fef2f2', // Light red background
-    color: '#dc2626' // Darker red text
+    backgroundColor: 'rgba(248, 113, 113, 0.1)',
+    color: theme.danger
   };
 
   // Tooltip styles
   const tooltipStyle = {
     position: 'fixed',
-    backgroundColor: '#1f2937',
-    color: '#fff',
+    backgroundColor: theme.surfaceAlt,
+    color: theme.text,
     padding: '8px 12px',
     borderRadius: '6px',
     fontSize: '0.8rem',
     fontWeight: '500',
-    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3)',
+    boxShadow: '0 4px 12px rgba(0, 0, 0, 0.5)',
     zIndex: 999999,
     pointerEvents: 'none',
     whiteSpace: 'nowrap',
     maxWidth: '300px',
     textAlign: 'center',
-    border: '1px solid #374151'
+    border: `1px solid ${theme.border}`
   };
 
   const playerNameStyle = {
     fontWeight: '600',
-    color: '#1f2937'
+    color: theme.text
   };
 
   const squadraStyle = {
-    color: '#6b7280',
+    color: theme.textMuted,
     fontSize: '0.8rem'
   };
 
@@ -715,8 +777,9 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   const buttonStyle = {
     padding: '0.25rem 0.5rem',
     borderRadius: '0.25rem',
-    border: '1px solid #d1d5db',
-    backgroundColor: 'white',
+    border: `1px solid ${theme.border}`,
+    backgroundColor: theme.surfaceAlt,
+    color: theme.text,
     fontSize: '0.75rem',
     cursor: 'pointer',
     transition: 'all 0.2s'
@@ -724,17 +787,17 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
   const buyButtonStyle = {
     ...buttonStyle,
-    backgroundColor: '#3b82f6',
+    backgroundColor: theme.pink,
     color: 'white',
-    borderColor: '#3b82f6'
+    borderColor: theme.pink
   };
 
 
   const resetButtonStyle = {
     ...buttonStyle,
-    backgroundColor: '#6b7280',
+    backgroundColor: theme.textFaint,
     color: 'white',
-    borderColor: '#6b7280'
+    borderColor: theme.textFaint
   };
 
   const statusStyle = {
@@ -746,14 +809,14 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
   const acquiredStatusStyle = {
     ...statusStyle,
-    backgroundColor: '#dcfce7',
-    color: '#166534'
+    backgroundColor: 'rgba(52, 211, 153, 0.16)',
+    color: theme.success
   };
 
   const unavailableStatusStyle = {
     ...statusStyle,
-    backgroundColor: '#fef2f2',
-    color: '#dc2626'
+    backgroundColor: 'rgba(248, 113, 113, 0.16)',
+    color: theme.danger
   };
 
   // Card display styles
@@ -765,43 +828,35 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   };
 
   const playerCardStyle = {
-    backgroundColor: 'white',
-    border: '1px solid #e5e7eb',
+    backgroundColor: theme.surface,
+    border: `1px solid ${theme.border}`,
     borderRadius: '0.5rem',
     padding: '1rem',
-    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
+    boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
     transition: 'all 0.2s',
     cursor: 'pointer'
   };
 
   const playerCardHoverStyle = {
     ...playerCardStyle,
-    borderColor: '#3b82f6',
-    boxShadow: '0 4px 12px rgba(59, 130, 246, 0.15)'
+    borderColor: theme.pink,
+    boxShadow: '0 4px 12px rgba(236, 72, 153, 0.2)'
   };
 
 
   const cardTitleStyle = {
     fontSize: '1rem',
     fontWeight: '600',
-    color: '#1f2937',
+    color: theme.text,
     flex: 1,
     minWidth: 0
   };
 
   const cardSquadraStyle = {
     fontSize: '0.875rem',
-    color: '#6b7280',
+    color: theme.textMuted,
     marginBottom: '0.75rem'
   };
-
-  const cardStatsGridStyle = {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
-    gap: '0.5rem',
-    marginBottom: '1rem'
-  };
-
 
   const cardStatsGrid2Style = {
     display: 'grid',
@@ -815,20 +870,20 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     flexDirection: 'column',
     alignItems: 'center',
     padding: '0.5rem',
-    backgroundColor: '#f9fafb',
+    backgroundColor: theme.surfaceAlt,
     borderRadius: '0.25rem',
     fontSize: '0.75rem'
   };
 
   const statValueStyle = {
     fontWeight: '700',
-    color: '#1f2937',
+    color: theme.text,
     marginBottom: '0.25rem',
     fontSize: '1.1rem'
   };
 
   const statLabelStyle = {
-    color: '#6b7280',
+    color: theme.textMuted,
     fontSize: '0.85rem',
     textAlign: 'center',
     lineHeight: '1.2',
@@ -861,9 +916,9 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             padding: '0.375rem 0.75rem',
             fontSize: '0.875rem',
             fontWeight: '500',
-            border: '1px solid #d1d5db',
+            border: `1px solid ${theme.pink}`,
             borderRadius: '0.375rem',
-            backgroundColor: '#3b82f6',
+            backgroundColor: theme.pink,
             color: 'white',
             cursor: 'pointer',
             transition: 'all 0.2s',
@@ -907,7 +962,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             alignItems: 'center',
             gap: '0.5rem',
             fontSize: '0.875rem',
-            color: '#374151',
+            color: theme.text,
             cursor: 'pointer'
           }}>
             <input
@@ -932,7 +987,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           {availableRoles.map(role => {
             const isSelected = selectedRoles.includes(role);
-            const roleColor = roleColorMapping[role] || '#6b7280';
+            const roleColor = roleColorMapping[role] || theme.textMuted;
 
             return (
               <button
@@ -944,7 +999,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                   fontWeight: '600',
                   border: `2px solid ${roleColor}`,
                   borderRadius: '0.375rem',
-                  backgroundColor: isSelected ? roleColor : 'white',
+                  backgroundColor: isSelected ? roleColor : 'transparent',
                   color: isSelected ? 'white' : roleColor,
                   cursor: 'pointer',
                   transition: 'all 0.2s',
@@ -959,7 +1014,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
           })}
         </div>
 
-        <div style={{ color: '#6b7280', fontSize: '0.875rem' }}>
+        <div style={{ color: theme.textMuted, fontSize: '0.875rem' }}>
           {filteredAndSortedPlayers.length} giocatori trovati
         </div>
         
@@ -971,10 +1026,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             padding: '0.5rem 1rem',
             fontSize: '0.875rem',
             fontWeight: '500',
-            border: '1px solid #d1d5db',
+            border: `1px solid ${theme.border}`,
             borderRadius: '0.375rem',
-            backgroundColor: showColumnControls ? '#3b82f6' : '#f3f4f6',
-            color: showColumnControls ? 'white' : '#374151',
+            backgroundColor: showColumnControls ? theme.pink : theme.surfaceAlt,
+            color: showColumnControls ? 'white' : theme.text,
             cursor: 'pointer',
             transition: 'all 0.2s'
           }}
@@ -995,23 +1050,23 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               padding: '0.5rem 1rem',
               fontSize: '0.875rem',
               fontWeight: '500',
-              border: '1px solid #d1d5db',
+              border: `1px solid ${theme.border}`,
               borderRadius: '0.375rem',
-              backgroundColor: showCardDetails ? '#3b82f6' : '#f3f4f6',
-              color: showCardDetails ? 'white' : '#374151',
+              backgroundColor: showCardDetails ? theme.pink : theme.surfaceAlt,
+              color: showCardDetails ? 'white' : theme.text,
               cursor: 'pointer',
               transition: 'all 0.2s'
             }}
-            title={showCardDetails ? 'Nascondi dettagli carte' : 'Mostra dettagli carte'}
+            title={showCardDetails ? 'Nascondi statistiche' : 'Mostra statistiche'}
           >
-            {showCardDetails ? 'Nascondi Dettagli' : 'Mostra Dettagli'}
+            {showCardDetails ? 'Nascondi Stats' : 'Mostra Stats'}
           </button>
         )}
         
         {/* Card Sorting Menu - Only show in card mode */}
         {displayMode === 'cards' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: '500', color: '#374151' }}>
+            <span style={{ fontSize: '0.875rem', fontWeight: '500', color: theme.text }}>
               Ordina per:
             </span>
             <select
@@ -1024,10 +1079,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               style={{
                 padding: '0.5rem',
                 fontSize: '0.875rem',
-                border: '1px solid #d1d5db',
+                border: `1px solid ${theme.border}`,
                 borderRadius: '0.375rem',
-                backgroundColor: 'white',
-                color: '#374151',
+                backgroundColor: theme.surfaceAlt,
+                color: theme.text,
                 cursor: 'pointer'
               }}
             >
@@ -1067,10 +1122,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                 padding: '0.5rem',
                 fontSize: '0.875rem',
                 fontWeight: '500',
-                border: '1px solid #d1d5db',
+                border: `1px solid ${theme.border}`,
                 borderRadius: '0.375rem',
-                backgroundColor: '#f3f4f6',
-                color: '#374151',
+                backgroundColor: theme.surfaceAlt,
+                color: theme.text,
                 cursor: 'pointer',
                 transition: 'all 0.2s'
               }}
@@ -1092,15 +1147,15 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             alignItems: 'center',
             marginBottom: '0.5rem'
           }}>
-            <span style={{ 
-              fontSize: '0.875rem', 
-              fontWeight: '600', 
-              color: '#374151',
+            <span style={{
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              color: theme.text,
               marginRight: '0.5rem'
             }}>
               Colonne:
             </span>
-            
+
             {/* ALL and Hide All buttons */}
             <div style={{ display: 'flex', gap: '0.5rem' }}>
               <button
@@ -1109,10 +1164,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                   padding: '0.25rem 0.5rem',
                   fontSize: '0.75rem',
                   fontWeight: '600',
-                  border: '1px solid #d1d5db',
+                  border: `1px solid ${theme.border}`,
                   borderRadius: '0.25rem',
-                  backgroundColor: visibleColumns.size === getColumns().length ? '#3b82f6' : '#f3f4f6',
-                  color: visibleColumns.size === getColumns().length ? 'white' : '#374151',
+                  backgroundColor: visibleColumns.size === getColumns().length ? theme.pink : theme.surfaceAlt,
+                  color: visibleColumns.size === getColumns().length ? 'white' : theme.text,
                   cursor: 'pointer',
                   transition: 'all 0.2s'
                 }}
@@ -1120,17 +1175,17 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               >
                 ALL
               </button>
-              
+
               <button
                 onClick={hideAllColumns}
                 style={{
                   padding: '0.25rem 0.5rem',
                   fontSize: '0.75rem',
                   fontWeight: '600',
-                  border: '1px solid #d1d5db',
+                  border: `1px solid ${theme.border}`,
                   borderRadius: '0.25rem',
-                  backgroundColor: visibleColumns.size === 3 ? '#dc2626' : '#f3f4f6',
-                  color: visibleColumns.size === 3 ? 'white' : '#374151',
+                  backgroundColor: visibleColumns.size === 3 ? theme.danger : theme.surfaceAlt,
+                  color: visibleColumns.size === 3 ? 'white' : theme.text,
                   cursor: 'pointer',
                   transition: 'all 0.2s'
                 }}
@@ -1154,12 +1209,12 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               <div style={{
                 fontSize: '0.875rem',
                 fontWeight: '600',
-                color: '#1f2937',
+                color: theme.text,
                 marginBottom: '0.5rem',
                 padding: '0.25rem 0.5rem',
-                backgroundColor: '#e0e7ff',
+                backgroundColor: theme.pinkSoft,
                 borderRadius: '0.25rem',
-                border: '1px solid #6366f1'
+                border: `1px solid ${theme.pink}`
               }}>
                 Quotazioni
               </div>
@@ -1177,10 +1232,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                       padding: '0.25rem 0.5rem',
                       fontSize: '0.75rem',
                       fontWeight: '500',
-                      border: '1px solid #d1d5db',
+                      border: `1px solid ${theme.border}`,
                       borderRadius: '0.25rem',
-                      backgroundColor: visibleColumns.has(column) ? '#10b981' : '#f3f4f6',
-                      color: visibleColumns.has(column) ? 'white' : '#374151',
+                      backgroundColor: visibleColumns.has(column) ? theme.success : theme.surfaceAlt,
+                      color: visibleColumns.has(column) ? 'white' : theme.text,
                       cursor: 'pointer',
                       transition: 'all 0.2s'
                     }}
@@ -1197,12 +1252,12 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               <div style={{
                 fontSize: '0.875rem',
                 fontWeight: '600',
-                color: '#1f2937',
+                color: theme.text,
                 marginBottom: '0.5rem',
                 padding: '0.25rem 0.5rem',
-                backgroundColor: '#dbeafe',
+                backgroundColor: theme.blueSoft,
                 borderRadius: '0.25rem',
-                border: '1px solid #3b82f6'
+                border: `1px solid ${theme.blue}`
               }}>
                 {CUR_SEASON}
               </div>
@@ -1220,10 +1275,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                       padding: '0.25rem 0.5rem',
                       fontSize: '0.75rem',
                       fontWeight: '500',
-                      border: '1px solid #d1d5db',
+                      border: `1px solid ${theme.border}`,
                       borderRadius: '0.25rem',
-                      backgroundColor: visibleColumns.has(column) ? '#10b981' : '#f3f4f6',
-                      color: visibleColumns.has(column) ? 'white' : '#374151',
+                      backgroundColor: visibleColumns.has(column) ? theme.success : theme.surfaceAlt,
+                      color: visibleColumns.has(column) ? 'white' : theme.text,
                       cursor: 'pointer',
                       transition: 'all 0.2s'
                     }}
@@ -1240,12 +1295,12 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               <div style={{
                 fontSize: '0.875rem',
                 fontWeight: '600',
-                color: '#1f2937',
+                color: theme.text,
                 marginBottom: '0.5rem',
                 padding: '0.25rem 0.5rem',
-                backgroundColor: '#fef3c7',
+                backgroundColor: 'rgba(251, 191, 36, 0.14)',
                 borderRadius: '0.25rem',
-                border: '1px solid #f59e0b'
+                border: `1px solid ${theme.warning}`
               }}>
                 {PREV_SEASON}
               </div>
@@ -1263,10 +1318,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                       padding: '0.25rem 0.5rem',
                       fontSize: '0.75rem',
                       fontWeight: '500',
-                      border: '1px solid #d1d5db',
+                      border: `1px solid ${theme.border}`,
                       borderRadius: '0.25rem',
-                      backgroundColor: visibleColumns.has(column) ? '#10b981' : '#f3f4f6',
-                      color: visibleColumns.has(column) ? 'white' : '#374151',
+                      backgroundColor: visibleColumns.has(column) ? theme.success : theme.surfaceAlt,
+                      color: visibleColumns.has(column) ? 'white' : theme.text,
                       cursor: 'pointer',
                       transition: 'all 0.2s'
                     }}
@@ -1331,15 +1386,15 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                     <span style={{ fontSize: '1.2rem' }}>
                       {getTrendEmoji(player.Trend)}
                     </span>
-                    <div 
-                      style={{...cardTitleStyle, cursor: 'pointer', color: '#3b82f6'}}
+                    <div
+                      style={{...cardTitleStyle, cursor: 'pointer', color: theme.blue}}
                       onClick={() => navigate(`/player/${player.player_id}`)}
                       title="Click to view player details"
                     >
                       {player.Nome}
                     </div>
                   </div>
-                  
+
                   {/* Button in card header */}
                   {status === 'acquired' && (
                     <button
@@ -1351,7 +1406,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                         borderRadius: '0.375rem',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
-                        backgroundColor: '#10b981',
+                        backgroundColor: theme.success,
                         color: 'white',
                         minWidth: '80px'
                       }}
@@ -1369,7 +1424,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                         borderRadius: '0.375rem',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
-                        backgroundColor: '#ef4444',
+                        backgroundColor: theme.danger,
                         color: 'white',
                         minWidth: '80px'
                       }}
@@ -1388,15 +1443,15 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                         borderRadius: '0.375rem',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
-                        backgroundColor: '#3b82f6',
+                        backgroundColor: theme.pink,
                         color: 'white',
                         minWidth: '80px'
                       }}
                       onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#2563eb';
+                        e.target.style.backgroundColor = theme.pinkHover;
                       }}
                       onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = '#3b82f6';
+                        e.target.style.backgroundColor = theme.pink;
                       }}
                     >
                       Compra
@@ -1413,15 +1468,15 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                         borderRadius: '0.375rem',
                         cursor: 'pointer',
                         transition: 'all 0.2s',
-                        backgroundColor: '#6b7280',
+                        backgroundColor: theme.textFaint,
                         color: 'white',
                         minWidth: '80px'
                       }}
                       onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = '#4b5563';
+                        e.target.style.backgroundColor = theme.surfaceHover;
                       }}
                       onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = '#6b7280';
+                        e.target.style.backgroundColor = theme.textFaint;
                       }}
                     >
                       Reset
@@ -1470,7 +1525,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                 
                 {/* Section 1: Quotazioni */}
                 <div style={{
-                  backgroundColor: '#f0f9ff',
+                  backgroundColor: theme.blueSoft,
                   padding: '0.5rem',
                   borderRadius: '0.375rem',
                   marginBottom: '0.5rem'
@@ -1485,7 +1540,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                       <div key={statIndex} style={statItemStyle}>
                         <div style={{
                           ...statValueStyle,
-                          color: isMissing ? '#dc2626' : '#1f2937'
+                          color: isMissing ? theme.danger : theme.text
                         }}>
                           {displayValue}
                         </div>
@@ -1502,154 +1557,67 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                 {showCardDetails && (
                   <>
                     
-                    {/* Section 2: Current Season Stats */}
+                    {/* Season stats, current vs previous, each with a prev->cur trend spark */}
                     <div style={{
-                      backgroundColor: '#f0fdf4',
+                      backgroundColor: theme.surfaceAlt,
                       padding: '0.5rem',
                       borderRadius: '0.375rem',
                       marginBottom: '0.5rem'
                     }}>
-                    <div style={cardStatsGrid2Style}>
-                      {[`Presenze ${CUR_SEASON}`, `Minuti Giocati ${CUR_SEASON}`].map((statColumn, statIndex) => {
-                        const value = player[statColumn];
-                        const isMissing = isMissingData(value);
-                          const displayValue = formatValue(value, statColumn);
-
-                        return (
-                          <div key={statIndex} style={statItemStyle}>
-                            <div style={{
-                              ...statValueStyle,
-                              color: isMissing ? '#dc2626' : '#1f2937'
-                            }}>
-                              {displayValue}
-                            </div>
-                            <div style={statLabelStyle}>
-                              {statColumn}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div style={cardStatsGridStyle}>
-                      {[`Gol ${CUR_SEASON}`, `Assist ${CUR_SEASON}`, `Ammonizioni ${CUR_SEASON}`].map((statColumn, statIndex) => {
-                        const value = player[statColumn];
-                        const isMissing = isMissingData(value);
-                          const displayValue = formatValue(value, statColumn);
-
-                        return (
-                          <div key={statIndex} style={statItemStyle}>
-                            <div style={{
-                              ...statValueStyle,
-                              color: isMissing ? '#dc2626' : '#1f2937'
-                            }}>
-                              {displayValue}
-                            </div>
-                            <div style={statLabelStyle}>
-                              {statColumn}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-
-                    <div style={cardStatsGrid2Style}>
-                      {[`xG ${CUR_SEASON}`, `xA ${CUR_SEASON}`].map((statColumn, statIndex) => {
-                        const value = player[statColumn];
-                        const isMissing = isMissingData(value);
-                          const displayValue = formatValue(value, statColumn);
-
-                        return (
-                          <div key={statIndex} style={statItemStyle}>
-                            <div style={{
-                              ...statValueStyle,
-                              color: isMissing ? '#dc2626' : '#1f2937'
-                            }}>
-                              {displayValue}
-                            </div>
-                            <div style={statLabelStyle}>
-                              {statColumn}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                    </div>
-
-                    {/* Section 3: Previous Season Stats */}
-                    <div style={{
-                      backgroundColor: '#fef3c7',
-                      padding: '0.5rem',
-                      borderRadius: '0.375rem',
-                      marginBottom: '0.5rem'
-                    }}>
-                      <div style={cardStatsGrid2Style}>
-                        {[`Presenze ${PREV_SEASON}`, `Minuti Giocati ${PREV_SEASON}`].map((statColumn, statIndex) => {
-                          const value = player[statColumn];
-                          const isMissing = isMissingData(value);
-                          const displayValue = formatValue(value, statColumn);
-
-                          return (
-                            <div key={statIndex} style={statItemStyle}>
-                              <div style={{
-                                ...statValueStyle,
-                                color: isMissing ? '#dc2626' : '#1f2937'
-                              }}>
-                                {displayValue}
-                              </div>
-                              <div style={statLabelStyle}>
-                                {statColumn}
-                              </div>
-                            </div>
-                          );
-                        })}
+                      <div style={{ fontSize: '0.7rem', fontWeight: '600', color: theme.textFaint, marginBottom: '0.375rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
+                        {PREV_SEASON} → {CUR_SEASON}
                       </div>
-
-                      <div style={cardStatsGridStyle}>
-                        {[`Gol ${PREV_SEASON}`, `Assist ${PREV_SEASON}`, `Ammonizioni ${PREV_SEASON}`].map((statColumn, statIndex) => {
-                          const value = player[statColumn];
-                          const isMissing = isMissingData(value);
-                          const displayValue = formatValue(value, statColumn);
-
-                          return (
-                            <div key={statIndex} style={statItemStyle}>
-                              <div style={{
-                                ...statValueStyle,
-                                color: isMissing ? '#dc2626' : '#1f2937'
-                              }}>
-                                {displayValue}
-                              </div>
-                              <div style={statLabelStyle}>
-                                {statColumn}
-                              </div>
-                            </div>
-                          );
-                        })}
-                      </div>
-
-                      <div style={cardStatsGrid2Style}>
-                        {[`xG ${PREV_SEASON}`, `xA ${PREV_SEASON}`].map((statColumn, statIndex) => {
-                          const value = player[statColumn];
-                          const isMissing = isMissingData(value);
-                          const displayValue = formatValue(value, statColumn);
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                        {['Presenze', ...PER_MATCH_BASES, 'Ammonizioni'].map((base) => {
+                          const isPerMatch = PER_MATCH_BASES.includes(base);
+                          const rawPrev = player[`${base} ${PREV_SEASON}`];
+                          const rawCur = player[`${base} ${CUR_SEASON}`];
+                          const avgPrev = isPerMatch ? getPerMatchAverage(player, base, PREV_SEASON) : undefined;
+                          const avgCur = isPerMatch ? getPerMatchAverage(player, base, CUR_SEASON) : undefined;
+                          // The sparkline tracks the per-match average (comparable across
+                          // seasons of different length); Presenze/Ammonizioni have no average
+                          // and just track their raw count instead.
+                          const sparkPrev = isPerMatch ? avgPrev : rawPrev;
+                          const sparkCur = isPerMatch ? avgCur : rawCur;
+                          const prevMissing = isMissingData(rawPrev);
+                          const curMissing = isMissingData(rawCur);
+                          const label = isPerMatch ? PER_MATCH_LABELS[base] : base;
 
                           return (
-                            <div key={statIndex} style={statItemStyle}>
-                              <div style={{
-                                ...statValueStyle,
-                                color: isMissing ? '#dc2626' : '#1f2937'
-                              }}>
-                                {displayValue}
-                              </div>
-                              <div style={statLabelStyle}>
-                                {statColumn}
-                              </div>
+                            <div key={base} style={{
+                              display: 'grid',
+                              // label | prev avg | prev raw | spark | cur avg | cur raw - fixed
+                              // tracks so every row (and every card) lines up regardless of how
+                              // many digits a given value has; Presenze/Ammonizioni just leave
+                              // the "raw" sub-columns empty rather than using a different layout.
+                              gridTemplateColumns: '1fr 2.5rem 3rem 46px 2.5rem 3rem',
+                              alignItems: 'center',
+                              columnGap: '0.25rem',
+                              padding: '0.25rem 0.375rem',
+                              backgroundColor: theme.surface,
+                              borderRadius: '0.25rem',
+                              fontVariantNumeric: 'tabular-nums'
+                            }}>
+                              <span style={{ fontSize: '0.75rem', color: theme.textMuted }}>{label}</span>
+                              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: prevMissing ? theme.danger : theme.textMuted, textAlign: 'right' }}>
+                                {isPerMatch ? formatPerMatchValue(avgPrev, base) : formatValue(rawPrev, base)}
+                              </span>
+                              <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
+                                {isPerMatch ? `(${formatValue(rawPrev, base)})` : ''}
+                              </span>
+                              <Sparkline prev={sparkPrev} cur={sparkCur} />
+                              <span style={{ fontSize: '0.8rem', fontWeight: '700', color: curMissing ? theme.danger : theme.text, textAlign: 'right' }}>
+                                {isPerMatch ? formatPerMatchValue(avgCur, base) : formatValue(rawCur, base)}
+                              </span>
+                              <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
+                                {isPerMatch ? `(${formatValue(rawCur, base)})` : ''}
+                              </span>
                             </div>
                           );
                         })}
                       </div>
                     </div>
-                    
+
                   </>
                 )}
                 
@@ -1717,16 +1685,16 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               
               // Alternating row background color
               const rowStyle = {
-                backgroundColor: index % 2 === 0 ? '#ffffff' : '#f8f9fa'
+                backgroundColor: index % 2 === 0 ? theme.surface : theme.surfaceAlt
               };
-              
+
               return (
                 <tr key={index} style={rowStyle}>
                   <td style={tdStyle}>
-                    <div style={{ 
-                      textAlign: 'center', 
-                      fontWeight: '500', 
-                      color: '#6b7280',
+                    <div style={{
+                      textAlign: 'center',
+                      fontWeight: '500',
+                      color: theme.textMuted,
                       fontSize: '0.875rem'
                     }}>
                       {index + 1}
@@ -1745,10 +1713,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                           onClick={() => handleAcquire(player)}
                           style={buyButtonStyle}
                           onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = '#2563eb';
+                            e.target.style.backgroundColor = theme.pinkHover;
                           }}
                           onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = '#3b82f6';
+                            e.target.style.backgroundColor = theme.pink;
                           }}
                         >
                           Compra
@@ -1759,10 +1727,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                           onClick={() => handleStatusChange(playerId, 'available')}
                           style={resetButtonStyle}
                           onMouseEnter={(e) => {
-                            e.target.style.backgroundColor = '#4b5563';
+                            e.target.style.backgroundColor = theme.surfaceHover;
                           }}
                           onMouseLeave={(e) => {
-                            e.target.style.backgroundColor = '#6b7280';
+                            e.target.style.backgroundColor = theme.textFaint;
                           }}
                         >
                           Reset
@@ -1772,15 +1740,15 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                   </td>
                   {visibleColumns.has('Nome') && (
                     <td style={nameTdStyle}>
-                      <div 
-                        style={{...playerNameStyle, cursor: 'pointer', color: '#3b82f6'}}
+                      <div
+                        style={{...playerNameStyle, cursor: 'pointer', color: theme.blue}}
                         onClick={() => navigate(`/player/${player.player_id}`)}
                         title="Click to view player details"
                       >
                         {player.Nome}
                       </div>
                       {fantamilioni && (
-                        <div style={{ fontSize: '0.75rem', color: '#3b82f6', fontWeight: '500' }}>
+                        <div style={{ fontSize: '0.75rem', color: theme.pink, fontWeight: '500' }}>
                           {fantamilioni} FM
                         </div>
                       )}
@@ -1819,7 +1787,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                           {roles.map((role, idx) => (
                             <span key={idx} style={{
                               padding: '0.125rem 0.375rem',
-                              backgroundColor: roleColorMapping[role] || '#6b7280',
+                              backgroundColor: roleColorMapping[role] || theme.textMuted,
                               borderRadius: '0.25rem',
                               fontSize: '0.75rem',
                               color: 'white',
@@ -1830,7 +1798,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                           ))}
                         </div>
                       ) : (
-                        <span style={{ color: '#9ca3af' }}>-</span>
+                        <span style={{ color: theme.textFaint }}>-</span>
                       );
                     })()}
                     </td>

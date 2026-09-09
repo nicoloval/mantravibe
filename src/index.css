@@ -1,3 +1,31 @@
+/* mantravibe theme tokens - see src/theme.js. Dark is the default (:root); adding
+   data-theme="light" on <html> (done by src/theme.js's applyThemeMode) swaps every
+   component reading theme.bg/surface/.../textFaint to the light set below, with no
+   per-component branching needed since those all resolve to var(--mv-*). */
+:root {
+  --mv-bg: #15161d;
+  --mv-surface: #1f212b;
+  --mv-surface-alt: #262835;
+  --mv-surface-hover: #2e3040;
+  --mv-border: #343646;
+  --mv-border-soft: #2a2c3a;
+  --mv-text: #f2f2f6;
+  --mv-text-muted: #a8aabd;
+  --mv-text-faint: #71738a;
+}
+
+:root[data-theme="light"] {
+  --mv-bg: #f4f5f9;
+  --mv-surface: #ffffff;
+  --mv-surface-alt: #eef0f5;
+  --mv-surface-hover: #e4e7ee;
+  --mv-border: #dcdfe8;
+  --mv-border-soft: #e8eaf0;
+  --mv-text: #1f2130;
+  --mv-text-muted: #5c5f74;
+  --mv-text-faint: #8b8da3;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,6 +33,8 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: var(--mv-bg);
+  color: var(--mv-text);
 }
 
 code {

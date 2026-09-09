@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getSeasonLabels } from '../utils/dataUtils';
+import { theme } from '../theme';
 
 const SEASON_STAT_BASES = ['Presenze', 'Minuti Giocati', 'Gol', 'Assist', 'xG', 'xA', 'Ammonizioni', 'Espulsioni'];
 
@@ -23,20 +24,20 @@ const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) =
   // M, C, W, T, A, Pc), as found directly in player['Ruolo Mantra'] - no translation needed.
   const getRoleColor = (role) => {
     const roleColorMap = {
-      'P': '#f97316',    // Orange
-      'Dc': '#22c55e',   // Green
-      'B': '#22c55e',    // Green
-      'Dd': '#22c55e',   // Green
-      'Ds': '#22c55e',   // Green
-      'E': '#3b82f6',    // Blue
-      'M': '#3b82f6',    // Blue
-      'C': '#3b82f6',    // Blue
-      'W': '#a855f7',    // Purple
-      'T': '#a855f7',    // Purple
-      'A': '#ef4444',    // Red
-      'Pc': '#ef4444'    // Red
+      'P': theme.roleCategory.goalkeepers,
+      'Dc': theme.roleCategory.defenders,
+      'B': theme.roleCategory.defenders,
+      'Dd': theme.roleCategory.defenders,
+      'Ds': theme.roleCategory.defenders,
+      'E': theme.roleCategory.midfielders,
+      'M': theme.roleCategory.midfielders,
+      'C': theme.roleCategory.midfielders,
+      'W': theme.roleCategory.wingers,
+      'T': theme.roleCategory.wingers,
+      'A': theme.roleCategory.attackers,
+      'Pc': theme.roleCategory.attackers
     };
-    return roleColorMap[role] || '#6b7280';
+    return roleColorMap[role] || theme.textMuted;
   };
 
   // Helper function to get role info
@@ -197,6 +198,9 @@ const containerStyle = {
   maxWidth: '1200px',
   margin: '0 auto',
   padding: '2rem',
+  minHeight: '100vh',
+  backgroundColor: theme.bg,
+  color: theme.text,
   fontFamily: 'system-ui, -apple-system, sans-serif'
 };
 
@@ -211,7 +215,7 @@ const headerStyle = {
 
 const backButtonStyle = {
   padding: '0.5rem 1rem',
-  backgroundColor: '#3b82f6',
+  backgroundColor: theme.pink,
   color: 'white',
   border: 'none',
   borderRadius: '0.375rem',
@@ -227,7 +231,7 @@ const backButtonStyle = {
 const titleStyle = {
   fontSize: '2rem',
   fontWeight: '700',
-  color: '#1f2937',
+  color: theme.text,
   margin: 0
 };
 
@@ -237,25 +241,25 @@ const statusStyle = {
 };
 
 const acquiredStyle = {
-  color: '#059669',
-  backgroundColor: '#d1fae5',
+  color: theme.success,
+  backgroundColor: 'rgba(52, 211, 153, 0.16)',
   padding: '0.25rem 0.75rem',
   borderRadius: '0.375rem'
 };
 
 const availableStyle = {
-  color: '#6b7280',
-  backgroundColor: '#f3f4f6',
+  color: theme.textMuted,
+  backgroundColor: theme.surfaceAlt,
   padding: '0.25rem 0.75rem',
   borderRadius: '0.375rem'
 };
 
 const infoCardStyle = {
-  backgroundColor: '#f8fafc',
+  backgroundColor: theme.surface,
   borderRadius: '0.75rem',
   padding: '2rem',
   marginBottom: '2rem',
-  border: '1px solid #e2e8f0'
+  border: `1px solid ${theme.border}`
 };
 
 const infoHeaderStyle = {
@@ -273,7 +277,7 @@ const nameSectionStyle = {
 const playerNameStyle = {
   fontSize: '2.5rem',
   fontWeight: '700',
-  color: '#1f2937',
+  color: theme.text,
   margin: '0 0 1rem 0'
 };
 
@@ -293,7 +297,7 @@ const roleBadgeStyle = {
 
 const teamStyle = {
   fontSize: '1.25rem',
-  color: '#6b7280',
+  color: theme.textMuted,
   fontWeight: '500'
 };
 
@@ -304,7 +308,7 @@ const skillsSectionStyle = {
 const skillsTitleStyle = {
   fontSize: '1.125rem',
   fontWeight: '600',
-  color: '#374151',
+  color: theme.text,
   margin: '0 0 0.75rem 0'
 };
 
@@ -316,8 +320,8 @@ const skillsListStyle = {
 
 const skillBadgeStyle = {
   padding: '0.25rem 0.5rem',
-  backgroundColor: '#e0e7ff',
-  color: '#3730a3',
+  backgroundColor: theme.blueSoft,
+  color: theme.blue,
   borderRadius: '0.25rem',
   fontSize: '0.875rem',
   fontWeight: '500'
@@ -330,20 +334,20 @@ const statsGridStyle = {
 };
 
 const statsSectionStyle = {
-  backgroundColor: 'white',
+  backgroundColor: theme.surface,
   borderRadius: '0.5rem',
   padding: '1.5rem',
-  border: '1px solid #e5e7eb',
-  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)'
+  border: `1px solid ${theme.border}`,
+  boxShadow: '0 1px 3px rgba(0, 0, 0, 0.3)'
 };
 
 const sectionTitleStyle = {
   fontSize: '1.25rem',
   fontWeight: '600',
-  color: '#1f2937',
+  color: theme.text,
   margin: '0 0 1rem 0',
   paddingBottom: '0.5rem',
-  borderBottom: '2px solid #e5e7eb'
+  borderBottom: `2px solid ${theme.border}`
 };
 
 const statsListStyle = {
@@ -357,19 +361,19 @@ const statItemStyle = {
   justifyContent: 'space-between',
   alignItems: 'center',
   padding: '0.5rem 0',
-  borderBottom: '1px solid #f3f4f6'
+  borderBottom: `1px solid ${theme.borderSoft}`
 };
 
 const statLabelStyle = {
   fontSize: '0.875rem',
-  color: '#6b7280',
+  color: theme.textMuted,
   fontWeight: '500',
   flex: 1
 };
 
 const statValueStyle = {
   fontSize: '1rem',
-  color: '#1f2937',
+  color: theme.text,
   fontWeight: '600',
   textAlign: 'right',
   minWidth: '80px'

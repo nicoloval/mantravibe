@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { theme } from '../theme';
 
 const Settings = ({ 
   isOpen, 
@@ -60,9 +61,10 @@ const Settings = ({
   };
 
   const modalStyle = {
-    background: 'white',
+    background: theme.surface,
     borderRadius: '12px',
-    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+    boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5), 0 10px 10px -5px rgba(0, 0, 0, 0.3)',
+    border: `1px solid ${theme.border}`,
     width: '90%',
     maxWidth: '400px',
     maxHeight: '80vh',
@@ -74,14 +76,14 @@ const Settings = ({
     justifyContent: 'space-between',
     alignItems: 'center',
     padding: '20px 24px',
-    borderBottom: '1px solid #e5e7eb'
+    borderBottom: `1px solid ${theme.border}`
   };
 
   const titleStyle = {
     margin: 0,
     fontSize: '1.5rem',
     fontWeight: '600',
-    color: '#111827'
+    color: theme.text
   };
 
   const closeButtonStyle = {
@@ -89,7 +91,7 @@ const Settings = ({
     border: 'none',
     fontSize: '1.5rem',
     cursor: 'pointer',
-    color: '#6b7280',
+    color: theme.textMuted,
     padding: '4px',
     borderRadius: '4px',
     transition: 'background-color 0.2s'
@@ -114,19 +116,21 @@ const Settings = ({
   const labelStyle = {
     fontSize: '0.875rem',
     fontWeight: '500',
-    color: '#374151',
+    color: theme.textMuted,
     textAlign: 'center'
   };
 
   const inputStyle = {
     width: '120px',
     padding: '8px 12px',
-    border: '1px solid #d1d5db',
+    border: `1px solid ${theme.border}`,
     borderRadius: '6px',
     fontSize: '1rem',
     textAlign: 'center',
     outline: 'none',
-    transition: 'border-color 0.2s'
+    transition: 'border-color 0.2s',
+    backgroundColor: theme.surfaceAlt,
+    color: theme.text
   };
 
   const buttonGroupStyle = {
@@ -151,19 +155,19 @@ const Settings = ({
 
   const exportButtonStyle = {
     ...buttonStyle,
-    backgroundColor: '#3b82f6',
+    backgroundColor: theme.blue,
     color: 'white'
   };
 
   const importButtonStyle = {
     ...buttonStyle,
-    backgroundColor: '#10b981',
+    backgroundColor: theme.success,
     color: 'white'
   };
 
   const resetButtonStyle = {
     ...buttonStyle,
-    backgroundColor: '#dc2626',
+    backgroundColor: theme.danger,
     color: 'white'
   };
 
