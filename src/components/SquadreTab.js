@@ -553,23 +553,24 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
     return team.budget - totalSpent;
   };
 
-  // Function to get role color and Italian translation
+  // Function to get role color. `role` is already a Mantra code (P, Dc, Dd, Ds, B, E, M, C,
+  // W, T, A, Pc), as found directly in player['Ruolo Mantra'] - no translation needed.
   const getRoleInfo = (role) => {
-    const roleMap = {
-      'G': { italian: 'P', color: '#f97316' },    // Orange
-      'CB': { italian: 'DC', color: '#22c55e' },  // Green
-      'LA': { italian: 'B', color: '#22c55e' },   // Green
-      'RB': { italian: 'DD', color: '#22c55e' },  // Green
-      'LB': { italian: 'DS', color: '#22c55e' },  // Green
-      'E': { italian: 'E', color: '#3b82f6' },    // Blue
-      'DM': { italian: 'M', color: '#3b82f6' },   // Blue
-      'M': { italian: 'C', color: '#3b82f6' },    // Blue
-      'W': { italian: 'W', color: '#a855f7' },    // Purple
-      'OM': { italian: 'T', color: '#a855f7' },   // Purple
-      'F': { italian: 'A', color: '#ef4444' },    // Red
-      'CF': { italian: 'PC', color: '#ef4444' }   // Red
+    const roleColorMap = {
+      'P': '#f97316',    // Orange
+      'Dc': '#22c55e',   // Green
+      'B': '#22c55e',    // Green
+      'Dd': '#22c55e',   // Green
+      'Ds': '#22c55e',   // Green
+      'E': '#3b82f6',    // Blue
+      'M': '#3b82f6',    // Blue
+      'C': '#3b82f6',    // Blue
+      'W': '#a855f7',    // Purple
+      'T': '#a855f7',    // Purple
+      'A': '#ef4444',    // Red
+      'Pc': '#ef4444'    // Red
     };
-    return roleMap[role] || { italian: role, color: '#6b7280' };
+    return { italian: role, color: roleColorMap[role] || '#6b7280' };
   };
 
   // Function to parse mantra roles (copied from RosaAcquistata and MantraGiocatoriTab)
@@ -808,7 +809,10 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
                     fontSize: '0.6rem'
                   }}>
                     {roleCategories.map(category => {
-                      const percentage = teamBudgetStats.rolePercentages[category];
+                      // % of the team's total budget spent on this sector (not % of spend so far)
+                      const percentage = teamBudgetStats.totalBudgetInitial > 0
+                        ? (teamBudgetStats.roleSpending[category] / teamBudgetStats.totalBudgetInitial) * 100
+                        : 0;
                       const color = getRoleCategoryColor(category);
                       const roleName = getRoleCategoryName(category);
                       

@@ -32,16 +32,16 @@ Mantravibe is a comprehensive web application designed to assist fantasy footbal
 
 ## 🔗 Related Projects
 
-This project builds upon and integrates with two key open-source projects:
+The current data pipeline (see "Data Pipeline" below) builds on ideas and code from a few other projects:
+
+### [tool-asta-fantacalcio-mantra](https://github.com/bcirillo99/tool-asta-fantacalcio-mantra)
+A standalone, no-build auction-tracking tool. Its `js/data.js` documents the column layout of fantacalcio.it's free `Lista-FantaAsta-Fantacalcio.csv` export and the Mantra role-code scheme (`Por, Dc, B, Dd, Ds, E, M, C, W, T, A, Pc`). `data-pipeline/parse_csv.py` follows that same convention to read the CSV.
+
+### mantradata (local, sibling project)
+A private Python tool (`../mantradata`) that fetches Understat data and fuzzy-matches it against a player list by name/team. `data-pipeline/match_utils.py` and `data-pipeline/enrich.py` are a trimmed-down port of its matching logic, adapted to fetch from Understat's current JSON endpoint (see the Data Pipeline section for why).
 
 ### [fantacalcio-py](https://github.com/piopy/fantacalcio-py)
-The data source for this application. This Python tool:
-- **Scrapes player data** from FPEDIA and FSTATS
-- **Calculates convenience indices** for player valuation
-- **Processes and cleans** statistical data
-- **Exports structured data** in Excel format
-
-The processed data from fantacalcio-py is used as the foundation for all player analysis and recommendations in Mantravibe.
+The **previous** data source for this application (no longer used by default). This Python tool scrapes FPEDIA/FSTATS and computes convenience indices, exported as Excel. Mantravibe's UI still degrades gracefully if you feed it FPEDIA/FSTATS-shaped data, but the current pipeline (below) does not produce those fields — see the note in Data Pipeline.
 
 ### [fantavibe (original)](https://github.com/informagico/fantavibe)
 This repository was born as a fork of the original fantavibe project, specifically adapted for the **Mantra** fantasy football format. The original project provided the initial React-based architecture and user interface concepts that were extended and specialized for Mantra's specific requirements.
@@ -90,11 +90,91 @@ npm run build
 # The build folder will contain the optimized production files
 ```
 
-### Data Setup
+## 📊 Data Pipeline
 
-1. **Player Data**: Place the processed player data file in `public/data/final.json`
-2. **Role Configuration**: Ensure `public/data/roles.csv` contains role definitions and colors
-3. **Appetibilita Data**: Place formation role preferences in `public/assets/appetibilita.json`
+Mantravibe reads its player data from `public/data/final.json` and `public/data/roles.csv` (already
+committed and reusable as-is). To regenerate `final.json` for a new season, everything — CSV
+ingestion, cleaning, and Understat enrichment — lives in `data-pipeline/`, inside this repo.
+
+### Prerequisites (one-time)
+
+- **Python 3.12+**
+- **[uv](https://docs.astral.sh/uv/)** package manager
+- Set up the pipeline's virtual environment:
+  ```bash
+  cd data-pipeline
+  uv sync
+  cd ..
+  ```
+
+### 1. Download the CSV
+
+Get the free player list from fantacalcio.it: on the site, **App → FantaAsta Live → Calciatori
+Serie A**, download `Lista-FantaAsta-Fantacalcio.csv`, and place it directly in
+`data-pipeline/input/` (see `data-pipeline/input/README.md`), so the file ends up at:
+
+```
+data-pipeline/input/Lista-FantaAsta-Fantacalcio.csv
+```
+
+This is the only manual step — everything else is a command.
+
+### 2. Build
+
+From the `mantravibe/` root:
+
+```bash
+npm run data:build   # parses the CSV, fetches/matches Understat stats, writes public/data/final.json
+```
+
+This fetches Understat data for the current season and the previous one (see **Season
+configuration** below) across 6 European leagues, so it can also pick up players who transferred
+into Serie A. Understat responses are cached under `data-pipeline/cache/`, so re-running
+`data:build` after tweaking the CSV is fast — delete `data-pipeline/cache/` if you want a fully
+fresh fetch.
+
+### 3. Run the app
+
+```bash
+npm start
+```
+
+as described above. Re-run steps 1–2 whenever you have a new CSV (e.g. after transfer-window
+roster changes); step 3 is unaffected.
+
+### Season configuration
+
+The season is **not** read from the CSV — it's set explicitly in `data-pipeline/config.py`:
+
+```python
+CURRENT_SEASON = 2026   # Serie A 2026/2027 (pre-set to the current season)
+PREVIOUS_SEASONS = [2025]   # completed 2025/2026 season, for historical stats
+```
+
+`CURRENT_SEASON` is the year the season *starts* (Understat's convention: `2026` means
+"2026/2027"). Update this file once a year, when a new season starts and you have a fresh CSV for
+it — `final.json` will then have `"... 2026-2027"` fields for the current season and
+`"... 2025-2026"` for the previous one, matching whatever `CURRENT_SEASON`/`PREVIOUS_SEASONS` say.
+
+**This is the only place season needs tuning.** The React UI (column picker, sort options, card
+and player-detail views) never hardcodes a season string — it reads the two most recent
+season-labeled fields straight out of `final.json` (`getSeasonLabels` in
+`src/utils/dataUtils.js`) and labels itself accordingly. So bumping `CURRENT_SEASON` and
+re-running `data:build` is enough; nothing in `src/` needs editing.
+
+You can add more than one entry to `PREVIOUS_SEASONS` (e.g. `[2025, 2024]`) to pull in more
+historical seasons of Understat data into `final.json` for your own reference, but the UI only
+ever surfaces the **two most recent** seasons present (current + previous) as columns/sort
+options — older seasons are still in the JSON, just not exposed in the UI.
+
+### Notes on the data
+
+- **Base fields** (from the CSV): `Nome`, `Squadra`, `Ruolo Mantra`, `QtA`/`QtI`/`FVM`.
+- **Enriched fields** (from Understat, when a player is matched — usually 70%+): `Presenze`,
+  `Minuti Giocati`, `Gol`, `Assist`, `xG`, `xA`, `Ammonizioni`, `Espulsioni`, per season.
+- This is a different, leaner schema than the old fantacalcio-py-based pipeline (no FPEDIA/FSTATS
+  convenience scores, Skills, Trend, or injury predictions) — the UI has been adapted accordingly
+  (column picker, default sort, player detail page all use the fields above instead).
 
 ## 📁 Project Structure
 
@@ -117,6 +197,17 @@ public/
 │   └── roles.csv       # Role definitions
 └── assets/             # Static assets
     └── appetibilita.json  # Formation preferences
+
+data-pipeline/           # Data ingestion & enrichment (see Data Pipeline section)
+├── input/                    # Download Lista-FantaAsta-Fantacalcio.csv into here
+│   └── README.md                # (the CSV itself is gitignored)
+├── cache/                    # Cached Understat API responses (gitignored)
+├── config.py                  # CURRENT_SEASON / PREVIOUS_SEASONS - tune the season here
+├── parse_csv.py               # Reads the fantacalcio.it CSV
+├── understat_fetch.py         # Fetches Understat player stats
+├── match_utils.py              # Name/team fuzzy-matching helpers
+├── enrich.py                   # Matches CSV players against Understat data
+└── build.py                    # Orchestrator: CSV -> Understat -> public/data/final.json
 ```
 
 ## 🎮 Usage Guide

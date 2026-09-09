@@ -1,9 +1,15 @@
 import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { getSeasonLabels } from '../utils/dataUtils';
+
+const SEASON_STAT_BASES = ['Presenze', 'Minuti Giocati', 'Gol', 'Assist', 'xG', 'xA', 'Ammonizioni', 'Espulsioni'];
 
 const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) => {
   const { id } = useParams();
   const navigate = useNavigate();
+
+  // Derived from the data itself (see data-pipeline/config.py) - never hardcode season strings below.
+  const { current: CUR_SEASON, previous: PREV_SEASON } = useMemo(() => getSeasonLabels(players), [players]);
 
   // Find the player by ID
   const player = useMemo(() => {
@@ -13,51 +19,29 @@ const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) =
   // Get player status
   const status = playerStatus[player?.player_id] || { status: 'available' };
 
-  // Helper function to get role color
+  // Helper function to get role color. `role` is already a Mantra code (P, Dc, Dd, Ds, B, E,
+  // M, C, W, T, A, Pc), as found directly in player['Ruolo Mantra'] - no translation needed.
   const getRoleColor = (role) => {
     const roleColorMap = {
-      'G': '#f97316',    // Orange
-      'CB': '#22c55e',   // Green
-      'LA': '#22c55e',   // Green
-      'RB': '#22c55e',   // Green
-      'LB': '#22c55e',   // Green
+      'P': '#f97316',    // Orange
+      'Dc': '#22c55e',   // Green
+      'B': '#22c55e',    // Green
+      'Dd': '#22c55e',   // Green
+      'Ds': '#22c55e',   // Green
       'E': '#3b82f6',    // Blue
-      'DM': '#3b82f6',   // Blue
       'M': '#3b82f6',    // Blue
+      'C': '#3b82f6',    // Blue
       'W': '#a855f7',    // Purple
-      'OM': '#a855f7',   // Purple
-      'F': '#ef4444',    // Red
-      'CF': '#ef4444'    // Red
+      'T': '#a855f7',    // Purple
+      'A': '#ef4444',    // Red
+      'Pc': '#ef4444'    // Red
     };
     return roleColorMap[role] || '#6b7280';
   };
 
   // Helper function to get role info
   const getRoleInfo = (role) => {
-    const roleInfoMap = {
-      'G': { italian: 'P', color: 'Orange' },
-      'CB': { italian: 'Dc', color: 'Green' },
-      'LA': { italian: 'B', color: 'Green' },
-      'RB': { italian: 'Dd', color: 'Green' },
-      'LB': { italian: 'Ds', color: 'Green' },
-      'E': { italian: 'E', color: 'Blue' },
-      'DM': { italian: 'M', color: 'Blue' },
-      'M': { italian: 'C', color: 'Blue' },
-      'W': { italian: 'W', color: 'Purple' },
-      'OM': { italian: 'T', color: 'Purple' },
-      'F': { italian: 'A', color: 'Red' },
-      'CF': { italian: 'Pc', color: 'Red' }
-    };
-    return roleInfoMap[role] || { italian: role, color: 'Gray' };
-  };
-
-  // Helper function to get trend emoji
-  const getTrendEmoji = (trend) => {
-    switch (trend) {
-      case 'UP': return '📈';
-      case 'DOWN': return '📉';
-      default: return '=';
-    }
+    return { italian: role, color: getRoleColor(role) };
   };
 
   // Helper function to format value
@@ -127,7 +111,7 @@ const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) =
         <div style={infoHeaderStyle}>
           <div style={nameSectionStyle}>
             <h2 style={playerNameStyle}>
-              {getTrendEmoji(player.Trend)} {player.Nome}
+              {player.Nome}
             </h2>
             <div style={roleSectionStyle}>
               {roles.map((role, index) => (
@@ -163,303 +147,44 @@ const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) =
 
       {/* Statistics Grid */}
       <div style={statsGridStyle}>
-        {/* Key Statistics */}
+        {/* Quotazioni */}
         <div style={statsSectionStyle}>
-          <h3 style={sectionTitleStyle}>Key Statistics</h3>
+          <h3 style={sectionTitleStyle}>Quotazioni</h3>
           <div style={statsListStyle}>
             <div style={statItemStyle}>
-              <span style={statLabelStyle}>Fantaindex 2025-2026</span>
-              <span style={statValueStyle}>{formatValue(player['Fantaindex  2025-2026'])}</span>
+              <span style={statLabelStyle}>QtA</span>
+              <span style={statValueStyle}>{formatValue(player['QtA'])}</span>
             </div>
             <div style={statItemStyle}>
-              <span style={statLabelStyle}>Punteggio FPEDIA</span>
-              <span style={statValueStyle}>{formatValue(player['Punteggio FPEDIA'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Convenienza Potenziale FSTATS 2025-2026</span>
-              <span style={statValueStyle}>{formatValue(player['Convenienza Potenziale FSTATS 2025-2026'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Convenienza FSTATS 2025-2026</span>
-              <span style={statValueStyle}>{formatValue(player['Convenienza FSTATS 2025-2026'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Convenienza Potenziale FPEDIA</span>
-              <span style={statValueStyle}>{formatValue(player['Convenienza Potenziale FPEDIA'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Convenienza FPEDIA</span>
-              <span style={statValueStyle}>{formatValue(player['Convenienza FPEDIA'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Buon Investimento</span>
-              <span style={statValueStyle}>{formatValue(player['Buon Investimento'])}</span>
+              <span style={statLabelStyle}>FVM</span>
+              <span style={statValueStyle}>{formatValue(player['FVM'])}</span>
             </div>
           </div>
         </div>
 
-        {/* Performance 2025-2026 */}
+        {/* Current season performance */}
         <div style={statsSectionStyle}>
-          <h3 style={sectionTitleStyle}>Performance 2025-2026</h3>
+          <h3 style={sectionTitleStyle}>{`Performance ${CUR_SEASON}`}</h3>
           <div style={statsListStyle}>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Fantamedia 2025-2026</span>
-              <span style={statValueStyle}>{formatValue(player['Fantamedia 2025-2026'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Media 2025-2026</span>
-              <span style={statValueStyle}>{formatValue(player['Media 2025-2026'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Presenze 2025-2026</span>
-              <span style={statValueStyle}>{formatValue(player['Presenze 2025-2026'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Minuti Giocati 2025-2026</span>
-              <span style={statValueStyle}>{formatValue(player['Minuti Giocati 2025-2026'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Matches With Grade 2025-2026</span>
-              <span style={statValueStyle}>{formatValue(player['Matches With Grade 2025-2026'])}</span>
-            </div>
+            {SEASON_STAT_BASES.map(base => (
+              <div key={base} style={statItemStyle}>
+                <span style={statLabelStyle}>{`${base} ${CUR_SEASON}`}</span>
+                <span style={statValueStyle}>{formatValue(player[`${base} ${CUR_SEASON}`])}</span>
+              </div>
+            ))}
           </div>
         </div>
 
-        {/* Goals & Assists 2025-2026 */}
-        {!roles.includes('G') && (
-          <div style={statsSectionStyle}>
-            <h3 style={sectionTitleStyle}>Goals & Assists 2025-2026</h3>
-            <div style={statsListStyle}>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>Gol 2025-2026</span>
-                <span style={statValueStyle}>{formatValue(player['Gol 2025-2026'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>Assist 2025-2026</span>
-                <span style={statValueStyle}>{formatValue(player['Assist 2025-2026'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>Goals90min 2025-2026</span>
-                <span style={statValueStyle}>{formatValue(player['Goals90min 2025-2026'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>Goals From Open Plays 2025-2026</span>
-                <span style={statValueStyle}>{formatValue(player['Goals From Open Plays 2025-2026'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>Rigori 2025-2026</span>
-                <span style={statValueStyle}>{formatValue(player['Rigori 2025-2026'])}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Expected Goals & Assists 2025-2026 */}
-        {!roles.includes('G') && (
-          <div style={statsSectionStyle}>
-            <h3 style={sectionTitleStyle}>Expected Goals & Assists 2025-2026</h3>
-            <div style={statsListStyle}>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>xA 2025-2026</span>
-                <span style={statValueStyle}>{formatValue(player['xA 2025-2026'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>xG From Open Plays 2025-2026</span>
-                <span style={statValueStyle}>{formatValue(player['xG From Open Plays 2025-2026'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>xG From Open Plays/90min 2025-2026</span>
-                <span style={statValueStyle}>{formatValue(player['xG From Open Plays/90min 2025-2026'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>xA90min 2025-2026</span>
-                <span style={statValueStyle}>{formatValue(player['xA90min 2025-2026'])}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Goalkeeper Stats 2025-2026 */}
-        {roles.includes('G') && (
-          <div style={statsSectionStyle}>
-            <h3 style={sectionTitleStyle}>Goalkeeper Stats 2025-2026</h3>
-            <div style={statsListStyle}>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>GK Penalties Saved 2025-2026</span>
-                <span style={statValueStyle}>{formatValue(player['GK Penalties Saved 2025-2026'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>GK Clean Sheets 2025-2026</span>
-                <span style={statValueStyle}>{formatValue(player['GK Clean Sheets 2025-2026'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>GK Conceded Goals 2025-2026</span>
-                <span style={statValueStyle}>{formatValue(player['GK Conceded Goals 2025-2026'])}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Disciplinary 2025-2026 */}
+        {/* Previous season performance */}
         <div style={statsSectionStyle}>
-          <h3 style={sectionTitleStyle}>Disciplinary 2025-2026</h3>
+          <h3 style={sectionTitleStyle}>{`Performance ${PREV_SEASON}`}</h3>
           <div style={statsListStyle}>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Ammonizioni 2025-2026</span>
-              <span style={statValueStyle}>{formatValue(player['Ammonizioni 2025-2026'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Espulsioni 2025-2026</span>
-              <span style={statValueStyle}>{formatValue(player['Espulsioni 2025-2026'])}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Prediction */}
-        <div style={statsSectionStyle}>
-          <h3 style={sectionTitleStyle}>Prediction</h3>
-          <div style={statsListStyle}>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Presenze Previste</span>
-              <span style={statValueStyle}>{formatValue(player['Presenze Previste'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Gol Previsti</span>
-              <span style={statValueStyle}>{formatValue(player['Gol Previsti'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Assist Previsti</span>
-              <span style={statValueStyle}>{formatValue(player['Assist Previsti'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Resistenza Infortuni</span>
-              <span style={statValueStyle}>{formatValue(player['Resistenza Infortuni'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Infortunato</span>
-              <span style={statValueStyle}>{formatValue(player['Infortunato'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Nuovo Acquisto</span>
-              <span style={statValueStyle}>{formatValue(player['Nuovo Acquisto'])}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Performance 2024-2025 */}
-        <div style={statsSectionStyle}>
-          <h3 style={sectionTitleStyle}>Performance 2024-2025</h3>
-          <div style={statsListStyle}>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Fantamedia 2024-2025</span>
-              <span style={statValueStyle}>{formatValue(player['Fantamedia 2024-2025'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Media 2024-2025</span>
-              <span style={statValueStyle}>{formatValue(player['Media 2024-2025'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Presenze 2024-2025</span>
-              <span style={statValueStyle}>{formatValue(player['Presenze 2024-2025'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Minuti Giocati 2024-2025</span>
-              <span style={statValueStyle}>{formatValue(player['Minuti Giocati 2024-2025'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Matches With Grade 2024-2025</span>
-              <span style={statValueStyle}>{formatValue(player['Matches With Grade 2024-2025'])}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Goals & Assists 2024-2025 */}
-        {!roles.includes('G') && (
-          <div style={statsSectionStyle}>
-            <h3 style={sectionTitleStyle}>Goals & Assists 2024-2025</h3>
-            <div style={statsListStyle}>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>Gol 2024</span>
-                <span style={statValueStyle}>{formatValue(player['Gol 2024'])}</span>
+            {SEASON_STAT_BASES.map(base => (
+              <div key={base} style={statItemStyle}>
+                <span style={statLabelStyle}>{`${base} ${PREV_SEASON}`}</span>
+                <span style={statValueStyle}>{formatValue(player[`${base} ${PREV_SEASON}`])}</span>
               </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>Assist 2024-2025</span>
-                <span style={statValueStyle}>{formatValue(player['Assist 2024-2025'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>Goals90min 2024-2025</span>
-                <span style={statValueStyle}>{formatValue(player['Goals90min 2024-2025'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>Goals From Open Plays 2024-2025</span>
-                <span style={statValueStyle}>{formatValue(player['Goals From Open Plays 2024-2025'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>Rigori 2024-2025</span>
-                <span style={statValueStyle}>{formatValue(player['Rigori 2024-2025'])}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Expected Goals & Assists 2024-2025 */}
-        {!roles.includes('G') && (
-          <div style={statsSectionStyle}>
-            <h3 style={sectionTitleStyle}>Expected Goals & Assists 2024-2025</h3>
-            <div style={statsListStyle}>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>xA 2024-2025</span>
-                <span style={statValueStyle}>{formatValue(player['xA 2024-2025'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>xG From Open Plays 2024-2025</span>
-                <span style={statValueStyle}>{formatValue(player['xG From Open Plays 2024-2025'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>xG From Open Plays/90min 2024-2025</span>
-                <span style={statValueStyle}>{formatValue(player['xG From Open Plays/90min 2024-2025'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>xA90min 2024-2025</span>
-                <span style={statValueStyle}>{formatValue(player['xA90min 2024-2025'])}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Goalkeeper Stats 2024-2025 */}
-        {roles.includes('G') && (
-          <div style={statsSectionStyle}>
-            <h3 style={sectionTitleStyle}>Goalkeeper Stats 2024-2025</h3>
-            <div style={statsListStyle}>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>GK Penalties Saved 2024-2025</span>
-                <span style={statValueStyle}>{formatValue(player['GK Penalties Saved 2024-2025'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>GK Clean Sheets 2024-2025</span>
-                <span style={statValueStyle}>{formatValue(player['GK Clean Sheets 2024-2025'])}</span>
-              </div>
-              <div style={statItemStyle}>
-                <span style={statLabelStyle}>GK Conceded Goals 2024-2025</span>
-                <span style={statValueStyle}>{formatValue(player['GK Conceded Goals 2024-2025'])}</span>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Disciplinary 2024-2025 */}
-        <div style={statsSectionStyle}>
-          <h3 style={sectionTitleStyle}>Disciplinary 2024-2025</h3>
-          <div style={statsListStyle}>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Ammonizioni 2024-2025</span>
-              <span style={statValueStyle}>{formatValue(player['Ammonizioni 2024-2025'])}</span>
-            </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>Espulsioni 2024-2025</span>
-              <span style={statValueStyle}>{formatValue(player['Espulsioni 2024-2025'])}</span>
-            </div>
+            ))}
           </div>
         </div>
       </div>

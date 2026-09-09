@@ -1,0 +1,8 @@
+[project]
+name = "mantravibe-data-pipeline"
+version = "0.1.0"
+description = "Builds mantravibe's public/data/final.json from the fantacalcio.it Lista-FantaAsta CSV, enriched with Understat stats"
+requires-python = ">=3.12"
+dependencies = [
+    "aiohttp>=3.12.0",
+]

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { getTeamColorCoding } from '../utils/dataUtils';
 import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
 
@@ -13,8 +13,6 @@ const FantamilioniBar = ({
   formations = {},
   players = [],
   appetibilitaData = {},
-  roleMapping = {},
-  roles = [], // Add roles parameter for enhancedRoleMapping
   currentTeamFormationRankings = {} // Pass current team's formation rankings from RosaAcquistata
 }) => {
   const [fantamilioni, setFantamilioni] = useState('');
@@ -47,23 +45,12 @@ const FantamilioniBar = ({
     return 'UNKNOWN';
   }, []);
 
-  // Enhanced role mapping that includes formation roles (same as RosaAcquistata)
-  const enhancedRoleMapping = useMemo(() => {
-    const mapping = {};
-    
-    // Map roles.csv roles directly - this is the source of truth
-    roles.forEach(role => {
-      mapping[role.Role] = role.Ruolo;
-    });
-    
-    return mapping;
-  }, [roles]);
-
-  // Helper function to translate English role to Italian (same as RosaAcquistata)
-  const translateRoleToItalian = useCallback((englishRole) => {
-    const italianRole = enhancedRoleMapping[englishRole] || englishRole;
-    return italianRole;
-  }, [enhancedRoleMapping]);
+  // Player roles (player['Ruolo Mantra']) are already Mantra codes (P, Dc, Dd, Ds, B, E, M,
+  // C, W, T, A, Pc) - the exact vocabulary formation slots use, so no translation is needed.
+  // This used to look roles up in roles.csv's Role->Ruolo column, but that map's Role column
+  // happens to also contain "M" (mapping it to "C"), which silently corrupted every player's
+  // real "M" role into "C" for formation-matching purposes. Keep this as an identity function.
+  const translateRoleToItalian = useCallback((role) => role, []);
 
   // Function to calculate available budget for a specific team
   const calculateTeamBudget = useCallback((teamId) => {
@@ -107,21 +94,22 @@ const FantamilioniBar = ({
   //   return getTeamColorCoding(team, teams, minPlayers, maxPlayers);
   // }, [teams, minPlayers, maxPlayers]);
 
-  // Role color mapping (same as Giocatori tab - simple and reliable)
+  // Role color mapping. `role` is already a Mantra code (P, Dc, Dd, Ds, B, E, M, C, W, T, A,
+  // Pc), as found directly in player['Ruolo Mantra'] - no translation needed.
   const getRoleColor = useCallback((role) => {
     const roleColorMap = {
-      'G': '#f97316',    // Orange
-      'CB': '#22c55e',   // Green
-      'LA': '#22c55e',   // Green
-      'RB': '#22c55e',   // Green
-      'LB': '#22c55e',   // Green (updated from Blue)
+      'P': '#f97316',    // Orange
+      'Dc': '#22c55e',   // Green
+      'B': '#22c55e',    // Green
+      'Dd': '#22c55e',   // Green
+      'Ds': '#22c55e',   // Green
       'E': '#3b82f6',    // Blue
-      'DM': '#3b82f6',   // Blue
       'M': '#3b82f6',    // Blue
+      'C': '#3b82f6',    // Blue
       'W': '#a855f7',    // Purple
-      'OM': '#a855f7',   // Purple
-      'F': '#ef4444',    // Red
-      'CF': '#ef4444'    // Red
+      'T': '#a855f7',    // Purple
+      'A': '#ef4444',    // Red
+      'Pc': '#ef4444'    // Red
     };
     return roleColorMap[role] || '#6b7280';
   }, []);
@@ -348,13 +336,16 @@ const FantamilioniBar = ({
         if (applicableRoles.length === 0) return null;
         
         // Find the role with the lowest appetibilita (best quality) for this position
-        const bestRole = applicableRoles.sort((a, b) => a.ranking - b.ranking)[0];
+        // Prefer the player's most defensive eligible role for this slot (highest
+        // appetibilita) - e.g. a player eligible for both A and Pc defaults to A,
+        // keeping the rarer Pc role open for a player who can *only* play Pc.
+        const bestRole = applicableRoles.sort((a, b) => b.ranking - a.ranking)[0];
         
         return {
           playerData,
           bestRole,
           appetibilita: bestRole.ranking,
-          fpediaScore: parseFloat(playerData.player['Punteggio FPEDIA'] || 0)
+          fpediaScore: parseFloat(playerData.player['FVM'] || 0)
         };
       }).filter(Boolean);
       

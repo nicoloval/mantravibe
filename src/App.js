@@ -187,11 +187,13 @@ const App = () => {
         const rolesText = await rolesResponse.text();
         const rolesLines = rolesText.split('\n').filter(line => line.trim());
         const roles = rolesLines.slice(1).map(line => {
+          // roles.csv columns: Role,Ruolo,Appetibilita,Color
           const parts = line.split(',');
-          return { 
-            Role: parts[0]?.trim() || '', 
-            Ruolo: parts[1]?.trim() || '', 
-            Color: parts[2]?.trim() || '' 
+          return {
+            Role: parts[0]?.trim() || '',
+            Ruolo: parts[1]?.trim() || '',
+            Appetibilita: parts[2]?.trim() || '',
+            Color: parts[3]?.trim() || ''
           };
         }).filter(role => {
           const isValid = role.Role && role.Ruolo; // Make Color optional for now
@@ -564,9 +566,9 @@ const App = () => {
       </button>
 
       {/* Header */}
-      <Header 
+      <Header
         dataCount={mantraData.length}
-        teams={teams}
+        teams={teams.length > 0 ? [teams[0]] : []}
         players={mantraData}
       />
 

@@ -72,86 +72,65 @@ const RosaAcquistata = ({
   const selectedTeam = teams.find(team => team.id === selectedTeamId);
 
   // Create role color mapping from roles.csv - SIMPLE VERSION
+  // Keyed by the Mantra role codes used directly in player['Ruolo Mantra'] (P, Dc, Dd, Ds, B,
+  // E, M, C, W, T, A, Pc) - same vocabulary as roles.csv's Ruolo column.
   const roleColorMapping = useMemo(() => {
     const colorNameToHex = {
       'Orange': '#f97316',
-      'Green': '#22c55e', 
+      'Green': '#22c55e',
       'Blue': '#3b82f6',
       'Purple': '#a855f7',
       'Red': '#ef4444'
     };
-    
+
     const mapping = {};
-    
+
     // Map roles.csv roles directly - this is the source of truth
     roles.forEach(role => {
-      mapping[role.Role] = colorNameToHex[role.Color] || role.Color;
+      mapping[role.Ruolo] = colorNameToHex[role.Color] || role.Color;
     });
-    
+
     // Fallback color mapping for when CSV Color column is missing
     const fallbackColors = {
-      'G': '#f97316',    // Orange - Goalkeeper
-      'CB': '#22c55e',   // Green - Center Back
-      'LA': '#22c55e',   // Green - Left Back
-      'RB': '#22c55e',   // Green - Right Back
-      'LB': '#22c55e',   // Green - Left Back
-      'E': '#3b82f6',    // Blue - Wing
-      'DM': '#3b82f6',   // Blue - Defensive Midfielder
-      'M': '#3b82f6',    // Blue - Midfielder
-      'W': '#a855f7',    // Purple - Winger
-      'OM': '#a855f7',   // Purple - Offensive Midfielder
-      'F': '#ef4444',    // Red - Forward
-      'CF': '#ef4444',   // Red - Center Forward
-      // Formation roles (Italian)
       'P': '#f97316',    // Orange - Portiere
-      'DC': '#22c55e',   // Green - Difensore Centrale
-      'DD': '#3b82f6',   // Blue - Difensore Destro
-      'DS': '#3b82f6',   // Blue - Difensore Sinistro
-      'B': '#22c55e',    // Green - Back
+      'Dc': '#22c55e',   // Green - Difensore Centrale
+      'B': '#22c55e',    // Green - Braccetto
+      'Dd': '#22c55e',   // Green - Difensore Destro
+      'Ds': '#22c55e',   // Green - Difensore Sinistro
+      'E': '#3b82f6',    // Blue - Esterno
+      'M': '#3b82f6',    // Blue - Mediano
       'C': '#3b82f6',    // Blue - Centrocampista
+      'W': '#a855f7',    // Purple - Ala
       'T': '#a855f7',    // Purple - Trequartista
       'A': '#ef4444',    // Red - Attaccante
-      'PC': '#ef4444'    // Red - Punto Centrale
+      'Pc': '#ef4444'    // Red - Punta Centrale
     };
-    
+
     // Apply fallback colors for any missing mappings
     Object.keys(fallbackColors).forEach(role => {
       if (!mapping[role] || mapping[role] === '') {
         mapping[role] = fallbackColors[role];
       }
     });
-    
-    
+
+
     return mapping;
   }, [roles]);
 
-  // Get all available roles from roles.csv (first column) in CSV order - same as Giocatori tab
+  // Get all available roles from roles.csv's Ruolo column, in CSV order - same vocabulary as
+  // player['Ruolo Mantra'], and same as the Giocatori tab.
   const availableRolesForFilter = useMemo(() => {
-    // Use all roles from the roles.csv file (first column) in the order they appear in CSV
-    // This ensures consistent sorting with the Giocatori tab
-    const csvRoles = roles.map(role => role.Role);
-    
-    return csvRoles;
+    return roles.map(role => role.Ruolo);
   }, [roles]);
 
   // Enhanced role mapping that includes formation roles
-  const enhancedRoleMapping = useMemo(() => {
-    const mapping = {};
-    
-    // Map roles.csv roles directly - this is the source of truth
-    roles.forEach(role => {
-      mapping[role.Role] = role.Ruolo;
-    });
-    
-    
-    return mapping;
-  }, [roles]);
-
-  // Function to translate English role to Italian for formation matching
-  const translateRoleToItalian = useCallback((englishRole) => {
-    const italianRole = enhancedRoleMapping[englishRole] || englishRole;
-    return italianRole;
-  }, [enhancedRoleMapping]);
+  // Player roles (player['Ruolo Mantra']) are already Mantra codes (P, Dc, Dd, Ds, B, E, M,
+  // C, W, T, A, Pc) - the exact vocabulary formation slots use, so no translation is needed.
+  // This used to look roles up in roles.csv's Role->Ruolo column via `roleMapping`, but that
+  // map's Role column happens to also contain "M" (mapping it to "C"), which silently
+  // corrupted every player's real "M" role into "C" for formation-matching purposes. Keep
+  // this as an identity function - do not reintroduce the roles.csv lookup here.
+  const translateRoleToItalian = useCallback((role) => role, []);
 
   // Toggle role selection
   const toggleRole = useCallback((role) => {
@@ -194,10 +173,10 @@ const RosaAcquistata = ({
     if (player['Ruolo Mantra']) {
       // In Mantra mode, use the first role from the array and map it
       const mantraRole = player['Ruolo Mantra'][0];
-      return roleMapping[mantraRole] || mantraRole;
+      return mantraRole;
     }
     return player.Ruolo;
-  }, [roleMapping]);
+  }, []);
   // Get players from selected team
   const teamPlayers = useMemo(() => {
     if (!selectedTeam || !selectedTeam.players) return [];
@@ -846,25 +825,27 @@ const RosaAcquistata = ({
           try {
             const roles = JSON.parse(playerDetail['Ruolo Mantra'].replace(/'/g, '"'));
             
-            // Check each player role against each formation position
-            roles.forEach(englishRole => {
+            // Check each player role against each formation position. Roles are already
+            // Mantra codes matching the formation's own vocabulary - no translation needed
+            // (see translateRoleToItalian's comment for why that translation was buggy).
+            roles.forEach(role => {
               let roleMatched = false;
-              
+
               formationPositions.forEach(position => {
-                if (position.roles.includes(roleMapping[englishRole] || englishRole)) {
+                if (position.roles.some(formationRole => formationRole.toLowerCase() === role.toLowerCase())) {
                   roleMatched = true;
                 }
               });
-              
+
               if (roleMatched) {
                 possibleRoles.push({
-                  role: roleMapping[englishRole] || englishRole,
-                  originalRole: englishRole
+                  role: role,
+                  originalRole: role
                 });
               } else {
                 unusedRoles.push({
-                  role: roleMapping[englishRole] || englishRole,
-                  originalRole: englishRole
+                  role: role,
+                  originalRole: role
                 });
               }
             });
@@ -872,12 +853,12 @@ const RosaAcquistata = ({
             console.warn('Error parsing Ruolo Mantra for player:', playerDetail.Nome, error);
           }
         } else if (playerDetail.Ruolo) {
-          const mappedRole = roleMapping[playerDetail.Ruolo] || playerDetail.Ruolo;
-          
+          const mappedRole = playerDetail.Ruolo;
+
           // Check if this role matches any formation position
           let roleMatched = false;
           formationPositions.forEach(position => {
-            if (position.roles.includes(mappedRole)) {
+            if (position.roles.some(formationRole => formationRole.toLowerCase() === mappedRole.toLowerCase())) {
               roleMatched = true;
             }
           });
@@ -932,7 +913,7 @@ const RosaAcquistata = ({
         availableForPosition.forEach(playerData => {
           playerData.possibleRoles.forEach(roleOption => {
             if (positionAssignment.roles.includes(roleOption.role)) {
-              const score = playerData.player['Punteggio FPEDIA'] || 0;
+              const score = playerData.player['FVM'] || 0;
               if (score > bestScore) {
                 bestScore = score;
                 bestPlayer = playerData;
@@ -1011,7 +992,7 @@ const RosaAcquistata = ({
     setCachedData(CACHE_CONFIG.FORMATION_STATS, stats, cacheKey);
     
     return stats;
-  }, [selectedTeam, teamPlayers, formations, appetibilitaData, roleMapping, players]); // Only recalculate when team players change
+  }, [selectedTeam, teamPlayers, formations, appetibilitaData, players]); // Only recalculate when team players change
 
   // Get cached formation data for the selected formation (no recalculation needed) - memoized for performance
   const getPlayersByFormationRoles = useMemo(() => {
@@ -1059,8 +1040,7 @@ const RosaAcquistata = ({
       if (playerDetail['Ruolo Mantra']) {
         try {
           const roles = JSON.parse(playerDetail['Ruolo Mantra'].replace(/'/g, '"'));
-          const mappedRoles = roles.map(role => roleMapping[role] || role);
-          
+
           // Check each player role against each formation position
           roles.forEach(englishRole => {
             let roleMatched = false;
@@ -1215,13 +1195,16 @@ const RosaAcquistata = ({
           if (applicableRoles.length === 0) return null;
           
           // Find the role with the lowest appetibilita (best quality) for this position
-          const bestRole = applicableRoles.sort((a, b) => a.ranking - b.ranking)[0];
+          // Prefer the player's most defensive eligible role for this slot (highest
+          // appetibilita) - e.g. a player eligible for both A and Pc defaults to A,
+          // keeping the rarer Pc role open for a player who can *only* play Pc.
+          const bestRole = applicableRoles.sort((a, b) => b.ranking - a.ranking)[0];
           
           return {
             playerData,
             bestRole,
             appetibilita: bestRole.ranking,
-            fpediaScore: parseFloat(playerData.player['Punteggio FPEDIA'] || 0)
+            fpediaScore: parseFloat(playerData.player['FVM'] || 0)
           };
         }).filter(Boolean);
         
@@ -1342,7 +1325,7 @@ const RosaAcquistata = ({
     };
     
     return result;
-  }, [selectedTeam, players, getFormationRoles, roleMapping, getPlayerRole, formations, selectedFormation, appetibilitaData, translateRoleToItalian, allFormationStats]);
+  }, [selectedTeam, players, getFormationRoles, getPlayerRole, formations, selectedFormation, appetibilitaData, translateRoleToItalian, allFormationStats]);
 
   // Helper function to get formation stats for any formation using the same logic as formation box
   const getFormationStats = useCallback((formationName) => {
@@ -1514,13 +1497,16 @@ const RosaAcquistata = ({
         if (applicableRoles.length === 0) return null;
         
         // Find the role with the lowest appetibilita (best quality) for this position
-        const bestRole = applicableRoles.sort((a, b) => a.ranking - b.ranking)[0];
+        // Prefer the player's most defensive eligible role for this slot (highest
+        // appetibilita) - e.g. a player eligible for both A and Pc defaults to A,
+        // keeping the rarer Pc role open for a player who can *only* play Pc.
+        const bestRole = applicableRoles.sort((a, b) => b.ranking - a.ranking)[0];
         
         return {
           playerData,
           bestRole,
           appetibilita: bestRole.ranking,
-          fpediaScore: parseFloat(playerData.player['Punteggio FPEDIA'] || 0)
+          fpediaScore: parseFloat(playerData.player['FVM'] || 0)
         };
       }).filter(Boolean);
       
@@ -1768,13 +1754,16 @@ const RosaAcquistata = ({
         if (applicableRoles.length === 0) return null;
         
         // Find the role with the lowest appetibilita (best quality) for this position
-        const bestRole = applicableRoles.sort((a, b) => a.ranking - b.ranking)[0];
+        // Prefer the player's most defensive eligible role for this slot (highest
+        // appetibilita) - e.g. a player eligible for both A and Pc defaults to A,
+        // keeping the rarer Pc role open for a player who can *only* play Pc.
+        const bestRole = applicableRoles.sort((a, b) => b.ranking - a.ranking)[0];
         
         return {
           playerData,
           bestRole,
           appetibilita: bestRole.ranking,
-          fpediaScore: parseFloat(playerData.player['Punteggio FPEDIA'] || 0)
+          fpediaScore: parseFloat(playerData.player['FVM'] || 0)
         };
       }).filter(Boolean);
       
@@ -2111,10 +2100,10 @@ const RosaAcquistata = ({
       if (playerDetail['Ruolo Mantra']) {
         try {
           const roles = JSON.parse(playerDetail['Ruolo Mantra'].replace(/'/g, '"'));
-          const mappedRoles = roles.map(role => roleMapping[role] || role);
-          
-          // Check each player role against each formation position
-          mappedRoles.forEach(mappedRole => {
+
+          // Check each player role against each formation position. Roles are already Mantra
+          // codes matching the formation's vocabulary - no translation needed.
+          roles.forEach(mappedRole => {
             let roleMatched = false;
             
             formationPositions.forEach(position => {
@@ -2195,13 +2184,16 @@ const RosaAcquistata = ({
         if (applicableRoles.length === 0) return null;
         
         // Find the role with the lowest appetibilita (best quality) for this position
-        const bestRole = applicableRoles.sort((a, b) => a.ranking - b.ranking)[0];
+        // Prefer the player's most defensive eligible role for this slot (highest
+        // appetibilita) - e.g. a player eligible for both A and Pc defaults to A,
+        // keeping the rarer Pc role open for a player who can *only* play Pc.
+        const bestRole = applicableRoles.sort((a, b) => b.ranking - a.ranking)[0];
         
         return {
           playerData,
           bestRole,
           appetibilita: bestRole.ranking,
-          fpediaScore: parseFloat(playerData.player['Punteggio FPEDIA'] || 0)
+          fpediaScore: parseFloat(playerData.player['FVM'] || 0)
         };
       }).filter(Boolean);
       
@@ -2253,7 +2245,7 @@ const RosaAcquistata = ({
       playersByRole: reservePlayersByRole, 
       positionAssignments: reservePositionAssignments 
     };
-  }, [selectedTeam, formations, selectedFormation, getPlayersByFormationRoles, players, roleMapping, appetibilitaData]);
+  }, [selectedTeam, formations, selectedFormation, getPlayersByFormationRoles, players, appetibilitaData]);
 
   // Filter team players for the table
   const filteredTeamPlayers = useMemo(() => {
@@ -2747,36 +2739,25 @@ const RosaAcquistata = ({
                   );
                 }
                   
-                  // Convert role to Italian and get color using roles.csv mapping
+                  // Convert a formation slot's role code (e.g. "DC", "PC" - uppercase, as used
+                  // in mantra_formations_positions.json) to its mixed-case display form.
                   const roleToItalianAndColor = (role) => {
-                    // Use the actual roleMapping from roles.csv
-                    // Handle formation role mapping to Italian
-                    let italianRole = roleMapping[role];
-                    if (!italianRole) {
-                      // Map formation roles to Italian translations
-                      const formationToItalian = {
-                        'P': 'P',      // Goalkeeper
-                        'DC': 'Dc',    // Center Back
-                        'B': 'B',      // Full Back
-                        'E': 'E',      // Wing Back
-                        'M': 'M',      // Midfielder
-                        'C': 'C',      // Central Midfielder
-                        'W': 'W',      // Winger
-                        'A': 'A',      // Attacker/Forward
-                        'PC': 'Pc',    // Center Forward
-                        'T': 'T',      // Trequartista
+                    const formationToItalian = {
+                      'P': 'P',      // Goalkeeper
+                      'DC': 'Dc',    // Center Back
+                      'B': 'B',      // Full Back
+                      'E': 'E',      // Wing Back
+                      'M': 'M',      // Midfielder
+                      'C': 'C',      // Central Midfielder
+                      'W': 'W',      // Winger
+                      'A': 'A',      // Attacker/Forward
+                      'PC': 'Pc',    // Center Forward
+                      'T': 'T',      // Trequartista
                       'DD': 'Dd',    // Right Back
-                      'DS': 'Ds',    // Left Back
-                        'Dm': 'Dm',    // Defensive Midfielder
-                        'Cm': 'Cm',    // Central Midfielder
-                        'Am': 'Am',    // Attacking Midfielder
-                        'Al': 'Al',    // Left Attacker
-                        'Ad': 'Ad',    // Right Attacker
-                        'Ac': 'Ac'     // Center Attacker
-                      };
-                      italianRole = formationToItalian[role] || role;
-                    }
-                    
+                      'DS': 'Ds'     // Left Back
+                    };
+                    const italianRole = formationToItalian[role] || role;
+
                     // Get color from roles.csv mapping
                     const roleInfo = getRoleInfo(italianRole);
                     return { 
@@ -2987,34 +2968,14 @@ const RosaAcquistata = ({
             
             {/* Role Filter Buttons */}
             <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', justifyContent: 'center', flexWrap: 'wrap' }}>
-              {availableRolesForFilter.map(englishRole => {
-                const isSelected = selectedRoles.includes(englishRole);
-                // Use the same color mapping as the role display logic
-                const getRoleColor = (role) => {
-                  const roleColorMap = {
-                    'G': '#f97316',    // Orange
-                    'CB': '#22c55e',   // Green
-                    'LA': '#22c55e',   // Green
-                    'RB': '#22c55e',   // Green
-                    'LB': '#22c55e',   // Green
-                    'E': '#3b82f6',    // Blue
-                    'DM': '#3b82f6',   // Blue
-                    'M': '#3b82f6',    // Blue
-                    'W': '#a855f7',    // Purple
-                    'OM': '#a855f7',   // Purple
-                    'F': '#ef4444',    // Red
-                    'CF': '#ef4444'    // Red
-                  };
-                  return roleColorMap[role] || '#6b7280';
-                };
-                const roleColor = getRoleColor(englishRole);
-                const italianRole = enhancedRoleMapping[englishRole] || englishRole;
-                
-          
-          return (
+              {availableRolesForFilter.map(role => {
+                const isSelected = selectedRoles.includes(role);
+                const roleColor = roleColorMapping[role] || '#6b7280';
+
+                return (
                   <button
-                    key={englishRole}
-                    onClick={() => toggleRole(englishRole)}
+                    key={role}
+                    onClick={() => toggleRole(role)}
                     style={{
                       padding: '0.5rem 1rem',
                       fontSize: '0.875rem',
@@ -3028,9 +2989,9 @@ const RosaAcquistata = ({
                       minWidth: '40px',
                       textAlign: 'center'
                     }}
-                    title={`${italianRole} - ${englishRole}`}
+                    title={role}
                   >
-                    {italianRole}
+                    {role}
                   </button>
                 );
               })}
@@ -3105,15 +3066,16 @@ const RosaAcquistata = ({
                     Ruolo {getSortIcon('Ruolo')}
                   </th>
                   {windowWidth > 768 && (
-                  <th 
-                    style={{ 
-                      padding: '0.75rem', 
-                      fontWeight: '600', 
+                  <th
+                    style={{
+                      padding: '0.75rem',
+                      textAlign: 'right',
+                      fontWeight: '600',
                       color: '#374151',
                       borderBottom: '1px solid #e5e7eb'
                     }}
                   >
-                    Skills
+                    FVM
                   </th>
                   )}
                   <th 
@@ -3219,39 +3181,18 @@ const RosaAcquistata = ({
                         
                         return roles.length > 0 ? (
                           <div style={{ display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
-                            {roles.map((role, idx) => {
-                              // Get role color - EXACT COPY FROM GIOCATORI TAB
-                              const getRoleColor = (role) => {
-                                const roleColorMap = {
-                                  'G': '#f97316',    // Orange
-                                  'CB': '#22c55e',   // Green
-                                  'LA': '#22c55e',   // Green
-                                  'RB': '#22c55e',   // Green
-                                  'LB': '#22c55e',   // Green (updated from Blue)
-                                  'E': '#3b82f6',    // Blue
-                                  'DM': '#3b82f6',   // Blue
-                                  'M': '#3b82f6',    // Blue
-                                  'W': '#a855f7',    // Purple
-                                  'OM': '#a855f7',   // Purple
-                                  'F': '#ef4444',    // Red
-                                  'CF': '#ef4444'    // Red
-                                };
-                                return roleColorMap[role] || '#6b7280';
-                              };
-                            
-                            return (
-                                <span key={idx} style={{
-                                  padding: '0.125rem 0.375rem',
-                                  backgroundColor: getRoleColor(role),
-                                  borderRadius: '0.25rem',
-                                  fontSize: '0.75rem',
-                                  color: 'white',
-                                  fontWeight: '600'
-                                }}>
-                                  {enhancedRoleMapping[role] || role}
+                            {roles.map((role, idx) => (
+                              <span key={idx} style={{
+                                padding: '0.125rem 0.375rem',
+                                backgroundColor: roleColorMapping[role] || '#6b7280',
+                                borderRadius: '0.25rem',
+                                fontSize: '0.75rem',
+                                color: 'white',
+                                fontWeight: '600'
+                              }}>
+                                {role}
                               </span>
-                            );
-                            })}
+                            ))}
                     </div>
                         ) : (
                           <span style={{ color: '#9ca3af' }}>-</span>
@@ -3259,68 +3200,8 @@ const RosaAcquistata = ({
                       })()}
                     </td>
                     {windowWidth > 768 && (
-                    <td style={{ padding: '0.75rem' }}>
-                      {(() => {
-                        // Parse the Skills field for display
-                        let skills = [];
-                        if (player.Skills) {
-                          if (Array.isArray(player.Skills)) {
-                            skills = player.Skills;
-                          } else if (typeof player.Skills === 'string') {
-                            try {
-                              const jsonString = player.Skills.replace(/'/g, '"');
-                              skills = JSON.parse(jsonString);
-                            } catch (e) {
-                              skills = [player.Skills];
-                            }
-                          } else {
-                            skills = [player.Skills];
-                          }
-                        }
-                        
-                        return skills.length > 0 ? (
-                          <div style={{ display: 'flex', gap: '0.125rem', flexWrap: 'wrap' }}>
-                            {skills.map((skill, idx) => {
-                              // Define skill colors (same as Giocatori tab)
-                              const getSkillColor = (skill) => {
-                                const skillColorMap = {
-                                  'Outsider': '#e11d48',      // Rose-600
-                                  'Titolare': '#059669',      // Emerald-600
-                                  'Buona Media': '#0ea5e9',   // Sky-500
-                                  'Assistman': '#7c3aed',     // Violet-600
-                                  'Goleador': '#dc2626',      // Red-600
-                                  'Difensore': '#64748b',     // Slate-500
-                                  'Portiere': '#ea580c',      // Orange-600
-                                  'Centrocampista': '#0891b2', // Cyan-600
-                                  'Attaccante': '#be185d',    // Pink-700
-                                  'Falloso': '#f59e0b',       // Amber-500
-                                  'Fuoriclasse': '#8b5cf6',   // Violet-500
-                                  'Giovane talento': '#10b981', // Emerald-500
-                                  'Panchinaro': '#6b7280',    // Slate-500
-                                  'Piazzati': '#f97316',      // Orange-500
-                                  'Rigorista': '#ef4444'      // Red-500
-                                };
-                                return skillColorMap[skill] || '#6b7280';
-                              };
-                              
-                              return (
-                                <span key={idx} style={{
-                                  padding: '0.125rem 0.25rem',
-                                  backgroundColor: getSkillColor(skill),
-                                  borderRadius: '0.125rem',
-                                  fontSize: '0.5rem',
-                                  color: 'white',
-                                  fontWeight: '600'
-                                }}>
-                                  {skill}
-                                </span>
-                              );
-                            })}
-                          </div>
-                        ) : (
-                          <span style={{ color: '#9ca3af' }}>-</span>
-                        );
-                      })()}
+                    <td style={{ padding: '0.75rem', textAlign: 'right', color: '#1f2937' }}>
+                      {player.FVM ?? '-'}
                     </td>
                     )}
                     <td style={{ 

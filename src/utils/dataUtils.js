@@ -1,5 +1,32 @@
 // src/utils/dataUtils.js - Versione aggiornata con original ranking
 
+const SEASON_STAT_PREFIXES = ['Presenze', 'Minuti Giocati', 'Gol', 'Assist', 'xG', 'xA', 'Ammonizioni', 'Espulsioni'];
+const SEASON_FIELD_REGEX = new RegExp(`^(?:${SEASON_STAT_PREFIXES.join('|')}) (\\d{4}-\\d{4})$`);
+
+/**
+ * Derives the current/previous season labels (e.g. "2026-2027") straight from the field
+ * names present in final.json, instead of hardcoding them - so changing
+ * data-pipeline/config.py's CURRENT_SEASON/PREVIOUS_SEASONS is enough to update the UI too,
+ * no code changes needed. Falls back to sensible defaults if no player has season data yet.
+ */
+export const getSeasonLabels = (players) => {
+  const seasons = new Set();
+  const sampleSize = Math.min(players.length, 100);
+
+  for (let i = 0; i < sampleSize; i++) {
+    Object.keys(players[i]).forEach(key => {
+      const match = key.match(SEASON_FIELD_REGEX);
+      if (match) seasons.add(match[1]);
+    });
+  }
+
+  const sorted = Array.from(seasons).sort((a, b) => b.localeCompare(a));
+  return {
+    current: sorted[0] || '2026-2027',
+    previous: sorted[1] || '2025-2026'
+  };
+};
+
 /**
  * Cache per la normalizzazione dei nomi
  */

@@ -12,6 +12,14 @@ export function calculateBudgetStats(teams, players) {
       totalPlayersBought: 0,
       totalBudgetRemaining: 0,
       totalBudgetInitial: 0,
+      totalSpent: 0,
+      roleSpending: {
+        goalkeepers: 0,
+        defenders: 0,
+        midfielders: 0,
+        wingers: 0,
+        attackers: 0
+      },
       rolePercentages: {
         goalkeepers: 0,    // P (orange)
         defenders: 0,      // Dc, Dd, Ds, B (green)
@@ -96,6 +104,8 @@ export function calculateBudgetStats(teams, players) {
     totalPlayersBought,
     totalBudgetRemaining,
     totalBudgetInitial,
+    totalSpent,
+    roleSpending,
     rolePercentages
   };
 }
@@ -106,83 +116,69 @@ export function calculateBudgetStats(teams, players) {
  * @returns {string} Role with lowest appetibilita
  */
 function getRoleWithLowestAppetibilita(roles) {
-  // Role appetibilita mapping from roles.csv (updated values)
+  // Appetibilita values from roles.csv, keyed by the Mantra role codes used directly in
+  // player['Ruolo Mantra'] (P, Dc, Dd, Ds, B, E, M, C, W, T, A, Pc).
   const roleAppetibilita = {
-    'G': 1,    // P
-    'CB': 2,   // Dc
-    'LA': 2,   // B
-    'RB': 2,   // Dd
-    'LB': 2,   // Ds
-    'E': 3,    // E
-    'DM': 3,   // M
-    'M': 4,    // C
-    'W': 5,    // W
-    'OM': 5,   // T
-    'F': 6,    // A
-    'CF': 6    // Pc
+    'P': 1,
+    'Dc': 1,
+    'B': 1,
+    'Dd': 1,
+    'Ds': 1,
+    'E': 2,
+    'M': 2,
+    'C': 2,
+    'W': 3,
+    'T': 3,
+    'A': 3,
+    'Pc': 3
   };
-  
-  console.log(`🔍 DEBUG: Finding lowest appetibilita role from:`, roles);
-  
+
   let lowestAppetibilita = Infinity;
   let roleWithLowestAppetibilita = roles[0]; // Default to first role
-  
+
   roles.forEach(role => {
-    const appetibilita = roleAppetibilita[role.toUpperCase()] || 0;
-    console.log(`🔍 DEBUG: Role ${role} (${role.toUpperCase()}) has appetibilita: ${appetibilita}`);
+    const appetibilita = roleAppetibilita[role] || 0;
     if (appetibilita < lowestAppetibilita) {
       lowestAppetibilita = appetibilita;
       roleWithLowestAppetibilita = role;
-      console.log(`🔍 DEBUG: New lowest role: ${role} with appetibilita ${appetibilita}`);
     }
   });
-  
-  console.log(`🔍 DEBUG: Final selected role: ${roleWithLowestAppetibilita} (appetibilita: ${lowestAppetibilita})`);
+
   return roleWithLowestAppetibilita;
 }
 
 /**
  * Categorize a role into spending categories
- * @param {string} role - Role code (English from roles.csv)
+ * @param {string} role - Mantra role code, as found in player['Ruolo Mantra']
  * @returns {string} Category name
  */
 function categorizeRole(role) {
-  const roleUpper = role.toUpperCase();
-  
-  console.log(`🔍 DEBUG: Categorizing role "${role}" (uppercase: "${roleUpper}")`);
-  
-  // Goalkeepers (orange) - G -> P
-  if (roleUpper === 'G') {
-    console.log(`🔍 DEBUG: Role ${roleUpper} -> goalkeepers`);
+  // Goalkeepers (orange)
+  if (role === 'P') {
     return 'goalkeepers';
   }
-  
-  // Defenders (green) - CB, LA, RB, LB -> Dc, B, Dd, Ds
-  if (['CB', 'LA', 'RB', 'LB'].includes(roleUpper)) {
-    console.log(`🔍 DEBUG: Role ${roleUpper} -> defenders`);
+
+  // Defenders (green)
+  if (['Dc', 'B', 'Dd', 'Ds'].includes(role)) {
     return 'defenders';
   }
-  
-  // Midfielders (blue) - E, DM, M -> E, M, C
-  if (['E', 'DM', 'M'].includes(roleUpper)) {
-    console.log(`🔍 DEBUG: Role ${roleUpper} -> midfielders`);
+
+  // Midfielders (blue)
+  if (['E', 'M', 'C'].includes(role)) {
     return 'midfielders';
   }
-  
-  // Wingers (purple) - W, OM -> W, T
-  if (['W', 'OM'].includes(roleUpper)) {
-    console.log(`🔍 DEBUG: Role ${roleUpper} -> wingers`);
+
+  // Wingers (purple)
+  if (['W', 'T'].includes(role)) {
     return 'wingers';
   }
-  
-  // Attackers (red) - F, CF -> A, Pc
-  if (['F', 'CF'].includes(roleUpper)) {
-    console.log(`🔍 DEBUG: Role ${roleUpper} -> attackers`);
+
+  // Attackers (red)
+  if (['A', 'Pc'].includes(role)) {
     return 'attackers';
   }
-  
+
   // Default to midfielders for unknown roles
-  console.log(`🔍 DEBUG: Role ${roleUpper} -> midfielders (default)`);
   return 'midfielders';
 }
 

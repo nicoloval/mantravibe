@@ -82,13 +82,18 @@ const Header = ({ dataCount = 0, teams = [], players = [] }) => {
             <span>{budgetStats.totalBudgetRemaining.toLocaleString()}/{budgetStats.totalBudgetInitial.toLocaleString()}</span>
           </div>
           
-          {/* Role spending percentages */}
-          {Object.entries(budgetStats.rolePercentages).map(([category, percentage]) => (
-            <div key={category} style={roleStatStyle(getRoleCategoryColor(category))}>
-              <span>{getRoleCategoryName(category)}</span>
-              <span>{percentage.toFixed(1)}%</span>
-            </div>
-          ))}
+          {/* Role spending percentages - % of total budget, not % of spend so far (same as Squadre tab) */}
+          {Object.entries(budgetStats.roleSpending).map(([category, spending]) => {
+            const percentage = budgetStats.totalBudgetInitial > 0
+              ? (spending / budgetStats.totalBudgetInitial) * 100
+              : 0;
+            return (
+              <div key={category} style={roleStatStyle(getRoleCategoryColor(category))}>
+                <span>{getRoleCategoryName(category)}</span>
+                <span>{percentage.toFixed(1)}%</span>
+              </div>
+            );
+          })}
         </div>
       </div>
     </header>
