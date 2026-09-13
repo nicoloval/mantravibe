@@ -1,9 +1,7 @@
 import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { getSeasonLabels } from '../utils/dataUtils';
+import { getSeasonLabels, seasonStatBasesForPlayer } from '../utils/dataUtils';
 import { theme } from '../theme';
-
-const SEASON_STAT_BASES = ['Presenze', 'Minuti Giocati', 'Gol', 'Assist', 'xG', 'xA', 'Ammonizioni', 'Espulsioni'];
 
 const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) => {
   const { id } = useParams();
@@ -19,6 +17,8 @@ const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) =
 
   // Get player status
   const status = playerStatus[player?.player_id] || { status: 'available' };
+
+  const seasonStatBases = useMemo(() => seasonStatBasesForPlayer(player), [player]);
 
   // Helper function to get role color. `role` is already a Mantra code (P, Dc, Dd, Ds, B, E,
   // M, C, W, T, A, Pc), as found directly in player['Ruolo Mantra'] - no translation needed.
@@ -167,7 +167,7 @@ const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) =
         <div style={statsSectionStyle}>
           <h3 style={sectionTitleStyle}>{`Performance ${CUR_SEASON}`}</h3>
           <div style={statsListStyle}>
-            {SEASON_STAT_BASES.map(base => (
+            {seasonStatBases.map(base => (
               <div key={base} style={statItemStyle}>
                 <span style={statLabelStyle}>{`${base} ${CUR_SEASON}`}</span>
                 <span style={statValueStyle}>{formatValue(player[`${base} ${CUR_SEASON}`])}</span>
@@ -180,7 +180,7 @@ const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) =
         <div style={statsSectionStyle}>
           <h3 style={sectionTitleStyle}>{`Performance ${PREV_SEASON}`}</h3>
           <div style={statsListStyle}>
-            {SEASON_STAT_BASES.map(base => (
+            {seasonStatBases.map(base => (
               <div key={base} style={statItemStyle}>
                 <span style={statLabelStyle}>{`${base} ${PREV_SEASON}`}</span>
                 <span style={statValueStyle}>{formatValue(player[`${base} ${PREV_SEASON}`])}</span>

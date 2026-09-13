@@ -1,7 +1,7 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
-import { getSeasonLabels } from '../utils/dataUtils';
+import { getSeasonLabels, SEASON_STAT_BASES } from '../utils/dataUtils';
 import { theme } from '../theme';
 
 // Tiny 2-point trend line (previous season -> current season) for a single stat.
@@ -64,21 +64,31 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         // Current-season columns (e.g. "Gol 2026-2027") are new field names that didn't
         // exist under any previous season - a saved set predating them isn't a deliberate
         // "hide this column" choice, just an outdated list. Show them by default so a
-        // season rollover doesn't silently disappear from the table for existing users.
-        ['Presenze', 'Minuti Giocati', 'Gol', 'Assist', 'xG', 'xA', 'Ammonizioni', 'Espulsioni']
-          .forEach(base => saved.add(`${base} ${CUR_SEASON}`));
+        // season rollover (or a newly-added stat, like Media Voto) doesn't silently disappear
+        // from the table for existing users.
+        SEASON_STAT_BASES.forEach(base => saved.add(`${base} ${CUR_SEASON}`));
         return saved;
       } catch (error) {
         console.error('Error parsing saved columns:', error);
       }
     }
-    // Default: only Name, Squadra and Ruolo Mantra visible (minimum configuration)
-    const defaultVisible = new Set(['Nome', 'Squadra', 'Ruolo Mantra']);
+    // Default columns match what the card view always shows regardless of the "Mostra Stats"
+    // toggle (Nome/Squadra/Ruolo in the card header, QtA/FVM in its top stat pair), so a
+    // first-time visitor sees the same information whichever display mode they land in.
+    const defaultVisible = new Set(['Nome', 'Squadra', 'Ruolo Mantra', 'QtA', 'FVM']);
     return defaultVisible;
   });
   
   // Column controls visibility state
   const [showColumnControls, setShowColumnControls] = useState(false);
+
+  // Table only: whether PER_MATCH_BASES columns (Gol, Assist, Gol Subiti, xG, xA, Minuti
+  // Giocati) show the per-match rate or the raw season total - see getColumnDisplayValue.
+  // Presenze/Media Voto/Fantamedia/Ammonizioni/Espulsioni aren't affected either way, they
+  // don't have a meaningful relative/absolute split.
+  const [tableValueMode, setTableValueMode] = useState(() => {
+    return localStorage.getItem('giocatoriTableValueMode') || 'relative';
+  });
 
   // On mobile, role filters / column & sort controls collapse behind a "Filtri" toggle so the
   // player list isn't pushed hundreds of pixels down by controls most visits don't need.
@@ -230,6 +240,100 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     return typeof value === 'number' && value < 0;
   };
 
+  // Per-match averages (goals/assists/xG/xA/minutes divided by appearances), used by both the
+  // card's prev->cur trend and the table (see getColumnDisplayValue below) - a raw per-season
+  // total isn't comparable between a season that's only a few matches old and a full previous
+  // one, so showing it plain was mostly noise rather than an actual trend/comparison. Dividing
+  // by Presenze keeps both seasons (and every player, regardless of appearances) on the same
+  // per-appearance scale. Gol Subiti only applies to goalkeepers - see the role filtering where
+  // this list is used in the table and card rendering below.
+  const PER_MATCH_BASES = ['Minuti Giocati', 'Gol', 'Assist', 'Gol Subiti', 'xG', 'xA'];
+  const PER_MATCH_LABELS = {
+    'Minuti Giocati': 'Min/Partita',
+    'Gol': 'Gol/Partita',
+    'Assist': 'Assist/Partita',
+    'Gol Subiti': 'Gol Sub./Partita',
+    'xG': 'xG/Partita',
+    'xA': 'xA/Partita'
+  };
+
+  const getPerMatchAverage = (player, base, season) => {
+    const presenze = player[`Presenze ${season}`];
+    const raw = player[`${base} ${season}`];
+    if (isMissingData(presenze) || isMissingData(raw) || presenze <= 0) return undefined;
+    return raw / presenze;
+  };
+
+  const formatPerMatchValue = (value, base) => {
+    if (typeof value !== 'number') return '-';
+    // Minutes-per-appearance reads as a whole number (e.g. "68"), like the raw minutes
+    // field does; goals/assists/xG/xA per appearance are fractional, so keep 2 decimals.
+    return base === 'Minuti Giocati' ? Math.round(value).toString() : value.toFixed(2);
+  };
+
+  // Splits a "{base} {season}" column name (e.g. "Gol 2026-2027") back into its parts, or null
+  // if it isn't a season-stat column at all (Nome, Squadra, QtA, ...).
+  const parseSeasonColumn = (column) => {
+    if (column.endsWith(` ${CUR_SEASON}`)) {
+      return { base: column.slice(0, -(CUR_SEASON.length + 1)), season: CUR_SEASON };
+    }
+    if (column.endsWith(` ${PREV_SEASON}`)) {
+      return { base: column.slice(0, -(PREV_SEASON.length + 1)), season: PREV_SEASON };
+    }
+    return null;
+  };
+
+  // The table shows the same primary number the cards do for a given column - the per-match
+  // rate for PER_MATCH_BASES (a raw season total isn't comparable between a current season
+  // that's only a few games old and a full previous one), the field as-is for everything else.
+  const getColumnDisplayValue = (player, column) => {
+    const parsed = parseSeasonColumn(column);
+    if (parsed && PER_MATCH_BASES.includes(parsed.base) && tableValueMode === 'relative') {
+      return getPerMatchAverage(player, parsed.base, parsed.season);
+    }
+    return player[column];
+  };
+
+  // Card sort dropdown options - the fixed fields plus one entry per SEASON_STAT_BASES x season,
+  // generated from the same canonical list the table columns and card stat rows use so a stat
+  // (e.g. Media Voto, Fantamedia) can't end up sortable in one view and missing in the other.
+  const cardSortFields = useMemo(() => [
+    { key: 'fvm', label: 'FVM', get: (p) => p['FVM'] },
+    { key: 'qta', label: 'Quotazione (QtA)', get: (p) => p['QtA'] },
+    { key: 'nome', label: 'Nome', get: (p) => p.Nome || '' },
+    { key: 'squadra', label: 'Squadra', get: (p) => p.Squadra || '' },
+    { key: 'prezzo', label: 'Prezzo', get: (p) => (typeof p.Prezzo === 'number' ? p.Prezzo : 0) },
+    { key: 'appetibilita', label: 'Appetibilità', get: (p) => (typeof p.Appetibilità === 'number' ? p.Appetibilità : 0) },
+    // For PER_MATCH_BASES, offer both the absolute (raw season total) and relative (per-match
+    // rate) as separate sort options right next to each other - the card itself displays the
+    // rate as the primary number, so sorting needs to be able to match that, not just the total.
+    ...SEASON_STAT_BASES.flatMap(base => {
+      const absolute = { key: `${base}|${CUR_SEASON}`, label: `${base} ${CUR_SEASON}`, get: (p) => p[`${base} ${CUR_SEASON}`] };
+      if (!PER_MATCH_BASES.includes(base)) return [absolute];
+      const relative = {
+        key: `${base}|${CUR_SEASON}|rate`,
+        label: `${PER_MATCH_LABELS[base]} ${CUR_SEASON}`,
+        get: (p) => getPerMatchAverage(p, base, CUR_SEASON)
+      };
+      return [absolute, relative];
+    }),
+    ...SEASON_STAT_BASES.flatMap(base => {
+      const absolute = { key: `${base}|${PREV_SEASON}`, label: `${base} ${PREV_SEASON}`, get: (p) => p[`${base} ${PREV_SEASON}`] };
+      if (!PER_MATCH_BASES.includes(base)) return [absolute];
+      const relative = {
+        key: `${base}|${PREV_SEASON}|rate`,
+        label: `${PER_MATCH_LABELS[base]} ${PREV_SEASON}`,
+        get: (p) => getPerMatchAverage(p, base, PREV_SEASON)
+      };
+      return [absolute, relative];
+    })
+  ], [CUR_SEASON, PREV_SEASON]);
+
+  const cardSortFieldMap = useMemo(
+    () => Object.fromEntries(cardSortFields.map(field => [field.key, field])),
+    [cardSortFields]
+  );
+
   // Filter and sort players - memoized for performance
   const filteredAndSortedPlayers = useMemo(() => {
     // Debug logging for playerStatus
@@ -276,119 +380,30 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     // Sort players
     if (displayMode === 'cards') {
       // For card display mode, use the selected card sort configuration
+      const field = cardSortFieldMap[cardSortConfig.key] || cardSortFieldMap['fvm'];
       filtered.sort((a, b) => {
-        let aVal, bVal;
-        
-        switch (cardSortConfig.key) {
-          case 'fvm':
-            aVal = !isMissingData(a['FVM']) ? a['FVM'] : -Infinity;
-            bVal = !isMissingData(b['FVM']) ? b['FVM'] : -Infinity;
-            break;
-          case 'qta':
-            aVal = !isMissingData(a['QtA']) ? a['QtA'] : -Infinity;
-            bVal = !isMissingData(b['QtA']) ? b['QtA'] : -Infinity;
-            break;
-          case 'nome':
-            aVal = a.Nome || '';
-            bVal = b.Nome || '';
-            break;
-          case 'squadra':
-            aVal = a.Squadra || '';
-            bVal = b.Squadra || '';
-            break;
-          case 'prezzo':
-            aVal = typeof a.Prezzo === 'number' ? a.Prezzo : 0;
-            bVal = typeof b.Prezzo === 'number' ? b.Prezzo : 0;
-            break;
-          case 'appetibilita':
-            aVal = typeof a.Appetibilità === 'number' ? a.Appetibilità : 0;
-            bVal = typeof b.Appetibilità === 'number' ? b.Appetibilità : 0;
-            break;
-          case 'presenze':
-            aVal = !isMissingData(a[`Presenze ${CUR_SEASON}`]) ? a[`Presenze ${CUR_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`Presenze ${CUR_SEASON}`]) ? b[`Presenze ${CUR_SEASON}`] : -Infinity;
-            break;
-          case 'minutiGiocati':
-            aVal = !isMissingData(a[`Minuti Giocati ${CUR_SEASON}`]) ? a[`Minuti Giocati ${CUR_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`Minuti Giocati ${CUR_SEASON}`]) ? b[`Minuti Giocati ${CUR_SEASON}`] : -Infinity;
-            break;
-          case 'gol':
-            aVal = !isMissingData(a[`Gol ${CUR_SEASON}`]) ? a[`Gol ${CUR_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`Gol ${CUR_SEASON}`]) ? b[`Gol ${CUR_SEASON}`] : -Infinity;
-            break;
-          case 'assist':
-            aVal = !isMissingData(a[`Assist ${CUR_SEASON}`]) ? a[`Assist ${CUR_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`Assist ${CUR_SEASON}`]) ? b[`Assist ${CUR_SEASON}`] : -Infinity;
-            break;
-          case 'xG':
-            aVal = !isMissingData(a[`xG ${CUR_SEASON}`]) ? a[`xG ${CUR_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`xG ${CUR_SEASON}`]) ? b[`xG ${CUR_SEASON}`] : -Infinity;
-            break;
-          case 'xA':
-            aVal = !isMissingData(a[`xA ${CUR_SEASON}`]) ? a[`xA ${CUR_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`xA ${CUR_SEASON}`]) ? b[`xA ${CUR_SEASON}`] : -Infinity;
-            break;
-          case 'ammonizioni':
-            aVal = !isMissingData(a[`Ammonizioni ${CUR_SEASON}`]) ? a[`Ammonizioni ${CUR_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`Ammonizioni ${CUR_SEASON}`]) ? b[`Ammonizioni ${CUR_SEASON}`] : -Infinity;
-            break;
-          case 'espulsioni':
-            aVal = !isMissingData(a[`Espulsioni ${CUR_SEASON}`]) ? a[`Espulsioni ${CUR_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`Espulsioni ${CUR_SEASON}`]) ? b[`Espulsioni ${CUR_SEASON}`] : -Infinity;
-            break;
-          // previous season data
-          case 'presenze2025':
-            aVal = !isMissingData(a[`Presenze ${PREV_SEASON}`]) ? a[`Presenze ${PREV_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`Presenze ${PREV_SEASON}`]) ? b[`Presenze ${PREV_SEASON}`] : -Infinity;
-            break;
-          case 'minutiGiocati2025':
-            aVal = !isMissingData(a[`Minuti Giocati ${PREV_SEASON}`]) ? a[`Minuti Giocati ${PREV_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`Minuti Giocati ${PREV_SEASON}`]) ? b[`Minuti Giocati ${PREV_SEASON}`] : -Infinity;
-            break;
-          case 'gol2025':
-            aVal = !isMissingData(a[`Gol ${PREV_SEASON}`]) ? a[`Gol ${PREV_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`Gol ${PREV_SEASON}`]) ? b[`Gol ${PREV_SEASON}`] : -Infinity;
-            break;
-          case 'assist2025':
-            aVal = !isMissingData(a[`Assist ${PREV_SEASON}`]) ? a[`Assist ${PREV_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`Assist ${PREV_SEASON}`]) ? b[`Assist ${PREV_SEASON}`] : -Infinity;
-            break;
-          case 'xG2025':
-            aVal = !isMissingData(a[`xG ${PREV_SEASON}`]) ? a[`xG ${PREV_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`xG ${PREV_SEASON}`]) ? b[`xG ${PREV_SEASON}`] : -Infinity;
-            break;
-          case 'xA2025':
-            aVal = !isMissingData(a[`xA ${PREV_SEASON}`]) ? a[`xA ${PREV_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`xA ${PREV_SEASON}`]) ? b[`xA ${PREV_SEASON}`] : -Infinity;
-            break;
-          case 'ammonizioni2025':
-            aVal = !isMissingData(a[`Ammonizioni ${PREV_SEASON}`]) ? a[`Ammonizioni ${PREV_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`Ammonizioni ${PREV_SEASON}`]) ? b[`Ammonizioni ${PREV_SEASON}`] : -Infinity;
-            break;
-          case 'espulsioni2025':
-            aVal = !isMissingData(a[`Espulsioni ${PREV_SEASON}`]) ? a[`Espulsioni ${PREV_SEASON}`] : -Infinity;
-            bVal = !isMissingData(b[`Espulsioni ${PREV_SEASON}`]) ? b[`Espulsioni ${PREV_SEASON}`] : -Infinity;
-            break;
-          default:
-            aVal = 0;
-            bVal = 0;
-        }
-        
+        let aVal = field.get(a);
+        let bVal = field.get(b);
+
         if (typeof aVal === 'string' && typeof bVal === 'string') {
-          return cardSortConfig.direction === 'asc' 
+          return cardSortConfig.direction === 'asc'
             ? aVal.localeCompare(bVal)
             : bVal.localeCompare(aVal);
-        } else {
-          return cardSortConfig.direction === 'asc' 
-            ? aVal - bVal
-            : bVal - aVal;
         }
+
+        aVal = !isMissingData(aVal) ? aVal : -Infinity;
+        bVal = !isMissingData(bVal) ? bVal : -Infinity;
+        return cardSortConfig.direction === 'asc'
+          ? aVal - bVal
+          : bVal - aVal;
       });
     } else if (sortConfig.key) {
-      // For table mode, use the selected sort column
+      // For table mode, use the selected sort column - via getColumnDisplayValue so sorting a
+      // per-match column (e.g. Gol) orders by the same rate the column actually displays,
+      // rather than the raw total underneath it.
       filtered.sort((a, b) => {
-        let aVal = a[sortConfig.key];
-        let bVal = b[sortConfig.key];
+        let aVal = getColumnDisplayValue(a, sortConfig.key);
+        let bVal = getColumnDisplayValue(b, sortConfig.key);
 
         // Handle different data types
         if (typeof aVal === 'string' && typeof bVal === 'string') {
@@ -413,7 +428,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     }
 
     return filtered;
-  }, [players, searchTerm, selectedRoles, sortConfig, hideAcquired, playerStatus, displayMode, cardSortConfig, CUR_SEASON, PREV_SEASON]);
+  }, [players, searchTerm, selectedRoles, sortConfig, hideAcquired, playerStatus, displayMode, cardSortConfig, cardSortFieldMap, getColumnDisplayValue]);
 
   const handleSort = (key) => {
     setSortConfig(prevConfig => ({
@@ -460,8 +475,11 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       'FVM': 'FVM',
       'Presenze': 'P',
       'Minuti Giocati': 'MG',
+      'Media Voto': 'MV',
+      'Fantamedia': 'FM',
       'Gol': 'G',
       'Assist': 'A',
+      'Gol Subiti': 'GS',
       'xG': 'xG',
       'xA': 'xA',
       'Ammonizioni': 'Amm',
@@ -470,14 +488,19 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
     if (baseAcronyms[columnName]) return baseAcronyms[columnName];
 
+    // PER_MATCH_BASES columns show a per-match rate rather than the raw total while
+    // tableValueMode is 'relative' (see getColumnDisplayValue) - the "/P" marks that in the
+    // header so it isn't mistaken for a total, and disappears once switched to absolute.
     const seasonSuffix = (season) => season.slice(2, 4); // '2026-2027' -> '26'
     if (columnName.endsWith(` ${CUR_SEASON}`)) {
       const base = columnName.slice(0, -(CUR_SEASON.length + 1));
-      return (baseAcronyms[base] || base) + seasonSuffix(CUR_SEASON);
+      const perMatchMarker = (PER_MATCH_BASES.includes(base) && tableValueMode === 'relative') ? '/P' : '';
+      return (baseAcronyms[base] || base) + perMatchMarker + seasonSuffix(CUR_SEASON);
     }
     if (columnName.endsWith(` ${PREV_SEASON}`)) {
       const base = columnName.slice(0, -(PREV_SEASON.length + 1));
-      return (baseAcronyms[base] || base) + seasonSuffix(PREV_SEASON);
+      const perMatchMarker = (PER_MATCH_BASES.includes(base) && tableValueMode === 'relative') ? '/P' : '';
+      return (baseAcronyms[base] || base) + perMatchMarker + seasonSuffix(PREV_SEASON);
     }
 
     return columnName.substring(0, 8);
@@ -539,33 +562,53 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     return String(value || '-');
   }, []);
 
-  // Per-match averages (goals/assists/xG/xA/minutes divided by appearances) for the card
-  // detail view's prev->cur trend. Raw per-season totals aren't comparable between a season
-  // that's only a few matches old and a full previous season, so the sparkline there was
-  // mostly showing "current season hasn't happened yet" rather than an actual trend - dividing
-  // by Presenze keeps both seasons on the same (per-appearance) scale.
-  const PER_MATCH_BASES = ['Minuti Giocati', 'Gol', 'Assist', 'xG', 'xA'];
-  const PER_MATCH_LABELS = {
-    'Minuti Giocati': 'Min/Partita',
-    'Gol': 'Gol/Partita',
-    'Assist': 'Assist/Partita',
-    'xG': 'xG/Partita',
-    'xA': 'xA/Partita'
-  };
-
-  const getPerMatchAverage = (player, base, season) => {
-    const presenze = player[`Presenze ${season}`];
-    const raw = player[`${base} ${season}`];
-    if (isMissingData(presenze) || isMissingData(raw) || presenze <= 0) return undefined;
-    return raw / presenze;
-  };
-
-  const formatPerMatchValue = (value, base) => {
-    if (typeof value !== 'number') return '-';
-    // Minutes-per-appearance reads as a whole number (e.g. "68"), like the raw minutes
-    // field does; goals/assists/xG/xA per appearance are fractional, so keep 2 decimals.
-    return base === 'Minuti Giocati' ? Math.round(value).toString() : value.toFixed(2);
-  };
+  // One row of the card's prev->cur trend table (see the "Conditional Stats" block below) -
+  // factored out so the generic per-base loop and the special-cased Voto row (which pairs
+  // Media Voto + Fantamedia rather than an avg + raw total) can share the exact same layout.
+  const renderStatTrendRow = ({ key, label, primaryPrev, primaryCur, parenPrev = '', parenCur = '', sparkPrev, sparkCur, prevMissing = false, curMissing = false }) => (
+    <div key={key} style={{
+      display: 'grid',
+      // minmax(0, 1fr) rather than a bare 1fr so the label can actually shrink/ellipsize
+      // instead of forcing this row (and the card) wider than its container - see
+      // cardsContainerStyle for the same issue one level up. On mobile the fixed-width tracks
+      // (222px+ before the flexible label even gets a share) don't fit inside a narrow card, so
+      // the parenthetical column is dropped there and the row collapses to 4 columns.
+      gridTemplateColumns: isMobile
+        ? 'minmax(0, 1fr) 2.5rem 46px 2.5rem'
+        : 'minmax(0, 1fr) 2.5rem 3rem 46px 2.5rem 3rem',
+      alignItems: 'center',
+      columnGap: '0.25rem',
+      padding: '0.25rem 0.375rem',
+      backgroundColor: theme.surface,
+      borderRadius: '0.25rem',
+      fontVariantNumeric: 'tabular-nums'
+    }}>
+      <span style={{ fontSize: '0.75rem', color: theme.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+      <span
+        style={{ fontSize: '0.8rem', fontWeight: '600', color: prevMissing ? theme.danger : theme.textMuted, textAlign: 'right' }}
+        title={parenPrev || undefined}
+      >
+        {primaryPrev}
+      </span>
+      {!isMobile && (
+        <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
+          {parenPrev}
+        </span>
+      )}
+      <Sparkline prev={sparkPrev} cur={sparkCur} />
+      <span
+        style={{ fontSize: '0.8rem', fontWeight: '700', color: curMissing ? theme.danger : theme.text, textAlign: 'right' }}
+        title={parenCur || undefined}
+      >
+        {primaryCur}
+      </span>
+      {!isMobile && (
+        <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
+          {parenCur}
+        </span>
+      )}
+    </div>
+  );
 
   // Simple Column Header component with tooltip
   const ColumnHeader = ({ children, content, columnName, onClick }) => {
@@ -632,16 +675,18 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     const firstPlayer = players[0];
     const excludeColumns = ['Ruolo Mantra', 'player_id']; // We'll handle these separately
     
-    // MANUALLY DEFINE THE FIELDS TO DISPLAY HERE
-    // You can customize this array to show only the fields you want
-    const seasonStatBases = ['Presenze', 'Minuti Giocati', 'Gol', 'Assist', 'xG', 'xA', 'Ammonizioni', 'Espulsioni'];
+    // SEASON_STAT_BASES (src/utils/dataUtils.js) is the canonical stat list shared with the
+    // player cards and the player detail page - edit it there, not here, to add/remove a stat
+    // everywhere at once. The table itself isn't per-role (columns are shared by every row), so
+    // it includes every base regardless of role restriction - Gol Subiti's column just reads
+    // "-" for non-goalkeeper rows, see the cell renderer below.
     const customFields = [
       'Nome',
       'Squadra',
       'QtA',
       'FVM',
-      ...seasonStatBases.map(base => `${base} ${CUR_SEASON}`),
-      ...seasonStatBases.map(base => `${base} ${PREV_SEASON}`)
+      ...SEASON_STAT_BASES.map(base => `${base} ${CUR_SEASON}`),
+      ...SEASON_STAT_BASES.map(base => `${base} ${PREV_SEASON}`)
     ];
     
     // Filter to only show fields that exist in the data and are in our custom list
@@ -1079,6 +1124,33 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         </button>
         )}
 
+        {/* Relative (per-match rate) / Absolute (raw season total) toggle for Gol, Assist,
+            Gol Subiti, xG, xA, Minuti Giocati columns - Presenze/Media Voto/Fantamedia/
+            Ammonizioni/Espulsioni are unaffected, they don't have both forms. */}
+        {showExtraControls && displayMode === 'table' && (
+        <button
+          onClick={() => {
+            const newMode = tableValueMode === 'relative' ? 'absolute' : 'relative';
+            setTableValueMode(newMode);
+            localStorage.setItem('giocatoriTableValueMode', newMode);
+          }}
+          style={{
+            padding: '0.5rem 1rem',
+            fontSize: '0.875rem',
+            fontWeight: '500',
+            border: `1px solid ${theme.border}`,
+            borderRadius: '0.375rem',
+            backgroundColor: theme.surfaceAlt,
+            color: theme.text,
+            cursor: 'pointer',
+            transition: 'all 0.2s'
+          }}
+          title="Cambia Gol, Assist, Gol Subiti, xG, xA e Minuti Giocati tra media a partita e totale stagionale"
+        >
+          {tableValueMode === 'relative' ? 'Mostra Assoluti' : 'Mostra Relativi'}
+        </button>
+        )}
+
         {/* Toggle Card Details Button - Only show in card mode */}
         {showExtraControls && displayMode === 'cards' && (
           <button
@@ -1126,28 +1198,9 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                 cursor: 'pointer'
               }}
             >
-              <option value="fvm">FVM</option>
-              <option value="qta">Quotazione (QtA)</option>
-              <option value="nome">Nome</option>
-              <option value="squadra">Squadra</option>
-              <option value="prezzo">Prezzo</option>
-              <option value="appetibilita">Appetibilità</option>
-              <option value="presenze">{`Presenze ${CUR_SEASON}`}</option>
-              <option value="minutiGiocati">{`Minuti Giocati ${CUR_SEASON}`}</option>
-              <option value="gol">{`Gol ${CUR_SEASON}`}</option>
-              <option value="assist">{`Assist ${CUR_SEASON}`}</option>
-              <option value="xG">{`xG ${CUR_SEASON}`}</option>
-              <option value="xA">{`xA ${CUR_SEASON}`}</option>
-              <option value="ammonizioni">{`Ammonizioni ${CUR_SEASON}`}</option>
-              <option value="espulsioni">{`Espulsioni ${CUR_SEASON}`}</option>
-              <option value="presenze2025">{`Presenze ${PREV_SEASON}`}</option>
-              <option value="minutiGiocati2025">{`Minuti Giocati ${PREV_SEASON}`}</option>
-              <option value="gol2025">{`Gol ${PREV_SEASON}`}</option>
-              <option value="assist2025">{`Assist ${PREV_SEASON}`}</option>
-              <option value="xG2025">{`xG ${PREV_SEASON}`}</option>
-              <option value="xA2025">{`xA ${PREV_SEASON}`}</option>
-              <option value="ammonizioni2025">{`Ammonizioni ${PREV_SEASON}`}</option>
-              <option value="espulsioni2025">{`Espulsioni ${PREV_SEASON}`}</option>
+              {cardSortFields.map(field => (
+                <option key={field.key} value={field.key}>{field.label}</option>
+              ))}
             </select>
             <button
               onClick={() => {
@@ -1608,75 +1661,69 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                         {PREV_SEASON} → {CUR_SEASON}
                       </div>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                        {['Presenze', ...PER_MATCH_BASES, 'Ammonizioni'].map((base) => {
-                          const isPerMatch = PER_MATCH_BASES.includes(base);
-                          const rawPrev = player[`${base} ${PREV_SEASON}`];
-                          const rawCur = player[`${base} ${CUR_SEASON}`];
-                          const avgPrev = isPerMatch ? getPerMatchAverage(player, base, PREV_SEASON) : undefined;
-                          const avgCur = isPerMatch ? getPerMatchAverage(player, base, CUR_SEASON) : undefined;
-                          // The sparkline tracks the per-match average (comparable across
-                          // seasons of different length); Presenze/Ammonizioni have no average
-                          // and just track their raw count instead.
-                          const sparkPrev = isPerMatch ? avgPrev : rawPrev;
-                          const sparkCur = isPerMatch ? avgCur : rawCur;
-                          const prevMissing = isMissingData(rawPrev);
-                          const curMissing = isMissingData(rawCur);
-                          const label = isPerMatch ? PER_MATCH_LABELS[base] : base;
+                        {(() => {
+                          const isGoalkeeper = player.Ruolo === 'POR';
+                          const bases = ['Presenze', ...PER_MATCH_BASES.filter(base => base !== 'Gol Subiti' || isGoalkeeper), 'Ammonizioni'];
 
-                          // label | prev avg | prev raw | spark | cur avg | cur raw - fixed
-                          // tracks so every row (and every card) lines up regardless of how
-                          // many digits a given value has; Presenze/Ammonizioni just leave
-                          // the "raw" sub-columns empty rather than using a different layout.
-                          // On mobile the fixed-width tracks (222px+ before the flexible label
-                          // even gets a share) don't fit inside a narrow card, so the raw-value
-                          // parenthetical is dropped there and the row collapses to 4 columns.
-                          const parenPrev = isPerMatch ? `(${formatValue(rawPrev, base)})` : '';
-                          const parenCur = isPerMatch ? `(${formatValue(rawCur, base)})` : '';
+                          return bases.flatMap((base) => {
+                            const isPerMatch = PER_MATCH_BASES.includes(base);
+                            const rawPrev = player[`${base} ${PREV_SEASON}`];
+                            const rawCur = player[`${base} ${CUR_SEASON}`];
+                            const avgPrev = isPerMatch ? getPerMatchAverage(player, base, PREV_SEASON) : undefined;
+                            const avgCur = isPerMatch ? getPerMatchAverage(player, base, CUR_SEASON) : undefined;
+                            // The sparkline tracks the per-match average (comparable across
+                            // seasons of different length); Presenze/Ammonizioni have no average
+                            // and just track their raw count instead.
+                            const sparkPrev = isPerMatch ? avgPrev : rawPrev;
+                            const sparkCur = isPerMatch ? avgCur : rawCur;
+                            const prevMissing = isMissingData(rawPrev);
+                            const curMissing = isMissingData(rawCur);
+                            const label = isPerMatch ? PER_MATCH_LABELS[base] : base;
+                            // Presenze/Ammonizioni have no per-match average, so no raw total to
+                            // show alongside it either.
+                            const parenPrev = isPerMatch ? `(${formatValue(rawPrev, base)})` : '';
+                            const parenCur = isPerMatch ? `(${formatValue(rawCur, base)})` : '';
 
-                          return (
-                            <div key={base} style={{
-                              display: 'grid',
-                              // minmax(0, 1fr) rather than a bare 1fr so the label can actually
-                              // shrink/ellipsize instead of forcing this row (and the card)
-                              // wider than its container - see cardsContainerStyle for the same
-                              // issue one level up.
-                              gridTemplateColumns: isMobile
-                                ? 'minmax(0, 1fr) 2.5rem 46px 2.5rem'
-                                : 'minmax(0, 1fr) 2.5rem 3rem 46px 2.5rem 3rem',
-                              alignItems: 'center',
-                              columnGap: '0.25rem',
-                              padding: '0.25rem 0.375rem',
-                              backgroundColor: theme.surface,
-                              borderRadius: '0.25rem',
-                              fontVariantNumeric: 'tabular-nums'
-                            }}>
-                              <span style={{ fontSize: '0.75rem', color: theme.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-                              <span
-                                style={{ fontSize: '0.8rem', fontWeight: '600', color: prevMissing ? theme.danger : theme.textMuted, textAlign: 'right' }}
-                                title={parenPrev || undefined}
-                              >
-                                {isPerMatch ? formatPerMatchValue(avgPrev, base) : formatValue(rawPrev, base)}
-                              </span>
-                              {!isMobile && (
-                                <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
-                                  {parenPrev}
-                                </span>
-                              )}
-                              <Sparkline prev={sparkPrev} cur={sparkCur} />
-                              <span
-                                style={{ fontSize: '0.8rem', fontWeight: '700', color: curMissing ? theme.danger : theme.text, textAlign: 'right' }}
-                                title={parenCur || undefined}
-                              >
-                                {isPerMatch ? formatPerMatchValue(avgCur, base) : formatValue(rawCur, base)}
-                              </span>
-                              {!isMobile && (
-                                <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
-                                  {parenCur}
-                                </span>
-                              )}
-                            </div>
-                          );
-                        })}
+                            const row = renderStatTrendRow({
+                              key: base,
+                              label,
+                              primaryPrev: isPerMatch ? formatPerMatchValue(avgPrev, base) : formatValue(rawPrev, base),
+                              primaryCur: isPerMatch ? formatPerMatchValue(avgCur, base) : formatValue(rawCur, base),
+                              parenPrev,
+                              parenCur,
+                              sparkPrev,
+                              sparkCur,
+                              prevMissing,
+                              curMissing
+                            });
+
+                            if (base !== 'Presenze') return [row];
+
+                            // Voto row - Media Voto (the raw referee-style grade, primary
+                            // number) paired with Fantamedia (the fantasy-adjusted score,
+                            // parenthetical) rather than the generic avg/raw-total pairing
+                            // above, since both are already per-match averages from
+                            // fantacalcio.it - there's no separate "raw total" for either.
+                            const mvPrev = player[`Media Voto ${PREV_SEASON}`];
+                            const mvCur = player[`Media Voto ${CUR_SEASON}`];
+                            const fmPrev = player[`Fantamedia ${PREV_SEASON}`];
+                            const fmCur = player[`Fantamedia ${CUR_SEASON}`];
+                            const votoRow = renderStatTrendRow({
+                              key: 'Voto',
+                              label: 'Voto',
+                              primaryPrev: formatValue(mvPrev, 'Media Voto'),
+                              primaryCur: formatValue(mvCur, 'Media Voto'),
+                              parenPrev: isMissingData(fmPrev) ? '' : `(${formatValue(fmPrev, 'Fantamedia')})`,
+                              parenCur: isMissingData(fmCur) ? '' : `(${formatValue(fmCur, 'Fantamedia')})`,
+                              sparkPrev: mvPrev,
+                              sparkCur: mvCur,
+                              prevMissing: isMissingData(mvPrev),
+                              curMissing: isMissingData(mvCur)
+                            });
+
+                            return [row, votoRow];
+                          });
+                        })()}
                       </div>
                     </div>
 
@@ -1732,11 +1779,17 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                     Ruolo
                 </ColumnHeader>
               )}
-              {columns.filter(column => visibleColumns.has(column) && column !== 'Nome' && column !== 'Squadra' && column !== 'Ruolo Mantra').map(column => (
-                <ColumnHeader key={column} columnName={column} content={column} onClick={() => handleSort(column)}>
-                    {getColumnAcronym(column)} {getSortIcon(column)}
-                </ColumnHeader>
-              ))}
+              {columns.filter(column => visibleColumns.has(column) && column !== 'Nome' && column !== 'Squadra' && column !== 'Ruolo Mantra').map(column => {
+                const parsed = parseSeasonColumn(column);
+                const tooltipContent = parsed && PER_MATCH_BASES.includes(parsed.base) && tableValueMode === 'relative'
+                  ? `${column} (media a partita)`
+                  : column;
+                return (
+                  <ColumnHeader key={column} columnName={column} content={tooltipContent} onClick={() => handleSort(column)}>
+                      {getColumnAcronym(column)} {getSortIcon(column)}
+                  </ColumnHeader>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
@@ -1866,13 +1919,24 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                     </td>
                   )}
                   {columns.filter(column => visibleColumns.has(column) && column !== 'Nome' && column !== 'Squadra' && column !== 'Ruolo Mantra').map(column => {
-                    const value = player[column];
-                    const isMissing = isMissingData(value);
+                    // Gol Subiti only means something for goalkeepers - "-" for everyone else
+                    // isn't missing data (which gets flagged red via missingDataTdStyle), it's
+                    // just not applicable to the role.
+                    const notApplicable = column.startsWith('Gol Subiti ') && player.Ruolo !== 'POR';
+                    const parsed = parseSeasonColumn(column);
+                    const showingRate = parsed && PER_MATCH_BASES.includes(parsed.base) && tableValueMode === 'relative';
+                    const value = getColumnDisplayValue(player, column);
+                    const isMissing = !notApplicable && isMissingData(value);
                     const cellStyle = isMissing ? missingDataTdStyle : tdStyle;
-                    
+                    const displayText = notApplicable
+                      ? '-'
+                      : showingRate
+                        ? formatPerMatchValue(value, parsed.base)
+                        : formatValue(value, column);
+
                     return (
                       <td key={column} style={cellStyle}>
-                        {formatValue(value, column)}
+                        {displayText}
                       </td>
                     );
                   })}

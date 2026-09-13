@@ -1,8 +1,27 @@
 // src/utils/dataUtils.js - Versione aggiornata con original ranking
 import { theme } from '../theme';
 
-const SEASON_STAT_PREFIXES = ['Presenze', 'Minuti Giocati', 'Gol', 'Assist', 'xG', 'xA', 'Ammonizioni', 'Espulsioni'];
-const SEASON_FIELD_REGEX = new RegExp(`^(?:${SEASON_STAT_PREFIXES.join('|')}) (\\d{4}-\\d{4})$`);
+/**
+ * Canonical set of per-season stat fields (final.json's "{base} {season}" fields), in display
+ * order - the single source of truth for what the table's column picker, player cards, and the
+ * player detail page all show, so the three stay consistent with each other. Update this list
+ * (not each component separately) to add/remove/reorder a stat everywhere at once.
+ *
+ * `SEASON_STAT_ROLE_RESTRICTIONS` scopes a stat to players with a matching classic `Ruolo` -
+ * Gol Subiti (goals conceded) only means something for goalkeepers. Every other stat applies to
+ * every role.
+ */
+export const SEASON_STAT_BASES = ['Presenze', 'Minuti Giocati', 'Media Voto', 'Fantamedia', 'Gol', 'Assist', 'Gol Subiti', 'xG', 'xA', 'Ammonizioni', 'Espulsioni'];
+export const SEASON_STAT_ROLE_RESTRICTIONS = { 'Gol Subiti': 'POR' };
+
+/** SEASON_STAT_BASES filtered down to the ones that apply to this player's role. */
+export const seasonStatBasesForPlayer = (player) =>
+  SEASON_STAT_BASES.filter(base => {
+    const requiredRole = SEASON_STAT_ROLE_RESTRICTIONS[base];
+    return !requiredRole || player?.Ruolo === requiredRole;
+  });
+
+const SEASON_FIELD_REGEX = new RegExp(`^(?:${SEASON_STAT_BASES.join('|')}) (\\d{4}-\\d{4})$`);
 
 /**
  * Derives the current/previous season labels (e.g. "2026-2027") straight from the field
