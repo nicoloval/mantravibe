@@ -47,6 +47,12 @@ UNDERSTAT_FIELD_MAP = {
     "red_cards": ("Espulsioni", int),
 }
 
+# fantacalcio_stats.py (id-matched, run before this) is the primary source for these - Understat
+# (fuzzy name-matched) only fills them in when a player has no fantacalcio.it row at all, e.g.
+# someone who just transferred in from another league. Minuti Giocati/xG/xA aren't in that set
+# because fantacalcio.it doesn't track them at all - Understat is their only source, always.
+FANTACALCIO_PRIMARY_FIELDS = {"Presenze", "Gol", "Assist", "Ammonizioni", "Espulsioni"}
+
 
 def _find_understat_match(fc_full_name, fc_squadra, understat_data):
     """Surname/full-name + team disambiguation. Returns (player_dict, season, league) or None."""
@@ -108,11 +114,14 @@ def match_with_understat(players, understat_data):
         for season, season_player in seasons_found.items():
             label = season_label(season)
             for raw_key, (out_label, cast) in UNDERSTAT_FIELD_MAP.items():
+                field_name = f"{out_label} {label}"
+                if out_label in FANTACALCIO_PRIMARY_FIELDS and field_name in record:
+                    continue  # fantacalcio.it already provided this - Understat only fills gaps
                 raw_value = season_player.get(raw_key)
                 if raw_value is None or raw_value == "":
                     continue
                 try:
-                    record[f"{out_label} {label}"] = cast(raw_value)
+                    record[field_name] = cast(raw_value)
                 except (TypeError, ValueError):
                     continue
 

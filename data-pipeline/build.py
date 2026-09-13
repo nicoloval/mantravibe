@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 """
 Builds mantravibe/public/data/final.json:
-  1. parse the fantacalcio.it CSV in input/ (players, Mantra roles, quotazioni)
-  2. fetch/load cached Understat data and match players against it
-  3. write the result to ../public/data/final.json
+  1. parse the fantacalcio.it FantaAsta CSV in input/lista_fantaasta/ (players, Mantra roles,
+     quotazioni)
+  2. apply fantacalcio.it's own current/previous season stats exports (Media Voto, Fantamedia,
+     Gol Subiti, Presenze, Gol, Assist, Ammonizioni, Espulsioni) - the primary source for
+     these, matched by fantacalcio.it's own player id (see input/README.md)
+  3. fetch/load cached Understat data and match players against it by name - fills in Minuti
+     Giocati/xG/xA (which fantacalcio.it doesn't track at all) and fills gaps in step 2's
+     fields for anyone missing from the Serie A-only fantacalcio.it exports
+  4. write the result to ../public/data/final.json
 
 Season is configured in config.py (CURRENT_SEASON / PREVIOUS_SEASONS) - update it there
 when a new Serie A season starts.
@@ -15,27 +21,37 @@ import json
 import os
 
 from parse_csv import parse_lista_csv
+from fantacalcio_stats import load_stats_by_id, apply_stats
 from understat_fetch import run_fetch_all_leagues_data
-from enrich import match_with_understat
+from enrich import match_with_understat, season_label
+from input_files import find_single_file
 from config import CURRENT_SEASON, PREVIOUS_SEASONS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-INPUT_CSV = os.path.join(HERE, "input", "Lista-FantaAsta-Fantacalcio.csv")
+INPUT_DIR = os.path.join(HERE, "input")
+CSV_DIR = os.path.join(INPUT_DIR, "lista_fantaasta")
+STATS_CURRENT_DIR = os.path.join(INPUT_DIR, "statistiche_corrente")
+STATS_PREVIOUS_DIR = os.path.join(INPUT_DIR, "statistiche_precedente")
 CACHE_DIR = os.path.join(HERE, "cache", "understats")
 OUTPUT_FILE = os.path.join(HERE, "..", "public", "data", "final.json")
 
 
 def main():
-    if not os.path.exists(INPUT_CSV):
-        raise SystemExit(
-            f"Missing {INPUT_CSV}\n"
-            f"Download Lista-FantaAsta-Fantacalcio.csv from fantacalcio.it and place it at "
-            f"data-pipeline/input/Lista-FantaAsta-Fantacalcio.csv, then re-run this script."
-        )
-
+    csv_path = find_single_file(CSV_DIR, ".csv")
     print("Parsing Lista-FantaAsta CSV...")
-    players = parse_lista_csv(INPUT_CSV)
+    players = parse_lista_csv(csv_path)
     print(f"Parsed {len(players)} players")
+
+    print("\nApplying fantacalcio.it stats (current season)...")
+    current_stats = load_stats_by_id(STATS_CURRENT_DIR)
+    matched = apply_stats(players, current_stats, season_label(CURRENT_SEASON))
+    print(f"Matched {matched}/{len(players)} players")
+
+    if PREVIOUS_SEASONS:
+        print("\nApplying fantacalcio.it stats (previous season)...")
+        previous_stats = load_stats_by_id(STATS_PREVIOUS_DIR)
+        matched = apply_stats(players, previous_stats, season_label(PREVIOUS_SEASONS[0]))
+        print(f"Matched {matched}/{len(players)} players")
 
     seasons = [CURRENT_SEASON] + PREVIOUS_SEASONS
     understat_data = run_fetch_all_leagues_data(seasons, CACHE_DIR)
