@@ -891,13 +891,15 @@ const SquadreTab = ({ budget = 500, teams = [], onTeamsChange, maxPlayers = 30, 
                             handleRemovePlayerFromTeam(team.id, index);
                           }}
                           style={{
-                            width: '14px',
-                            height: '14px',
+                            // Bigger tap target on mobile - a 14px dot is unreliable to hit
+                            // with a fingertip; desktop keeps the original compact size.
+                            width: windowWidth <= 768 ? '26px' : '14px',
+                            height: windowWidth <= 768 ? '26px' : '14px',
                             borderRadius: '50%',
                           border: 'none',
                           backgroundColor: theme.danger,
                           color: 'white',
-                          fontSize: '10px',
+                          fontSize: windowWidth <= 768 ? '15px' : '10px',
                           fontWeight: 'bold',
                           cursor: 'pointer',
                           display: 'flex',

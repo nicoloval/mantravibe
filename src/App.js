@@ -25,6 +25,15 @@ const App = () => {
   const [error, setError] = useState(null);
   const [activeTab, setActiveTab] = useState('giocatori');
 
+  // Window width, tracked for mobile-responsive layout (tab bar padding, etc.)
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  const isMobile = windowWidth <= 768;
+
   // Independent player status and budget for each mode
   const [normalPlayerStatus, setNormalPlayerStatus] = useState({});
   const [mantraPlayerStatus, setMantraPlayerStatus] = useState({});
@@ -376,11 +385,11 @@ const App = () => {
   };
 
   const tabButtonStyle = {
-    padding: '1rem 2rem',
+    padding: isMobile ? '1rem 0.75rem' : '1rem 2rem',
     border: 'none',
     backgroundColor: 'transparent',
     cursor: 'pointer',
-    fontSize: '1rem',
+    fontSize: isMobile ? '0.9rem' : '1rem',
     fontWeight: '500',
     color: theme.textMuted,
     display: 'flex',
@@ -388,7 +397,10 @@ const App = () => {
     gap: '0.5rem',
     borderBottom: '3px solid transparent',
     transition: 'all 0.2s ease',
-    position: 'relative'
+    position: 'relative',
+    whiteSpace: 'nowrap',
+    flex: isMobile ? '1 1 0' : '0 0 auto',
+    justifyContent: 'center'
   };
 
   const activeTabStyle = {

@@ -79,12 +79,27 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   
   // Column controls visibility state
   const [showColumnControls, setShowColumnControls] = useState(false);
+
+  // On mobile, role filters / column & sort controls collapse behind a "Filtri" toggle so the
+  // player list isn't pushed hundreds of pixels down by controls most visits don't need.
+  const [showMobileFilters, setShowMobileFilters] = useState(false);
   
-  // Display mode state (table or cards)
+  // Display mode state (table or cards) - defaults to cards on mobile, table on desktop,
+  // unless the user has already picked one explicitly.
   const [displayMode, setDisplayMode] = useState(() => {
     const savedMode = localStorage.getItem('giocatoriDisplayMode');
-    return savedMode || 'table';
+    if (savedMode) return savedMode;
+    return window.innerWidth <= 768 ? 'cards' : 'table';
   });
+
+  // Window width, tracked for mobile-responsive layout (card grid columns, toolbar, etc.)
+  const [windowWidth, setWindowWidth] = useState(window.innerWidth);
+  useEffect(() => {
+    const handleResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  const isMobile = windowWidth <= 768;
   
   // Card sorting state
   const [cardSortConfig, setCardSortConfig] = useState(() => {
@@ -642,7 +657,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
   // Stili
   const containerStyle = {
-    padding: '2rem',
+    padding: isMobile ? '1rem' : '2rem',
     maxWidth: '1400px',
     margin: '0 auto',
     position: 'relative'
@@ -822,7 +837,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   // Card display styles
   const cardsContainerStyle = {
     display: 'grid',
-    gridTemplateColumns: 'repeat(3, 1fr)',
+    // minmax(0, 1fr) rather than a bare 1fr: a grid track's default min size is the content's
+    // min-content width, which lets a card with long text/many inline badges force the whole
+    // track (and page) wider than the viewport instead of wrapping/truncating internally.
+    gridTemplateColumns: windowWidth <= 480 ? 'minmax(0, 1fr)' : windowWidth <= 768 ? 'repeat(2, minmax(0, 1fr))' : 'repeat(3, minmax(0, 1fr))',
     gap: '1rem',
     padding: '1rem 0'
   };
@@ -897,56 +915,27 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
 
 
+  // Mobile collapses role filters + column/sort controls behind the "Filtri" toggle;
+  // desktop always shows them (nothing to reclaim vertical space for).
+  const showExtraControls = !isMobile || showMobileFilters;
+
   return (
     <div style={containerStyle}>
-      {/* Display Mode Toggle - Top Right Corner of Tab */}
-      <div style={{ 
-        position: 'absolute',
-        top: '0.5rem',
-        right: '0.5rem',
-        zIndex: 100
-      }}>
-        <button
-          onClick={() => {
-            const newMode = displayMode === 'table' ? 'cards' : 'table';
-            setDisplayMode(newMode);
-            localStorage.setItem('giocatoriDisplayMode', newMode);
-          }}
-          style={{
-            padding: '0.375rem 0.75rem',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-            border: `1px solid ${theme.pink}`,
-            borderRadius: '0.375rem',
-            backgroundColor: theme.pink,
-            color: 'white',
-            cursor: 'pointer',
-            transition: 'all 0.2s',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '0.25rem',
-            minWidth: '100px',
-            justifyContent: 'center'
-          }}
-        >
-          {displayMode === 'table' ? '🃏 Carte' : '📊 Tabella'}
-        </button>
-      </div>
-
       {/* Filtri */}
-      <div style={{ 
+      <div style={{
         ...filtersStyle,
         display: 'flex',
         flexDirection: 'column',
         gap: '1rem',
         alignItems: 'center'
       }}>
-        {/* First Line: Search and Hide Acquired */}
-        <div style={{ 
-          display: 'flex', 
-          gap: '1rem', 
+        {/* First Line: Search, Hide Acquired, Display Mode Toggle */}
+        <div style={{
+          display: 'flex',
+          gap: '1rem',
           alignItems: 'center',
-          justifyContent: 'center'
+          justifyContent: 'center',
+          flexWrap: 'wrap'
         }}>
           <input
             type="text"
@@ -955,7 +944,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             onChange={(e) => setSearchTerm(e.target.value)}
             style={inputStyle}
           />
-          
+
           {/* Toggle for hiding acquired players */}
           <label style={{
             display: 'flex',
@@ -981,9 +970,63 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             />
             Nascondi acquistati
           </label>
+
+          {/* Display mode toggle - lives in the normal flow now (used to be position:absolute
+              in the tab's top-right corner, where it overlapped the checkbox label on mobile) */}
+          <button
+            onClick={() => {
+              const newMode = displayMode === 'table' ? 'cards' : 'table';
+              setDisplayMode(newMode);
+              localStorage.setItem('giocatoriDisplayMode', newMode);
+            }}
+            style={{
+              padding: '0.375rem 0.75rem',
+              fontSize: '0.875rem',
+              fontWeight: '500',
+              border: `1px solid ${theme.pink}`,
+              borderRadius: '0.375rem',
+              backgroundColor: theme.pink,
+              color: 'white',
+              cursor: 'pointer',
+              transition: 'all 0.2s',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.25rem',
+              minWidth: '100px',
+              justifyContent: 'center'
+            }}
+          >
+            {displayMode === 'table' ? '🃏 Carte' : '📊 Tabella'}
+          </button>
         </div>
-        
+
+        <div style={{ color: theme.textMuted, fontSize: '0.875rem' }}>
+          {filteredAndSortedPlayers.length} giocatori trovati
+        </div>
+
+        {/* Filtri toggle - mobile only. Everything below (role chips, column/sort controls)
+            hides behind it so the list doesn't start half a screen down. */}
+        {isMobile && (
+          <button
+            onClick={() => setShowMobileFilters(!showMobileFilters)}
+            style={{
+              padding: '0.5rem 1rem',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              border: `1px solid ${theme.pink}`,
+              borderRadius: '0.375rem',
+              backgroundColor: showMobileFilters ? theme.pink : 'transparent',
+              color: showMobileFilters ? 'white' : theme.pink,
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            {showMobileFilters ? '▲ Nascondi filtri' : `▼ Filtri${selectedRoles.length ? ` (${selectedRoles.length})` : ''}`}
+          </button>
+        )}
+
         {/* Second Line: Role Filter Buttons */}
+        {showExtraControls && (
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
           {availableRoles.map(role => {
             const isSelected = selectedRoles.includes(role);
@@ -1013,13 +1056,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             );
           })}
         </div>
+        )}
 
-        <div style={{ color: theme.textMuted, fontSize: '0.875rem' }}>
-          {filteredAndSortedPlayers.length} giocatori trovati
-        </div>
-        
         {/* Toggle Column Controls Button - Only show in table mode */}
-        {displayMode === 'table' && (
+        {showExtraControls && displayMode === 'table' && (
         <button
           onClick={() => setShowColumnControls(!showColumnControls)}
           style={{
@@ -1038,9 +1078,9 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
           {showColumnControls ? 'Nascondi Colonne' : 'Mostra Colonne'}
         </button>
         )}
-        
+
         {/* Toggle Card Details Button - Only show in card mode */}
-        {displayMode === 'cards' && (
+        {showExtraControls && displayMode === 'cards' && (
           <button
             onClick={() => {
               setShowCardDetails(!showCardDetails);
@@ -1062,9 +1102,9 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             {showCardDetails ? 'Nascondi Stats' : 'Mostra Stats'}
           </button>
         )}
-        
+
         {/* Card Sorting Menu - Only show in card mode */}
-        {displayMode === 'cards' && (
+        {showExtraControls && displayMode === 'cards' && (
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontSize: '0.875rem', fontWeight: '500', color: theme.text }}>
               Ordina per:
@@ -1138,7 +1178,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       </div>
 
       {/* Column Visibility Controls - Only show in table mode */}
-      {displayMode === 'table' && showColumnControls && (
+      {showExtraControls && displayMode === 'table' && showColumnControls && (
         <div style={{ marginBottom: '1rem' }}>
           <div style={{ 
             display: 'flex', 
@@ -1583,14 +1623,26 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                           const curMissing = isMissingData(rawCur);
                           const label = isPerMatch ? PER_MATCH_LABELS[base] : base;
 
+                          // label | prev avg | prev raw | spark | cur avg | cur raw - fixed
+                          // tracks so every row (and every card) lines up regardless of how
+                          // many digits a given value has; Presenze/Ammonizioni just leave
+                          // the "raw" sub-columns empty rather than using a different layout.
+                          // On mobile the fixed-width tracks (222px+ before the flexible label
+                          // even gets a share) don't fit inside a narrow card, so the raw-value
+                          // parenthetical is dropped there and the row collapses to 4 columns.
+                          const parenPrev = isPerMatch ? `(${formatValue(rawPrev, base)})` : '';
+                          const parenCur = isPerMatch ? `(${formatValue(rawCur, base)})` : '';
+
                           return (
                             <div key={base} style={{
                               display: 'grid',
-                              // label | prev avg | prev raw | spark | cur avg | cur raw - fixed
-                              // tracks so every row (and every card) lines up regardless of how
-                              // many digits a given value has; Presenze/Ammonizioni just leave
-                              // the "raw" sub-columns empty rather than using a different layout.
-                              gridTemplateColumns: '1fr 2.5rem 3rem 46px 2.5rem 3rem',
+                              // minmax(0, 1fr) rather than a bare 1fr so the label can actually
+                              // shrink/ellipsize instead of forcing this row (and the card)
+                              // wider than its container - see cardsContainerStyle for the same
+                              // issue one level up.
+                              gridTemplateColumns: isMobile
+                                ? 'minmax(0, 1fr) 2.5rem 46px 2.5rem'
+                                : 'minmax(0, 1fr) 2.5rem 3rem 46px 2.5rem 3rem',
                               alignItems: 'center',
                               columnGap: '0.25rem',
                               padding: '0.25rem 0.375rem',
@@ -1598,20 +1650,30 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                               borderRadius: '0.25rem',
                               fontVariantNumeric: 'tabular-nums'
                             }}>
-                              <span style={{ fontSize: '0.75rem', color: theme.textMuted }}>{label}</span>
-                              <span style={{ fontSize: '0.8rem', fontWeight: '600', color: prevMissing ? theme.danger : theme.textMuted, textAlign: 'right' }}>
+                              <span style={{ fontSize: '0.75rem', color: theme.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
+                              <span
+                                style={{ fontSize: '0.8rem', fontWeight: '600', color: prevMissing ? theme.danger : theme.textMuted, textAlign: 'right' }}
+                                title={parenPrev || undefined}
+                              >
                                 {isPerMatch ? formatPerMatchValue(avgPrev, base) : formatValue(rawPrev, base)}
                               </span>
-                              <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
-                                {isPerMatch ? `(${formatValue(rawPrev, base)})` : ''}
-                              </span>
+                              {!isMobile && (
+                                <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
+                                  {parenPrev}
+                                </span>
+                              )}
                               <Sparkline prev={sparkPrev} cur={sparkCur} />
-                              <span style={{ fontSize: '0.8rem', fontWeight: '700', color: curMissing ? theme.danger : theme.text, textAlign: 'right' }}>
+                              <span
+                                style={{ fontSize: '0.8rem', fontWeight: '700', color: curMissing ? theme.danger : theme.text, textAlign: 'right' }}
+                                title={parenCur || undefined}
+                              >
                                 {isPerMatch ? formatPerMatchValue(avgCur, base) : formatValue(rawCur, base)}
                               </span>
-                              <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
-                                {isPerMatch ? `(${formatValue(rawCur, base)})` : ''}
-                              </span>
+                              {!isMobile && (
+                                <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
+                                  {parenCur}
+                                </span>
+                              )}
                             </div>
                           );
                         })}
