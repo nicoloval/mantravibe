@@ -24,9 +24,9 @@ How mantravibe automatically decides who's a **titolare** (starting XI) vs a **r
   (their list of Mantra roles, e.g. `["Dc", "B"]` — see the data pipeline docs for where that
   comes from)
 
-There is also a `formationRanking.js` with a Hopcroft-Karp bipartite-matching implementation
-(`rankFormations`, `processPlayersForRanking`) — it is **not used**; it's imported in
-`RosaAcquistata.js` but never called. The live algorithm is the greedy one described below.
+There used to be a `formationRanking.js` with a Hopcroft-Karp bipartite-matching implementation
+(`rankFormations`, `processPlayersForRanking`) - it was never called (just imported and unused),
+so it was deleted as dead code. The live algorithm is the greedy one described below.
 
 ## Appetibilita ranking
 
@@ -166,8 +166,8 @@ that.
 
 - **Greedy, not globally optimal.** Because slots are filled one at a time in a fixed priority
   order, it's possible (if rare) that a different overall assignment could field more players
-  or a "better" combination. The dead `formationRanking.js` bipartite-matching code would have
-  solved this optimally, but it's never actually invoked.
+  or a "better" combination. A bipartite-matching approach could solve this optimally, but
+  nothing in the app currently does (the unused attempt at one was deleted - see git history).
 - **Multi-role players are used flexibly.** A player eligible for both `Dc` and `B` will be
   slotted wherever the greedy pass currently needs them most, based on the ordering in step 2.
 - **Only one reserve layer.** The reserve pass produces at most 11 more players (one per slot);

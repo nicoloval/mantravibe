@@ -58,32 +58,26 @@ export function calculateBudgetStats(teams, players) {
       // Get player roles and categorize spending
       const playerData = players.find(p => p.id === player.id);
       if (playerData && playerData['Ruolo Mantra']) {
-        // Parse the string representation of array (e.g., "['E']" or "['W', 'F']")
+        // The field is a Python-repr string with single quotes (e.g. "['E']"), not valid JSON -
+        // replace quotes before parsing instead of relying on JSON.parse throwing every time and
+        // falling through to a manual-cleanup catch block (same fix as everywhere else this field
+        // is parsed).
         let roles;
         try {
-          roles = JSON.parse(playerData['Ruolo Mantra']);
+          roles = JSON.parse(playerData['Ruolo Mantra'].replace(/'/g, '"'));
         } catch (e) {
-          // Fallback: handle the string format more carefully
-          const roleString = playerData['Ruolo Mantra'];
-          // Remove outer brackets and quotes, then split by comma
-          const cleanString = roleString.replace(/^\[|\]$/g, '').replace(/['"]/g, '');
+          const cleanString = playerData['Ruolo Mantra'].replace(/^\[|\]$/g, '').replace(/['"]/g, '');
           roles = cleanString.split(',').map(role => role.trim());
         }
-        
-        // Debug logging
-        console.log(`🔍 DEBUG: Player ${playerData.Nome} - Raw Ruolo Mantra: "${playerData['Ruolo Mantra']}"`);
-        console.log(`🔍 DEBUG: Parsed roles:`, roles);
-        
+
         // If player has only one role, use it directly
         if (roles.length === 1) {
           const roleCategory = categorizeRole(roles[0]);
-          console.log(`🔍 DEBUG: Single role ${roles[0]} -> Category: ${roleCategory}`);
           roleSpending[roleCategory] += playerPrice;
         } else if (roles.length > 1) {
           // If player has multiple roles, use the one with lowest appetibilita
           const roleWithLowestAppetibilita = getRoleWithLowestAppetibilita(roles);
           const roleCategory = categorizeRole(roleWithLowestAppetibilita);
-          console.log(`🔍 DEBUG: Multi-role ${roles.join(',')} -> Lowest: ${roleWithLowestAppetibilita} -> Category: ${roleCategory}`);
           roleSpending[roleCategory] += playerPrice;
         }
       }

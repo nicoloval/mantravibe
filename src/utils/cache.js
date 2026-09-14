@@ -15,24 +15,10 @@ const CACHE_CONFIG = {
     version: CACHE_VERSION
   },
   
-  // Player processing cache (expensive role mapping)
-  PLAYER_PROCESSING: {
-    key: 'player_processing',
-    ttl: 10 * 60 * 1000, // 10 minutes
-    version: CACHE_VERSION
-  },
-  
   // Role mapping cache (static data)
   ROLE_MAPPING: {
     key: 'role_mapping',
     ttl: 60 * 60 * 1000, // 1 hour
-    version: CACHE_VERSION
-  },
-  
-  // Formation stats cache (expensive calculation)
-  FORMATION_STATS: {
-    key: 'formation_stats',
-    ttl: 2 * 60 * 1000, // 2 minutes
     version: CACHE_VERSION
   }
 };

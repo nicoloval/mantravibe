@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import FantamilioniBar from './components/FantamilioniBar';
 import InterestPriceBar from './components/InterestPriceBar';
@@ -199,8 +199,18 @@ const App = () => {
     setError(null);
     
     try {
+      // Fire all four requests together instead of awaiting them one at a time - the total wait
+      // is now however long the slowest of the four takes, not their sum.
+      const [finalResponse, rolesResponse, appetibilitaResponse, formationsResponse] = await Promise.all([
+        fetch('/data/final.json'),
+        // roles.csv only changes via a data-pipeline rebuild (a new deploy), not at runtime, so
+        // it doesn't need a cache-busting query param defeating HTTP caching on every load.
+        fetch('/data/roles.csv'),
+        fetch('/assets/appetibilita.json'),
+        fetch('/assets/mantra_formations_positions.json')
+      ]);
+
       // Carica final.json
-      const finalResponse = await fetch('/data/final.json');
       if (finalResponse.ok) {
         const finalJson = await finalResponse.json();
         // Use the unique player_id from final.json as the id
@@ -215,8 +225,6 @@ const App = () => {
       }
 
       // Carica roles.csv
-      const rolesResponse = await fetch(`/data/roles.csv?t=${Date.now()}`);
-      
       if (rolesResponse.ok) {
         const rolesText = await rolesResponse.text();
         const rolesLines = rolesText.split('\n').filter(line => line.trim());
@@ -241,7 +249,6 @@ const App = () => {
       }
 
       // Carica appetibilita.json
-      const appetibilitaResponse = await fetch('/assets/appetibilita.json');
       if (appetibilitaResponse.ok) {
         const appetibilitaJson = await appetibilitaResponse.json();
         setAppetibilitaData(appetibilitaJson);
@@ -251,7 +258,6 @@ const App = () => {
       }
 
       // Carica formations
-      const formationsResponse = await fetch('/assets/mantra_formations_positions.json');
       if (formationsResponse.ok) {
         const formationsJson = await formationsResponse.json();
         setFormations(formationsJson);
@@ -591,6 +597,15 @@ const App = () => {
     }
   };
 
+  // Role -> Ruolo lookup for RosaAcquistata, memoized so its identity only changes when
+  // rolesData actually does - previously rebuilt with .reduce() on every single App render
+  // (including e.g. every window-resize tick), forcing RosaAcquistata's own useMemos keyed on
+  // this object to recompute for no reason.
+  const mantraRoleMapping = useMemo(() => rolesData.reduce((acc, role) => {
+    acc[role.Role] = role.Ruolo;
+    return acc;
+  }, {}), [rolesData]);
+
   return (
     <Router>
       {/* Declaration Popup */}
@@ -794,13 +809,11 @@ const App = () => {
                 onPlayerStatusChange={handlePlayerStatusChange}
                 budget={currentBudget}
                 roles={rolesData}
-                roleMapping={rolesData.reduce((acc, role) => {
-                  acc[role.Role] = role.Ruolo;
-                  return acc;
-                }, {})}
+                roleMapping={mantraRoleMapping}
                 teams={teams}
                 onTeamsChange={handleTeamsChange}
                 appetibilitaData={appetibilitaData}
+                formations={formations}
               />
             )}
 

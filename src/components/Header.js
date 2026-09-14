@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { calculateBudgetStats, getRoleCategoryColor, getRoleCategoryName } from '../utils/budgetStats';
 import { AppLogoIcon, TeamCountIcon, BudgetIcon, ThemeLightIcon, ThemeDarkIcon, InfoIcon, SettingsIcon } from '../icons';
@@ -112,7 +112,7 @@ const Header = ({ dataCount = 0, teams = [], players = [], themeMode, onToggleTh
   };
 
   // Calculate budget statistics
-  const budgetStats = calculateBudgetStats(teams, players);
+  const budgetStats = useMemo(() => calculateBudgetStats(teams, players), [teams, players]);
   const roleEntries = Object.entries(budgetStats.roleSpending);
 
   return (

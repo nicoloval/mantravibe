@@ -4,7 +4,6 @@ import React, { useMemo, useCallback, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getTeamColorCoding } from '../utils/dataUtils';
 import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
-import { rankFormations, processPlayersForRanking, DEFAULT_CONFIG } from '../utils/formationRanking';
 import {
   computeFormationStats,
   computeFormationScore,
@@ -61,7 +60,8 @@ const RosaAcquistata = ({
   teams = [],
   onTeamsChange,
   appetibilitaData = {},
-  roles = []
+  roles = [],
+  formations = {}
 }) => {
   const navigate = useNavigate();
   
@@ -72,7 +72,6 @@ const RosaAcquistata = ({
     const saved = parseInt(localStorage.getItem('rosaAcquistata_selectedTeamId'), 10);
     return Number.isNaN(saved) ? null : saved;
   });
-  const [formations, setFormations] = useState({});
   const [selectedFormation, setSelectedFormation] = useState(() => {
     return localStorage.getItem('rosaAcquistata_selectedFormation') || '4-3-3';
   });
@@ -99,22 +98,6 @@ const RosaAcquistata = ({
       window.removeEventListener('resize', handleResize);
     };
   }, []);
-
-  // Load formations data
-  useEffect(() => {
-    const loadFormations = async () => {
-      try {
-        const response = await fetch('/assets/mantra_formations_positions.json');
-        const data = await response.json();
-        setFormations(data);
-      } catch (error) {
-        console.error('Error loading formations:', error);
-      }
-    };
-    
-      loadFormations();
-  }, []);
-
 
   // Initialize selected team when teams are available, and fall back to the first team if the
   // remembered selection no longer exists (e.g. that team was deleted in "Squadre").
@@ -746,274 +729,12 @@ const RosaAcquistata = ({
   }, [formations, selectedFormation]);
 
 
-  // Calculate stats for ALL formations only when team players change (not when formation selection changes)
-  const allFormationStats = useMemo(() => {
-    if (!selectedTeam || !selectedTeam.players || !teamPlayers.length) {
-      return {};
-    }
-
-    // Try to get cached data first
-    const cacheKey = `team_${selectedTeam.id}_players_${teamPlayers.length}`;
-    const cachedStats = getCachedData(CACHE_CONFIG.FORMATION_STATS, cacheKey);
-    if (cachedStats) {
-      return cachedStats;
-    }
-
-    const stats = {};
-    
-    // Calculate stats for each formation using the EXACT same logic as getPlayersByFormationRoles
-    Object.keys(formations).forEach(formationName => {
-      const formation = formations[formationName];
-      if (!formation || !formation.positions) {
-        stats[formationName] = { occupiedPositions: 0, unassignedPlayers: 0 };
-        return;
-      }
-
-      // Use the exact same logic as getPlayersByFormationRoles but for this specific formation
-      // Get formation roles the same way as the main function
-      const formationRoles = new Set();
-      formation.positions.forEach(positionGroup => {
-        positionGroup.forEach(role => formationRoles.add(role));
-      });
-      const formationRolesArray = Array.from(formationRoles);
-      
-      const playersByRole = {};
-      const positionAssignments = {};
-      const unassignedPlayers = [];
-      
-      // Initialize all formation roles
-      formationRolesArray.forEach(role => {
-        playersByRole[role] = [];
-      });
-      playersByRole['UNUSED'] = [];
-      
-      // Helper function to get appetibilita ranking for a role
-      const getRoleRanking = (role) => {
-        return appetibilitaData[role] || 999; // Default high value for unknown roles
-      };
-      
-      // Create position slots from formation
-      const formationPositions = formation.positions.map((positionGroup, index) => ({
-        positionIndex: index,
-        roles: positionGroup, // Array of roles that can fill this position
-        assignedPlayer: null,
-        assignedPlayerId: null
-      }));
-      
-      // Create a list of all positions with their appetibilita rankings
-      const positionAssignmentsList = [];
-      formationPositions.forEach((position, positionIndex) => {
-        const worstAppetibilita = Math.max(...position.roles.map(role => getRoleRanking(role)));
-        
-        positionAssignmentsList.push({
-          positionIndex,
-          roles: position.roles,
-          appetibilita: worstAppetibilita,
-          assigned: false,
-          assignedPlayer: null
-        });
-      });
-      
-      // Sort positions by appetibilita (descending order - higher appetibilita first)
-      positionAssignmentsList.sort((a, b) => {
-        if (a.appetibilita !== b.appetibilita) {
-          return b.appetibilita - a.appetibilita; // Descending order
-        }
-        return a.positionIndex - b.positionIndex;
-      });
-      
-      // Get all team players with their possible roles (same structure as main function)
-      const teamPlayersWithRoles = selectedTeam.players.map(teamPlayer => {
-        if (!teamPlayer) return null;
-        
-        const playerDetail = players.find(p => p.id === teamPlayer.id);
-        if (!playerDetail) return null;
-        
-        let possibleRoles = [];
-        let unusedRoles = [];
-        
-        if (playerDetail['Ruolo Mantra']) {
-          try {
-            const roles = JSON.parse(playerDetail['Ruolo Mantra'].replace(/'/g, '"'));
-            
-            // Check each player role against each formation position. Roles are already
-            // Mantra codes matching the formation's own vocabulary - no translation needed
-            // (see translateRoleToItalian's comment for why that translation was buggy).
-            roles.forEach(role => {
-              let roleMatched = false;
-
-              formationPositions.forEach(position => {
-                if (position.roles.some(formationRole => formationRole.toLowerCase() === role.toLowerCase())) {
-                  roleMatched = true;
-                }
-              });
-
-              if (roleMatched) {
-                possibleRoles.push({
-                  role: role,
-                  originalRole: role
-                });
-              } else {
-                unusedRoles.push({
-                  role: role,
-                  originalRole: role
-                });
-              }
-            });
-          } catch (error) {
-            console.warn('Error parsing Ruolo Mantra for player:', playerDetail.Nome, error);
-          }
-        } else if (playerDetail.Ruolo) {
-          const mappedRole = playerDetail.Ruolo;
-
-          // Check if this role matches any formation position
-          let roleMatched = false;
-          formationPositions.forEach(position => {
-            if (position.roles.some(formationRole => formationRole.toLowerCase() === mappedRole.toLowerCase())) {
-              roleMatched = true;
-            }
-          });
-          
-          if (roleMatched) {
-            possibleRoles.push({
-              role: mappedRole,
-              originalRole: playerDetail.Ruolo
-            });
-          } else {
-            unusedRoles.push({
-              role: mappedRole,
-              originalRole: playerDetail.Ruolo
-            });
-          }
-        }
-        
-        return {
-          player: playerDetail,
-          playerId: teamPlayer.id,
-          possibleRoles,
-          unusedRoles,
-          fantamilioni: teamPlayer.price || 0,
-          timestamp: teamPlayer.timestamp || Date.now()
-        };
-      }).filter(Boolean);
-      
-      // Assign players to positions (EXACT same logic as main function)
-      const availablePlayers = [...teamPlayersWithRoles];
-      const assignedPlayerIds = new Set();
-      let totalAssignedPlayers = 0;
-      const maxPlayers = 11;
-      
-      positionAssignmentsList.forEach((positionAssignment) => {
-        if (positionAssignment.assigned || totalAssignedPlayers >= maxPlayers) return;
-        
-        const position = formationPositions[positionAssignment.positionIndex];
-        if (position.assignedPlayer) return;
-        
-        // Filter available players
-        const availableForPosition = availablePlayers.filter(playerData => 
-          !assignedPlayerIds.has(playerData.playerId)
-        );
-        
-        if (availableForPosition.length === 0) return;
-        
-        // Find best player for this position
-        let bestPlayer = null;
-        let bestScore = -1;
-        let assignedRoleOption = null;
-        
-        availableForPosition.forEach(playerData => {
-          playerData.possibleRoles.forEach(roleOption => {
-            if (positionAssignment.roles.includes(roleOption.role)) {
-              const score = playerData.player['FVM'] || 0;
-              if (score > bestScore) {
-                bestScore = score;
-                bestPlayer = playerData;
-                assignedRoleOption = roleOption;
-              }
-            }
-          });
-        });
-        
-        if (bestPlayer && assignedRoleOption) {
-          position.assignedPlayer = bestPlayer.player;
-          position.assignedPlayerId = bestPlayer.playerId;
-          positionAssignment.assigned = true;
-          positionAssignment.assignedPlayer = bestPlayer.player;
-          assignedPlayerIds.add(bestPlayer.playerId);
-          totalAssignedPlayers++;
-          
-          positionAssignments[bestPlayer.playerId] = {
-            positionIndex: positionAssignment.positionIndex,
-            role: assignedRoleOption.role,
-            originalRole: assignedRoleOption.originalRole
-          };
-          
-          if (!playersByRole[assignedRoleOption.role]) {
-            playersByRole[assignedRoleOption.role] = [];
-          }
-          
-          playersByRole[assignedRoleOption.role].push({
-            ...bestPlayer.player,
-            price: bestPlayer.fantamilioni,
-            fantamilioni: bestPlayer.fantamilioni,
-            playerId: bestPlayer.playerId,
-            assignedRole: assignedRoleOption.role,
-            positionIndex: positionAssignment.positionIndex,
-            originalRoles: bestPlayer.possibleRoles.map(r => r.originalRole)
-          });
-        }
-      });
-      
-      // Count players in "Giocatori con ruoli non utilizzati" - use the actual formation box data (same as main function)
-      // This should match the main function's logic: count players with possibleRoles.length === 0
-      const playersWithNoPossibleRoles = teamPlayersWithRoles.filter(playerData => {
-        if (assignedPlayerIds.has(playerData.playerId)) return false;
-        const possibleRoles = playerData.possibleRoles || [];
-        return possibleRoles.length === 0;
-      });
-      const unusedPlayersCount = playersWithNoPossibleRoles.length;
-      
-      // Calculate occupied positions from actual formation box data (exclude UNUSED) - same as main function
-      const occupiedPositions = Object.keys(playersByRole)
-        .filter(role => role !== 'UNUSED')
-        .reduce((total, role) => total + (playersByRole[role]?.length || 0), 0);
-      
-      // Calculate total usable players (occupied positions + reserve players)
-      // Reserve players are those who have possible roles but weren't assigned to positions
-      const reservePlayers = teamPlayersWithRoles.filter(playerData => {
-        if (assignedPlayerIds.has(playerData.playerId)) return false; // Not assigned to formation
-        const possibleRoles = playerData.possibleRoles || [];
-        return possibleRoles.length > 0; // Has roles that fit the formation
-      });
-      const totalUsablePlayers = occupiedPositions + reservePlayers.length;
-      
-      stats[formationName] = {
-        occupiedPositions: occupiedPositions, // Use actual formation box data
-        unassignedPlayers: unusedPlayersCount,  // Use actual formation box data
-        totalUsablePlayers: totalUsablePlayers
-      };
-      
-      
-      
-      
-      
-    });
-    
-    // Cache the calculated stats
-    setCachedData(CACHE_CONFIG.FORMATION_STATS, stats, cacheKey);
-    
-    return stats;
-  }, [selectedTeam, teamPlayers, formations, appetibilitaData, players]); // Only recalculate when team players change
-
   // Get cached formation data for the selected formation (no recalculation needed) - memoized for performance
   const getPlayersByFormationRoles = useMemo(() => {
     if (!selectedTeam || !selectedTeam.players || !formations[selectedFormation]) {
       return { playersByRole: {}, positionAssignments: {}, occupiedPositions: 0, unassignedPlayers: 0 };
     }
 
-    // Get the cached stats for this formation
-    const cachedStats = allFormationStats[selectedFormation] || { occupiedPositions: 0, unassignedPlayers: 0 };
-    
     const playersByRole = {};
     const positionAssignments = {}; // Track which player is assigned to each position
     const unassignedPlayers = []; // Players that couldn't be assigned to any position
@@ -1332,7 +1053,7 @@ const RosaAcquistata = ({
     };
     
     return result;
-  }, [selectedTeam, players, getFormationRoles, getPlayerRole, formations, selectedFormation, appetibilitaData, translateRoleToItalian, allFormationStats]);
+  }, [selectedTeam, players, getFormationRoles, getPlayerRole, formations, selectedFormation, appetibilitaData, translateRoleToItalian]);
 
   // Total FVM of the current titolari, and total Fantamedia summed over all 11 starting slots
   // of the selected formation - not just the filled ones. An empty slot (no eligible player left
