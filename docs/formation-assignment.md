@@ -6,8 +6,14 @@ How mantravibe automatically decides who's a **titolare** (starting XI) vs a **r
 ## Where it lives
 
 - `src/components/RosaAcquistata.js`
-  - `getPlayersByFormationRoles` — assigns the starting XI
-  - `getReservePlayers` — assigns reserves, reusing the exact same algorithm on the leftovers
+  - `getPlayersByFormationRoles` — assigns the starting XI (drives the actual titolari/riserve
+    display on screen)
+  - `getReservePlayers` — assigns the on-screen reserves, reusing the exact same algorithm on
+    the leftovers (see step 5 below)
+- `src/utils/formationScoring.js` — the 0-100 formation-fit **score** (see below). Shared by
+  `RosaAcquistata.js` (formation buttons, depth chart header) and `FantamilioniBar.js` (the
+  purchase screen's "prima → dopo" comparison), so there's exactly one implementation of the
+  scoring formula.
 - Static data it depends on:
   - `public/assets/mantra_formations_positions.json` — for each formation (e.g. `4-3-3`), the
     11 slots in a fixed order, each slot listing the Mantra role codes that can fill it (a slot
@@ -107,6 +113,35 @@ first reserve pass aren't further ranked by role; they just remain in the full s
 |---|---|
 | 1st | Role appetibilita of the player's best-fit role for that slot (lower = wins) |
 | 2nd | `FVM` (higher = wins) |
+
+## The formation score (0-100)
+
+`computeFormationStats` (in `formationScoring.js`) reruns the starter-assignment algorithm above
+for a given team/formation, then separately buckets the **leftover** players into per-role
+reserve credit, capped at **2 per role** (a role code, e.g. `Dc` or `M` - not per slot; a
+formation with two `M` slots still only credits up to 2 `M` reserves). This is deliberately
+different from `getReservePlayers`' "one best sostituto per slot" display list: the score cares
+about *balanced depth per role*, not about naming a single next-man-up.
+
+Candidates are processed rarest-eligible-role-first (mirroring the starter pass' priority), and
+each is dropped into whichever of their eligible roles is currently least-covered, so a
+versatile player plugs the biggest gap rather than piling into an already-full role.
+
+`computeFormationScore` then combines:
+
+- **Titolari - up to 60 points.** `60 × (titolari coperti / 11)`.
+- **Riserve - up to 40 points.** `40 × (crediti riserva / (2 × ruoli distinti nel modulo))`,
+  where `crediti riserva` is the capped, role-bucketed count above.
+- **Penalità giocatori inutilizzabili - fino a -30 punti.**
+  `min(30, 30 × (giocatori inutilizzabili / rosa totale))` — unchanged from before.
+
+Final score = `max(0, min(100, titolari + riserve - penalità))`. A fully-covered roster (11/11
+titolari, >= 2 usable reserves in every role the formation needs, no unusable players) scores
+exactly 100 - unlike the old formula, whose 50+30 point budget topped out at 80 regardless of
+roster quality.
+
+UI color bands (`SCORE_THRESHOLDS` in `formationScoring.js`): green >= 75, amber >= 50, red below
+that.
 
 ## Known characteristics
 

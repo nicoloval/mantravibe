@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { getTeamColorCoding } from '../utils/dataUtils';
 import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
 import { rankFormations, processPlayersForRanking, DEFAULT_CONFIG } from '../utils/formationRanking';
+import { computeFormationStats, computeFormationScore, SCORE_THRESHOLDS } from '../utils/formationScoring';
 import { theme } from '../theme';
 
 // Role-category ranking shared by the Rosa column's sort and the formation depth chart's row
@@ -1285,594 +1286,15 @@ const RosaAcquistata = ({
     return result;
   }, [selectedTeam, players, getFormationRoles, getPlayerRole, formations, selectedFormation, appetibilitaData, translateRoleToItalian, allFormationStats]);
 
-  // Helper function to get formation stats for any formation using the same logic as formation box
+  // Helper function to get formation stats for any formation - delegates to the shared scoring
+  // util (src/utils/formationScoring.js) so this stays in sync with FantamilioniBar's copy.
   const getFormationStats = useCallback((formationName) => {
-    if (!selectedTeam || !selectedTeam.players || !formations[formationName]) {
-      return { occupiedPositions: 0, unassignedPlayers: 0 };
-    }
+    return computeFormationStats(selectedTeam, formationName, formations, players, appetibilitaData, getPlayerRole, translateRoleToItalian);
+  }, [selectedTeam, formations, players, appetibilitaData, getPlayerRole, translateRoleToItalian]);
 
-    // Use the same calculation logic as getPlayersByFormationRoles but for any formation
-    const formation = formations[formationName];
-    const formationRoles = new Set();
-    formation.positions.forEach(positionGroup => {
-      positionGroup.forEach(role => formationRoles.add(role));
-    });
-    const formationRolesArray = Array.from(formationRoles);
-    
-    const playersByRole = {};
-    const positionAssignments = {};
-    const unassignedPlayers = [];
-    
-    // Initialize all formation roles
-    formationRolesArray.forEach(role => {
-      playersByRole[role] = [];
-    });
-    playersByRole['UNUSED'] = [];
-    
-    // Helper function to get appetibilita ranking for a role
-    const getRoleRanking = (role) => {
-      return appetibilitaData[role] || 999;
-    };
-    
-    // Create position slots from formation
-    const formationPositions = formation.positions.map((positionGroup, index) => ({
-      positionIndex: index,
-      roles: positionGroup,
-      assignedPlayer: null,
-      assignedPlayerId: null
-    }));
-    
-    // Get all team players with their possible roles (same logic as main function)
-    const teamPlayersWithRoles = selectedTeam.players.map(teamPlayer => {
-      if (!teamPlayer) return null;
-      
-      const playerDetail = players.find(p => p.id === teamPlayer.id);
-      if (!playerDetail) return null;
-      
-      let possibleRoles = [];
-      let unusedRoles = [];
-      
-      if (playerDetail['Ruolo Mantra']) {
-        try {
-          const roles = JSON.parse(playerDetail['Ruolo Mantra'].replace(/'/g, '"'));
-          
-          roles.forEach(englishRole => {
-            let roleMatched = false;
-            
-            formationPositions.forEach(position => {
-              const italianRole = translateRoleToItalian(englishRole);
-              const roleMatch = position.roles.some(formationRole => 
-                formationRole.toLowerCase() === italianRole.toLowerCase()
-              );
-              
-              if (roleMatch) {
-                roleMatched = true;
-                const formationRole = position.roles.find(formationRole => 
-                  formationRole.toLowerCase() === italianRole.toLowerCase()
-                );
-                
-                if (formationRole) {
-                  possibleRoles.push({
-                    role: formationRole,
-                    positionIndex: position.positionIndex,
-                    ranking: getRoleRanking(formationRole),
-                    originalRole: englishRole
-                  });
-                }
-              }
-            });
-            
-            if (!roleMatched) {
-              unusedRoles.push(englishRole);
-            }
-          });
-        } catch (error) {
-          console.warn('Error parsing Ruolo Mantra for player:', playerDetail.Nome, error);
-        }
-      } else if (playerDetail.Ruolo) {
-        const role = getPlayerRole(playerDetail);
-        let roleMatched = false;
-        
-        formationPositions.forEach(position => {
-          const italianRole = translateRoleToItalian(role);
-          const roleMatch = position.roles.some(formationRole => 
-            formationRole.toLowerCase() === italianRole.toLowerCase()
-          );
-          
-          if (roleMatch) {
-            roleMatched = true;
-            possibleRoles.push({
-              role: italianRole,
-              positionIndex: position.positionIndex,
-              ranking: getRoleRanking(italianRole),
-              originalRole: role
-            });
-          }
-        });
-        
-        if (!roleMatched) {
-          unusedRoles.push(role);
-        }
-      }
-      
-      return {
-        player: playerDetail,
-        playerId: teamPlayer.id,
-        possibleRoles,
-        unusedRoles,
-        fantamilioni: teamPlayer.price || 0,
-        timestamp: teamPlayer.timestamp || Date.now()
-      };
-    }).filter(Boolean);
-    
-    // Create position assignments list (same logic as main function)
-    const positionAssignmentsList = [];
-    formationPositions.forEach((position, positionIndex) => {
-      const worstAppetibilita = Math.max(...position.roles.map(role => getRoleRanking(role)));
-      
-      positionAssignmentsList.push({
-        positionIndex,
-        roles: position.roles,
-        appetibilita: worstAppetibilita,
-        assigned: false,
-        assignedPlayer: null
-      });
-    });
-    
-    // Sort positions by appetibilita (same as main function)
-    positionAssignmentsList.sort((a, b) => {
-      if (a.appetibilita !== b.appetibilita) {
-        return b.appetibilita - a.appetibilita; // Descending order (higher appetibilita first)
-      }
-      return a.positionIndex - b.positionIndex;
-    });
-    
-    // Assign players to positions (same logic as main function)
-    const availablePlayers = [...teamPlayersWithRoles];
-    const assignedPlayerIds = new Set();
-    let totalAssignedPlayers = 0;
-    const maxPlayers = 11;
-    
-    positionAssignmentsList.forEach((positionAssignment) => {
-      if (positionAssignment.assigned || totalAssignedPlayers >= maxPlayers) return;
-      
-      const position = formationPositions[positionAssignment.positionIndex];
-      if (position.assignedPlayer) return;
-      
-      const availableForPosition = availablePlayers.filter(playerData => 
-        !assignedPlayerIds.has(playerData.playerId)
-      );
-      
-      if (availableForPosition.length === 0) return;
-      
-      // NEW ALGORITHM: Find the best player for this position
-      // Step 1: For each eligible player, find their best role for this position (lowest appetibilita)
-      const playersWithBestRoles = availableForPosition.map(playerData => {
-        const applicableRoles = playerData.possibleRoles.filter(roleOption => 
-          roleOption.role && positionAssignment.roles.includes(roleOption.role)
-        );
-        
-        if (applicableRoles.length === 0) return null;
-        
-        // Find the role with the lowest appetibilita (best quality) for this position
-        // Prefer the player's most defensive eligible role for this slot (highest
-        // appetibilita) - e.g. a player eligible for both A and Pc defaults to A,
-        // keeping the rarer Pc role open for a player who can *only* play Pc.
-        const bestRole = applicableRoles.sort((a, b) => b.ranking - a.ranking)[0];
-        
-        return {
-          playerData,
-          bestRole,
-          appetibilita: bestRole.ranking,
-          fpediaScore: parseFloat(playerData.player['FVM'] || 0)
-        };
-      }).filter(Boolean);
-      
-      if (playersWithBestRoles.length === 0) return;
-      
-      // Step 2: Sort by appetibilita (lowest first), then by FPEDIA (highest first) as tiebreaker
-      playersWithBestRoles.sort((a, b) => {
-        if (a.appetibilita !== b.appetibilita) {
-          return a.appetibilita - b.appetibilita; // Lower appetibilita (better quality) first
-        }
-        return b.fpediaScore - a.fpediaScore; // Higher FPEDIA as tiebreaker
-      });
-      
-      const bestPlayer = playersWithBestRoles[0].playerData;
-      const assignedRoleOption = playersWithBestRoles[0].bestRole;
-      
-      if (bestPlayer && assignedRoleOption) {
-        position.assignedPlayer = bestPlayer.player;
-        position.assignedPlayerId = bestPlayer.playerId;
-        positionAssignment.assigned = true;
-        positionAssignment.assignedPlayer = bestPlayer.player;
-        assignedPlayerIds.add(bestPlayer.playerId);
-        totalAssignedPlayers++;
-        
-        positionAssignments[bestPlayer.playerId] = {
-          positionIndex: positionAssignment.positionIndex,
-          role: assignedRoleOption.role,
-          originalRole: assignedRoleOption.originalRole
-        };
-        
-        if (!playersByRole[assignedRoleOption.role]) {
-          playersByRole[assignedRoleOption.role] = [];
-        }
-        
-        playersByRole[assignedRoleOption.role].push({
-          ...bestPlayer.player,
-          price: bestPlayer.fantamilioni,
-          fantamilioni: bestPlayer.fantamilioni,
-          playerId: bestPlayer.playerId,
-          assignedRole: assignedRoleOption.role,
-          positionIndex: positionAssignment.positionIndex,
-          originalRoles: bestPlayer.possibleRoles.map(r => r.originalRole)
-        });
-      }
-    });
-    
-    // Count players with no possible roles (same logic as main function)
-    const playersWithNoPossibleRoles = teamPlayersWithRoles.filter(playerData => {
-      if (assignedPlayerIds.has(playerData.playerId)) return false;
-      const possibleRoles = playerData.possibleRoles || [];
-      return possibleRoles.length === 0;
-    });
-    const unusedPlayersCount = playersWithNoPossibleRoles.length;
-    
-    // Calculate occupied positions from actual formation box data (exclude UNUSED)
-    const occupiedPositions = Object.keys(playersByRole)
-      .filter(role => role !== 'UNUSED')
-      .reduce((total, role) => total + (playersByRole[role]?.length || 0), 0);
-    
-    // Calculate total usable players (occupied positions + reserve players)
-    // Reserve players are those who have possible roles but weren't assigned to positions
-    const reservePlayers = teamPlayersWithRoles.filter(playerData => {
-      if (assignedPlayerIds.has(playerData.playerId)) return false; // Not assigned to formation
-      const possibleRoles = playerData.possibleRoles || [];
-      return possibleRoles.length > 0; // Has roles that fit the formation
-    });
-    const totalUsablePlayers = occupiedPositions + reservePlayers.length;
-    
-    // Debug only shown when explicitly triggered by team button click
-    
-    return {
-      occupiedPositions: occupiedPositions,
-      unassignedPlayers: unusedPlayersCount,
-      totalUsablePlayers: totalUsablePlayers
-    };
-  }, [selectedTeam, players, formations, appetibilitaData, getPlayerRole, translateRoleToItalian]);
-
-  // Helper function to get formation stats for any team and formation (for debug purposes)
-  const getFormationStatsForTeam = useCallback((teamToUse, formationName) => {
-    if (!teamToUse || !teamToUse.players || !formations[formationName]) {
-      return { occupiedPositions: 0, unassignedPlayers: 0, totalUsablePlayers: 0 };
-    }
-
-    // Use the same calculation logic as getFormationStats but for any team
-    const formation = formations[formationName];
-    const formationRoles = new Set();
-    formation.positions.forEach(positionGroup => {
-      positionGroup.forEach(role => formationRoles.add(role));
-    });
-    const formationRolesArray = Array.from(formationRoles);
-    
-    const playersByRole = {};
-    const positionAssignments = {};
-    const unassignedPlayers = [];
-    
-    // Initialize all formation roles
-    formationRolesArray.forEach(role => {
-      playersByRole[role] = [];
-    });
-    playersByRole['UNUSED'] = [];
-    
-    // Helper function to get appetibilita ranking for a role
-    const getRoleRanking = (role) => {
-      return appetibilitaData[role] || 999;
-    };
-    
-    // Create position slots from formation
-    const formationPositions = formation.positions.map((positionGroup, index) => ({
-      positionIndex: index,
-      roles: positionGroup,
-      assignedPlayer: null,
-      assignedPlayerId: null
-    }));
-    
-    // Get all team players with their possible roles (same logic as main function)
-    const teamPlayersWithRoles = teamToUse.players.map(teamPlayer => {
-      if (!teamPlayer) return null;
-      
-      const playerDetail = players.find(p => p.id === teamPlayer.id);
-      if (!playerDetail) return null;
-      
-      let possibleRoles = [];
-      let unusedRoles = [];
-      
-      if (playerDetail['Ruolo Mantra']) {
-        try {
-          const roles = JSON.parse(playerDetail['Ruolo Mantra'].replace(/'/g, '"'));
-          
-          roles.forEach(englishRole => {
-            let roleMatched = false;
-            
-            formationPositions.forEach(position => {
-              const italianRole = translateRoleToItalian(englishRole);
-              const roleMatch = position.roles.some(formationRole => 
-                formationRole.toLowerCase() === italianRole.toLowerCase()
-              );
-              
-              if (roleMatch) {
-                roleMatched = true;
-                const formationRole = position.roles.find(formationRole => 
-                  formationRole.toLowerCase() === italianRole.toLowerCase()
-                );
-                
-                if (formationRole) {
-                  possibleRoles.push({
-                    role: formationRole,
-                    positionIndex: position.positionIndex,
-                    ranking: getRoleRanking(formationRole),
-                    originalRole: englishRole
-                  });
-                }
-              }
-            });
-            
-            if (!roleMatched) {
-              unusedRoles.push(englishRole);
-            }
-          });
-        } catch (error) {
-          console.warn('Error parsing Ruolo Mantra for player:', playerDetail.Nome, error);
-        }
-      } else if (playerDetail.Ruolo) {
-        const role = getPlayerRole(playerDetail);
-        let roleMatched = false;
-        
-        formationPositions.forEach(position => {
-          const italianRole = translateRoleToItalian(role);
-          const roleMatch = position.roles.some(formationRole => 
-            formationRole.toLowerCase() === italianRole.toLowerCase()
-          );
-          
-          if (roleMatch) {
-            roleMatched = true;
-            possibleRoles.push({
-              role: italianRole,
-              positionIndex: position.positionIndex,
-              ranking: getRoleRanking(italianRole),
-              originalRole: role
-            });
-          }
-        });
-        
-        if (!roleMatched) {
-          unusedRoles.push(role);
-        }
-      }
-      
-      return {
-        player: playerDetail,
-        playerId: teamPlayer.id,
-        possibleRoles,
-        unusedRoles,
-        fantamilioni: teamPlayer.price || 0,
-        timestamp: teamPlayer.timestamp || Date.now()
-      };
-    }).filter(Boolean);
-    
-    // Create position assignments list (same logic as main function)
-    const positionAssignmentsList = [];
-    formationPositions.forEach((position, positionIndex) => {
-      const worstAppetibilita = Math.max(...position.roles.map(role => getRoleRanking(role)));
-      
-      positionAssignmentsList.push({
-        positionIndex,
-        roles: position.roles,
-        appetibilita: worstAppetibilita,
-        assigned: false,
-        assignedPlayer: null
-      });
-    });
-    
-    // Sort positions by appetibilita (same as main function)
-    positionAssignmentsList.sort((a, b) => {
-      if (a.appetibilita !== b.appetibilita) {
-        return b.appetibilita - a.appetibilita; // Descending order (higher appetibilita first)
-      }
-      return a.positionIndex - b.positionIndex;
-    });
-    
-    // Assign players to positions (same logic as main function)
-    const availablePlayers = [...teamPlayersWithRoles];
-    const assignedPlayerIds = new Set();
-    let totalAssignedPlayers = 0;
-    const maxPlayers = 11;
-    
-    positionAssignmentsList.forEach((positionAssignment) => {
-      if (positionAssignment.assigned || totalAssignedPlayers >= maxPlayers) return;
-      
-      const position = formationPositions[positionAssignment.positionIndex];
-      if (position.assignedPlayer) return;
-      
-      const availableForPosition = availablePlayers.filter(playerData => 
-        !assignedPlayerIds.has(playerData.playerId)
-      );
-      
-      if (availableForPosition.length === 0) return;
-      
-      // NEW ALGORITHM: Find the best player for this position
-      // Step 1: For each eligible player, find their best role for this position (lowest appetibilita)
-      const playersWithBestRoles = availableForPosition.map(playerData => {
-        const applicableRoles = playerData.possibleRoles.filter(roleOption => 
-          roleOption.role && positionAssignment.roles.includes(roleOption.role)
-        );
-        
-        if (applicableRoles.length === 0) return null;
-        
-        // Find the role with the lowest appetibilita (best quality) for this position
-        // Prefer the player's most defensive eligible role for this slot (highest
-        // appetibilita) - e.g. a player eligible for both A and Pc defaults to A,
-        // keeping the rarer Pc role open for a player who can *only* play Pc.
-        const bestRole = applicableRoles.sort((a, b) => b.ranking - a.ranking)[0];
-        
-        return {
-          playerData,
-          bestRole,
-          appetibilita: bestRole.ranking,
-          fpediaScore: parseFloat(playerData.player['FVM'] || 0)
-        };
-      }).filter(Boolean);
-      
-      if (playersWithBestRoles.length === 0) return;
-      
-      // Step 2: Sort by appetibilita (lowest first), then by FPEDIA (highest first) as tiebreaker
-      playersWithBestRoles.sort((a, b) => {
-        if (a.appetibilita !== b.appetibilita) {
-          return a.appetibilita - b.appetibilita; // Lower appetibilita (better quality) first
-        }
-        return b.fpediaScore - a.fpediaScore; // Higher FPEDIA as tiebreaker
-      });
-      
-      const bestPlayer = playersWithBestRoles[0].playerData;
-      const assignedRoleOption = playersWithBestRoles[0].bestRole;
-      
-      if (bestPlayer && assignedRoleOption) {
-        position.assignedPlayer = bestPlayer.player;
-        position.assignedPlayerId = bestPlayer.playerId;
-        positionAssignment.assigned = true;
-        positionAssignment.assignedPlayer = bestPlayer.player;
-        assignedPlayerIds.add(bestPlayer.playerId);
-        totalAssignedPlayers++;
-        
-        positionAssignments[bestPlayer.playerId] = {
-          positionIndex: positionAssignment.positionIndex,
-          role: assignedRoleOption.role,
-          originalRole: assignedRoleOption.originalRole
-        };
-        
-        if (!playersByRole[assignedRoleOption.role]) {
-          playersByRole[assignedRoleOption.role] = [];
-        }
-        
-        playersByRole[assignedRoleOption.role].push({
-          ...bestPlayer.player,
-          price: bestPlayer.fantamilioni,
-          fantamilioni: bestPlayer.fantamilioni,
-          playerId: bestPlayer.playerId,
-          assignedRole: assignedRoleOption.role,
-          positionIndex: positionAssignment.positionIndex,
-          originalRoles: bestPlayer.possibleRoles.map(r => r.originalRole)
-        });
-      }
-    });
-    
-    // Count players with no possible roles (same logic as main function)
-    const playersWithNoPossibleRoles = teamPlayersWithRoles.filter(playerData => {
-      if (assignedPlayerIds.has(playerData.playerId)) return false;
-      const possibleRoles = playerData.possibleRoles || [];
-      return possibleRoles.length === 0;
-    });
-    const unusedPlayersCount = playersWithNoPossibleRoles.length;
-    
-    // Calculate occupied positions from actual formation box data (exclude UNUSED)
-    const occupiedPositions = Object.keys(playersByRole)
-      .filter(role => role !== 'UNUSED')
-      .reduce((total, role) => total + (playersByRole[role]?.length || 0), 0);
-    
-    // Calculate total usable players (occupied positions + reserve players)
-    // Reserve players are those who have possible roles but weren't assigned to positions
-    const reservePlayers = teamPlayersWithRoles.filter(playerData => {
-      if (assignedPlayerIds.has(playerData.playerId)) return false; // Not assigned to formation
-      const possibleRoles = playerData.possibleRoles || [];
-      return possibleRoles.length > 0; // Has roles that fit the formation
-    });
-    const totalUsablePlayers = occupiedPositions + reservePlayers.length;
-    
-    return {
-      occupiedPositions: occupiedPositions,
-      unassignedPlayers: unusedPlayersCount,
-      totalUsablePlayers: totalUsablePlayers
-    };
-  }, [players, formations, appetibilitaData, getPlayerRole, translateRoleToItalian]);
-
-  // Custom team selection handler with debug
   const handleTeamSelection = useCallback((teamId) => {
     setSelectedTeamId(teamId);
-    
-    // Trigger comprehensive debug for the selected team
-    const team = teams.find(t => t.id === teamId);
-    if (team) {
-      
-      // Calculate and show formation rankings for this team
-      if (Object.keys(formations).length > 0) {
-        
-        const teamRankings = Object.keys(formations).map(formationCode => {
-          // Calculate stats for this specific team (not using selectedTeam)
-          const stats = getFormationStatsForTeam(team, formationCode);
-          
-          // Same calculation as the ranking system
-          const starterFilled = stats.occupiedPositions;
-          const starterTotal = 11;
-          const starterFraction = starterFilled / starterTotal;
-          
-          // Calculate backup coverage
-          const backupSlotsWithCoverage = Math.min(starterTotal, stats.totalUsablePlayers || 0);
-          const backupFraction = backupSlotsWithCoverage / starterTotal;
-          
-          // Unusable players penalty
-          const unusablePlayers = stats.unassignedPlayers;
-          const unusablePenalty = Math.min(30, 30 * (unusablePlayers / Math.max(team.players?.length || 1, 1)));
-          
-          // Calculate score (0-100)
-          const starterScore = 50 * starterFraction; // 0-50 points for starters
-          const backupScore = 30 * backupFraction;   // 0-30 points for backups
-          const totalScore = Math.max(0, Math.min(100, starterScore + backupScore - unusablePenalty));
-          
-          // Create comprehensive debug object for this formation
-          const formationDebug = {
-            formationCode,
-            inputs: {
-              occupiedPositions: starterFilled,
-              totalPositions: starterTotal,
-              starterFraction: starterFraction,
-              backupSlotsWithCoverage: backupSlotsWithCoverage,
-              backupFraction: backupFraction,
-              unusablePlayers: unusablePlayers,
-              totalTeamPlayers: team.players?.length || 0,
-              stats: stats
-            },
-            calculations: {
-              starterScore: starterScore,
-              backupScore: backupScore,
-              unusablePenalty: unusablePenalty,
-              totalScore: totalScore
-            },
-            formulas: {
-              starterScore: `50 * ${starterFraction.toFixed(3)} = ${starterScore.toFixed(2)}`,
-              backupScore: `30 * ${backupFraction.toFixed(3)} = ${backupScore.toFixed(2)}`,
-              unusablePenalty: `min(30, 30 * (${unusablePlayers} / ${team.players?.length || 1})) = ${unusablePenalty.toFixed(2)}`,
-              totalScore: `${starterScore.toFixed(2)} + ${backupScore.toFixed(2)} - ${unusablePenalty.toFixed(2)} = ${totalScore.toFixed(2)}`
-            }
-          };
-          
-          
-          return { code: formationCode, score: totalScore };
-        });
-        
-        // Sort by score descending
-        teamRankings.sort((a, b) => b.score - a.score);
-        
-        // Create comprehensive summary
-        const allFormationsDebug = teamRankings.map(ranking => ({
-          formationCode: ranking.code,
-          finalScore: ranking.score
-        }));
-        
-      }
-    }
-  }, [teams, formations, getFormationStatsForTeam]);
+  }, []);
 
   // Compute formation rankings using UI's existing calculation logic (without debug)
   useEffect(() => {
@@ -1884,39 +1306,20 @@ const RosaAcquistata = ({
         setFormationRankings(cachedRankings);
         return;
       }
-      // Use the UI's existing getFormationStats function for each formation
+      // Use the shared scoring util for each formation
       const rankings = Object.keys(formations).map(formationCode => {
         const stats = getFormationStats(formationCode);
-        
-        // Calculate score based on UI values
-        const starterFilled = stats.occupiedPositions;
-        const starterTotal = 11;
-        const starterFraction = starterFilled / starterTotal;
-        
-        // Calculate backup coverage
-        const backupSlotsWithCoverage = Math.min(starterTotal, stats.totalUsablePlayers || 0);
-        const backupFraction = backupSlotsWithCoverage / starterTotal;
-        
-        // Unusable players penalty
-        const unusablePlayers = stats.unassignedPlayers;
-        const unusablePenalty = Math.min(30, 30 * (unusablePlayers / Math.max(selectedTeam?.players?.length || 1, 1)));
-        
-        // Calculate score (0-100)
-        const starterScore = 50 * starterFraction; // 0-50 points for starters
-        const backupScore = 30 * backupFraction;   // 0-30 points for backups
-        const totalScore = Math.max(0, Math.min(100, starterScore + backupScore - unusablePenalty));
-        
+        const { score, breakdown } = computeFormationScore(stats);
+
         return {
           code: formationCode,
-          score: totalScore,
+          score,
           breakdown: {
-            starterFilled,
-            starterTotal,
-            starterFraction,
-            backupSlotsWithCoverage,
-            backupFraction,
-            unusablePlayers,
-            notes: [`UI-based calculation: ${starterFilled}/11 starters, ${unusablePlayers} unusable`]
+            ...breakdown,
+            occupiedPositions: stats.occupiedPositions,
+            unassignedPlayers: stats.unassignedPlayers,
+            cappedReserveCredits: stats.cappedReserveCredits,
+            maxReserveCredits: stats.maxReserveCredits
           }
         };
       });
@@ -1974,7 +1377,7 @@ const RosaAcquistata = ({
           key={formation}
           onClick={() => setSelectedFormation(formation)}
           style={selectedFormation === formation ? formationButtonActiveStyle : formationButtonStyle}
-          title={`${stats.occupiedPositions} occupate · ${stats.unassignedPlayers} non utilizzabili · ${stats.totalUsablePlayers} utilizzabili`}
+          title={`${stats.occupiedPositions} occupate · ${stats.unassignedPlayers} non utilizzabili · riserve ${stats.cappedReserveCredits}/${stats.maxReserveCredits}`}
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: '4px', whiteSpace: 'nowrap' }}>
             <span>{formation}</span>
@@ -1982,8 +1385,8 @@ const RosaAcquistata = ({
               <span style={{
                 fontSize: '0.65rem',
                 fontWeight: 'bold',
-                color: ranking.score >= 80 ? theme.success : ranking.score >= 50 ? theme.warning : theme.danger,
-                backgroundColor: ranking.score >= 80 ? 'rgba(52, 211, 153, 0.16)' : ranking.score >= 50 ? 'rgba(251, 191, 36, 0.16)' : 'rgba(248, 113, 113, 0.16)',
+                color: ranking.score >= SCORE_THRESHOLDS.good ? theme.success : ranking.score >= SCORE_THRESHOLDS.ok ? theme.warning : theme.danger,
+                backgroundColor: ranking.score >= SCORE_THRESHOLDS.good ? 'rgba(52, 211, 153, 0.16)' : ranking.score >= SCORE_THRESHOLDS.ok ? 'rgba(251, 191, 36, 0.16)' : 'rgba(248, 113, 113, 0.16)',
                 padding: '1px 4px',
                 borderRadius: '3px'
               }}>
@@ -2582,8 +1985,8 @@ const RosaAcquistata = ({
                     marginLeft: '0.5rem',
                     fontSize: '0.8rem',
                     fontWeight: 'bold',
-                    color: ranking.score >= 80 ? theme.success : ranking.score >= 50 ? theme.warning : theme.danger,
-                    backgroundColor: ranking.score >= 80 ? 'rgba(52, 211, 153, 0.16)' : ranking.score >= 50 ? 'rgba(251, 191, 36, 0.16)' : 'rgba(248, 113, 113, 0.16)',
+                    color: ranking.score >= SCORE_THRESHOLDS.good ? theme.success : ranking.score >= SCORE_THRESHOLDS.ok ? theme.warning : theme.danger,
+                    backgroundColor: ranking.score >= SCORE_THRESHOLDS.good ? 'rgba(52, 211, 153, 0.16)' : ranking.score >= SCORE_THRESHOLDS.ok ? 'rgba(251, 191, 36, 0.16)' : 'rgba(248, 113, 113, 0.16)',
                     padding: '2px 8px',
                     borderRadius: '4px'
                   }}>

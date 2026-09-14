@@ -133,20 +133,22 @@ const AboutPage = () => {
       <div style={cardStyle}>
         <h2 style={sectionTitleStyle}>3. Il punteggio del modulo</h2>
         <p style={{ margin: 0 }}>
-          Ogni modulo riceve un punteggio (che vedi ad esempio nella schermata di acquisto,
-          mostrato come "prima → dopo" per capire se comprare un giocatore migliora
+          Ogni modulo riceve un punteggio da 0 a 100 (che vedi ad esempio nella schermata di
+          acquisto, mostrato come "prima → dopo" per capire se comprare un giocatore migliora
           l'adattamento della tua rosa a quel modulo) calcolato in tre parti:
         </p>
         <ul style={listStyle}>
           <li>
-            <strong>Titolari - fino a 50 punti.</strong> Proporzionale a quante delle 11
+            <strong>Titolari - fino a 60 punti.</strong> Proporzionale a quante delle 11
             posizioni titolari riesci a coprire:{' '}
-            <span style={codeStyle}>50 × (titolari coperti / 11)</span>.
+            <span style={codeStyle}>60 × (titolari coperti / 11)</span>.
           </li>
           <li>
-            <strong>Riserve - fino a 30 punti.</strong> Proporzionale a quante posizioni
-            risultano coperte contando titolari <em>e</em> riserve insieme (fino a un massimo di
-            11): <span style={codeStyle}>30 × (min(11, titolari + riserve) / 11)</span>.
+            <strong>Riserve - fino a 40 punti.</strong> Ogni ruolo del modulo (es. "Dc",
+            "M") vale <em>fino a 2</em> riserve idonee - una terza o quarta riserva nello stesso
+            ruolo non aggiunge altro punteggio, così una rosa con tante riserve ammassate su un
+            solo ruolo e zero su un altro non risulta artificialmente "coperta":{' '}
+            <span style={codeStyle}>40 × (crediti riserva / (2 × ruoli distinti nel modulo))</span>.
           </li>
           <li>
             <strong>Penalità giocatori inutilizzabili - fino a -30 punti.</strong> Proporzionale
@@ -156,9 +158,10 @@ const AboutPage = () => {
           </li>
         </ul>
         <p style={{ margin: '0.5rem 0 0 0' }}>
-          Il punteggio finale è la somma dei primi due meno la penalità (mai sotto lo 0). In
-          pratica, con una rosa completa e ben distribuita il massimo raggiungibile è 80: i 50
-          punti dei titolari più i 30 delle riserve, senza alcuna penalità.
+          Il punteggio finale è la somma dei primi due meno la penalità (mai sotto lo 0, mai
+          sopra il 100). Una rosa che copre tutti gli 11 titolari e ha almeno 2 riserve idonee
+          per <em>ogni</em> ruolo richiesto dal modulo, senza giocatori inutilizzabili, arriva
+          esattamente a 100.
         </p>
       </div>
 

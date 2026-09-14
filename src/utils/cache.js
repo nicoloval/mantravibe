@@ -1,7 +1,9 @@
 // Cache utility for performance optimization
 // Provides versioned caching with automatic invalidation
 
-const CACHE_VERSION = '1.0.0';
+// Bumped when formation-scoring logic changes, to invalidate any previously cached rankings
+// computed with the old formula.
+const CACHE_VERSION = '1.1.0';
 const CACHE_PREFIX = 'mantravibe_cache_';
 
 // Cache configuration
