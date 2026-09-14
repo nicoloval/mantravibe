@@ -1,13 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import FantamilioniBar from './components/FantamilioniBar';
+import InterestPriceBar from './components/InterestPriceBar';
 import Header from './components/Header';
 import RosaAcquistata from './components/RosaAcquistata';
 import MantraGiocatoriTab from './components/MantraGiocatoriTab';
 import SquadreTab from './components/SquadreTab';
 import Settings from './components/Settings';
 import PlayerPage from './components/PlayerPage';
-import { loadBudget, loadPlayerStatus, saveBudget, savePlayerStatus, updatePlayerStatus } from './utils/storage';
+import { loadBudget, loadPlayerStatus, saveBudget, savePlayerStatus, updatePlayerStatus, loadInterestedPlayers, saveInterestedPlayers } from './utils/storage';
 import { theme, applyThemeMode, getStoredThemeMode } from './theme';
 
 const App = () => {
@@ -39,6 +40,11 @@ const App = () => {
   const [mantraPlayerStatus, setMantraPlayerStatus] = useState({});
   const [normalBudget, setNormalBudget] = useState(500);
   const [mantraBudget, setMantraBudget] = useState(500);
+
+  // Players marked as "interesting" (a watchlist, independent of acquired/available/unavailable
+  // status) with an optional hinted price - see InterestPriceBar.
+  const [interestedPlayers, setInterestedPlayers] = useState({});
+  const [playerToMarkInterested, setPlayerToMarkInterested] = useState(null);
   
   // Min/Max players settings
   const [minPlayers, setMinPlayers] = useState(() => {
@@ -143,6 +149,14 @@ const App = () => {
     }
     savePlayerStatus(mantraPlayerStatus, 'mantra');
   }, [mantraPlayerStatus, isInitialized]);
+
+  // Salva automaticamente i giocatori preferiti
+  useEffect(() => {
+    if (!isInitialized) {
+      return;
+    }
+    saveInterestedPlayers(interestedPlayers);
+  }, [interestedPlayers, isInitialized]);
 
   // Salva automaticamente il budget normale
   useEffect(() => {
@@ -264,6 +278,7 @@ const App = () => {
     setMantraPlayerStatus(mantraStatus);
     setNormalBudget(normalSavedBudget);
     setMantraBudget(mantraSavedBudget);
+    setInterestedPlayers(loadInterestedPlayers());
     
     // Load teams from localStorage
     try {
@@ -291,6 +306,34 @@ const App = () => {
   // Gestione acquisto giocatore con fantamilioni
   const handlePlayerAcquire = (player) => {
     setPlayerToAcquire(player);
+  };
+
+  // Toggle "interessato" per un giocatore - se già presente lo rimuove direttamente (come
+  // Reset per lo status), altrimenti apre InterestPriceBar per il prezzo indicativo opzionale.
+  const handleToggleInterested = (player) => {
+    if (interestedPlayers[player.id]) {
+      setInterestedPlayers(prev => {
+        const next = { ...prev };
+        delete next[player.id];
+        return next;
+      });
+    } else {
+      setPlayerToMarkInterested(player);
+    }
+  };
+
+  const handleInterestConfirm = (price) => {
+    if (playerToMarkInterested) {
+      setInterestedPlayers(prev => ({
+        ...prev,
+        [playerToMarkInterested.id]: { price, timestamp: new Date().toISOString() }
+      }));
+      setPlayerToMarkInterested(null);
+    }
+  };
+
+  const handleInterestCancel = () => {
+    setPlayerToMarkInterested(null);
   };
 
   const handleFantamilioniConfirm = (teamId, fantamilioni) => {
@@ -592,6 +635,13 @@ const App = () => {
         onCancel={handleFantamilioniCancel}
       />
 
+      <InterestPriceBar
+        player={playerToMarkInterested}
+        existingPrice={playerToMarkInterested ? interestedPlayers[playerToMarkInterested.id]?.price : null}
+        onConfirm={handleInterestConfirm}
+        onCancel={handleInterestCancel}
+      />
+
       {/* Navigation Tabs - solo se ci sono dati */}
       {mantraData.length > 0 && (
         <div style={tabsContainerStyle}>
@@ -677,6 +727,8 @@ const App = () => {
                 onPlayerStatusChange={handlePlayerStatusChange}
                 onPlayerAcquire={handlePlayerAcquire}
                 roles={rolesData}
+                interestedPlayers={interestedPlayers}
+                onToggleInterested={handleToggleInterested}
               />
             )}
 

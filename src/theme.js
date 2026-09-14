@@ -61,6 +61,8 @@ export const theme = {
   success: '#34d399',
   danger: '#f87171',
   warning: '#fbbf24',
+  star: '#f5b301',        // "interested" marker on cards/rows - golden, distinct from warning
+  starSoft: 'rgba(245, 179, 1, 0.16)',
 
   // Role / spending categories (kept vivid for legibility on dark surfaces)
   roleCategory: {

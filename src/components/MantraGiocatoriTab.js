@@ -23,7 +23,7 @@ const Sparkline = ({ prev, cur, width = 46, height = 18 }) => {
   );
 };
 
-const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusChange, onPlayerAcquire, roles = [] }) => {
+const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusChange, onPlayerAcquire, roles = [], interestedPlayers = {}, onToggleInterested }) => {
   const navigate = useNavigate();
   // Derived from the data itself (see data-pipeline/config.py) - never hardcode season strings below.
   const { current: CUR_SEASON, previous: PREV_SEASON } = useMemo(() => getSeasonLabels(players), [players]);
@@ -53,7 +53,19 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     }
     return false;
   });
-  
+
+  const [showOnlyInterested, setShowOnlyInterested] = useState(() => {
+    const saved = localStorage.getItem('giocatoriShowOnlyInterested');
+    if (saved !== null) {
+      try {
+        return JSON.parse(saved);
+      } catch (error) {
+        console.error('Error parsing saved showOnlyInterested:', error);
+      }
+    }
+    return false;
+  });
+
   // Column visibility state
   const [visibleColumns, setVisibleColumns] = useState(() => {
     // Try to load from localStorage first
@@ -133,6 +145,31 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   // Tooltip visibility state
   const [hoveredColumn, setHoveredColumn] = useState(null);
   const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  // Hinted price tooltip for starred players - a native `title` attribute was tried here first,
+  // but it gets silently overridden whenever the cursor is over a nested element that has its
+  // own title (the star button, the "Compra" name link, ...), which is most of a row/card, so
+  // it rarely actually appeared. This is a self-contained hover tooltip instead (own state,
+  // driven by mouse events on the row/card itself, not the global column-header one above).
+  const [hoveredPrice, setHoveredPrice] = useState(null); // { text, x, y } | null
+
+  // Switching table/cards re-lays out everything under the cursor without firing a
+  // mouseleave on whatever was hovered a moment ago - clear a stale tooltip rather than have
+  // it linger, pinned to the old coordinates, over whatever now happens to be there.
+  useEffect(() => {
+    setHoveredPrice(null);
+  }, [displayMode]);
+
+  // Mouse handlers for a starred row/card with a hinted price - spread onto the element;
+  // returns {} (no-op) when there's no price to show, so it's safe to spread unconditionally.
+  const priceHoverHandlers = (price) => {
+    if (price == null) return {};
+    return {
+      onMouseEnter: (e) => setHoveredPrice({ text: `Prezzo indicativo: ${price} FM`, x: e.clientX, y: e.clientY }),
+      onMouseMove: (e) => setHoveredPrice(prev => (prev ? { ...prev, x: e.clientX, y: e.clientY } : prev)),
+      onMouseLeave: () => setHoveredPrice(null)
+    };
+  };
 
   // Global mouse tracking to hide tooltip when mouse leaves table area
   useEffect(() => {
@@ -373,7 +410,9 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       const playerStatusValue = playerStatus[player.player_id];
       const isNotAcquired = !hideAcquired || !playerStatusValue || (playerStatusValue && playerStatusValue.status !== 'acquired');
 
-      return matchesSearch && matchesRole && isNotAcquired;
+      const matchesInterested = !showOnlyInterested || Boolean(interestedPlayers[player.id]);
+
+      return matchesSearch && matchesRole && isNotAcquired && matchesInterested;
     });
     
 
@@ -428,7 +467,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     }
 
     return filtered;
-  }, [players, searchTerm, selectedRoles, sortConfig, hideAcquired, playerStatus, displayMode, cardSortConfig, cardSortFieldMap, getColumnDisplayValue]);
+  }, [players, searchTerm, selectedRoles, sortConfig, hideAcquired, playerStatus, displayMode, cardSortConfig, cardSortFieldMap, getColumnDisplayValue, showOnlyInterested, interestedPlayers]);
 
   const handleSort = (key) => {
     setSortConfig(prevConfig => ({
@@ -1016,6 +1055,31 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             Nascondi acquistati
           </label>
 
+          {/* Toggle for showing only starred/interesting players */}
+          <label style={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: '0.5rem',
+            fontSize: '0.875rem',
+            color: theme.text,
+            cursor: 'pointer'
+          }}>
+            <input
+              type="checkbox"
+              checked={showOnlyInterested}
+              onChange={(e) => {
+                setShowOnlyInterested(e.target.checked);
+                localStorage.setItem('giocatoriShowOnlyInterested', JSON.stringify(e.target.checked));
+              }}
+              style={{
+                width: '1rem',
+                height: '1rem',
+                cursor: 'pointer'
+              }}
+            />
+            ★ Solo preferiti
+          </label>
+
           {/* Display mode toggle - lives in the normal flow now (used to be position:absolute
               in the tab's top-right corner, where it overlapped the checkbox label on mobile) */}
           <button
@@ -1435,7 +1499,20 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
           {filteredAndSortedPlayers.map((player, index) => {
             const playerId = player.id;
             const status = getPlayerStatus(playerId);
-            
+            const interestedEntry = interestedPlayers[playerId];
+            const isInterested = Boolean(interestedEntry);
+            const interestedPrice = interestedEntry?.price;
+            // Hovering a starred card reveals its hinted price via a custom tooltip (see
+            // priceHoverHandlers) - no hover on touch devices, so it's also shown as small
+            // text below (mobile only).
+            const cardPriceHover = priceHoverHandlers(isInterested ? interestedPrice : null);
+            const cardBaseStyle = isInterested
+              ? { ...playerCardStyle, backgroundColor: theme.starSoft, borderColor: theme.star }
+              : playerCardStyle;
+            const cardHoveredStyle = isInterested
+              ? { ...playerCardHoverStyle, backgroundColor: theme.starSoft, borderColor: theme.star }
+              : playerCardHoverStyle;
+
             // Parse mantra roles
             let mantraRoles = [];
             if (player['Ruolo Mantra']) {
@@ -1456,12 +1533,15 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             return (
               <div
                 key={index}
-                style={playerCardStyle}
+                style={cardBaseStyle}
                 onMouseEnter={(e) => {
-                  Object.assign(e.currentTarget.style, playerCardHoverStyle);
+                  Object.assign(e.currentTarget.style, cardHoveredStyle);
+                  cardPriceHover.onMouseEnter?.(e);
                 }}
+                onMouseMove={cardPriceHover.onMouseMove}
                 onMouseLeave={(e) => {
-                  Object.assign(e.currentTarget.style, playerCardStyle);
+                  Object.assign(e.currentTarget.style, cardBaseStyle);
+                  cardPriceHover.onMouseLeave?.(e);
                 }}
               >
                 {/* Card Header - First Line: Player Name + Button */}
@@ -1526,29 +1606,49 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                     </button>
                   )}
                   {status === 'available' && (
-                    <button
-                      onClick={() => handleAcquire(player)}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        fontSize: '0.875rem',
-                        fontWeight: '600',
-                        border: 'none',
-                        borderRadius: '0.375rem',
-                        cursor: 'pointer',
-                        transition: 'all 0.2s',
-                        backgroundColor: theme.pink,
-                        color: 'white',
-                        minWidth: '80px'
-                      }}
-                      onMouseEnter={(e) => {
-                        e.target.style.backgroundColor = theme.pinkHover;
-                      }}
-                      onMouseLeave={(e) => {
-                        e.target.style.backgroundColor = theme.pink;
-                      }}
-                    >
-                      Compra
-                    </button>
+                    <div style={{ display: 'flex', gap: '0.375rem', alignItems: 'center' }}>
+                      <button
+                        onClick={() => onToggleInterested(player)}
+                        title={isInterested ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
+                        style={{
+                          padding: '0.5rem 0.625rem',
+                          fontSize: '1rem',
+                          lineHeight: 1,
+                          fontWeight: '600',
+                          border: 'none',
+                          borderRadius: '0.375rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          backgroundColor: isInterested ? theme.star : theme.surfaceAlt,
+                          color: isInterested ? 'white' : theme.textMuted
+                        }}
+                      >
+                        {isInterested ? '★' : '☆'}
+                      </button>
+                      <button
+                        onClick={() => handleAcquire(player)}
+                        style={{
+                          padding: '0.5rem 1rem',
+                          fontSize: '0.875rem',
+                          fontWeight: '600',
+                          border: 'none',
+                          borderRadius: '0.375rem',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          backgroundColor: theme.pink,
+                          color: 'white',
+                          minWidth: '80px'
+                        }}
+                        onMouseEnter={(e) => {
+                          e.target.style.backgroundColor = theme.pinkHover;
+                        }}
+                        onMouseLeave={(e) => {
+                          e.target.style.backgroundColor = theme.pink;
+                        }}
+                      >
+                        Compra
+                      </button>
+                    </div>
                   )}
                   {status !== 'available' && (
                     <button
@@ -1614,8 +1714,16 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                   }}>
                     {player.Squadra}
                   </div>
+
+                  {/* Hinted price - hover reveals it on desktop (see the card's title attribute
+                      above), but touch devices have no hover, so show it here on mobile. */}
+                  {isMobile && isInterested && interestedPrice != null && (
+                    <div style={{ fontSize: '0.75rem', color: theme.star, fontWeight: '600' }}>
+                      ★ {interestedPrice} FM
+                    </div>
+                  )}
                 </div>
-                
+
                 {/* Section 1: Quotazioni */}
                 <div style={{
                   backgroundColor: theme.blueSoft,
@@ -1751,6 +1859,25 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         </div>
       )}
 
+      {/* Hinted price tooltip - see hoveredPrice above */}
+      {hoveredPrice && (
+        <div
+          style={{
+            ...tooltipStyle,
+            top: `${hoveredPrice.y - 40}px`,
+            left: `${hoveredPrice.x}px`,
+            transform: 'translateX(-50%)',
+            display: 'block',
+            backgroundColor: theme.star,
+            color: 'white',
+            border: 'none',
+            fontWeight: '700'
+          }}
+        >
+          {hoveredPrice.text}
+        </div>
+      )}
+
       {/* Tabella - Only show in table mode */}
       {displayMode === 'table' && (
       <div style={tableContainerStyle}>
@@ -1797,14 +1924,22 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               const playerId = player.id;
               const status = getPlayerStatus(playerId);
               const fantamilioni = getPlayerFantamilioni(playerId);
-              
-              // Alternating row background color
+              const interestedEntry = interestedPlayers[playerId];
+              const isInterested = Boolean(interestedEntry);
+              const interestedPrice = interestedEntry?.price;
+
+              // Alternating row background color, overridden with a golden tint + left border
+              // for starred players so they stand out regardless of the zebra stripe underneath.
               const rowStyle = {
-                backgroundColor: index % 2 === 0 ? theme.surface : theme.surfaceAlt
+                backgroundColor: isInterested ? theme.starSoft : (index % 2 === 0 ? theme.surface : theme.surfaceAlt),
+                borderLeft: `3px solid ${isInterested ? theme.star : 'transparent'}`
               };
+              // Hovering a starred row reveals its hinted price via a custom tooltip (see
+              // priceHoverHandlers) - no hover on touch devices, so it's also shown as small
+              // text below (mobile only).
 
               return (
-                <tr key={index} style={rowStyle}>
+                <tr key={index} style={rowStyle} {...priceHoverHandlers(isInterested ? interestedPrice : null)}>
                   <td style={tdStyle}>
                     <div style={{
                       textAlign: 'center',
@@ -1824,6 +1959,22 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                         <span style={unavailableStatusStyle}>Non Disp.</span>
                       )}
                       {status === 'available' && (
+                        <>
+                        <button
+                          onClick={() => onToggleInterested(player)}
+                          title={isInterested ? 'Rimuovi dai preferiti' : 'Aggiungi ai preferiti'}
+                          style={{
+                            ...buttonStyle,
+                            padding: '0.25rem 0.4rem',
+                            fontSize: '0.875rem',
+                            lineHeight: 1,
+                            backgroundColor: isInterested ? theme.star : theme.surfaceAlt,
+                            color: isInterested ? 'white' : theme.textMuted,
+                            borderColor: isInterested ? theme.star : theme.border
+                          }}
+                        >
+                          {isInterested ? '★' : '☆'}
+                        </button>
                         <button
                           onClick={() => handleAcquire(player)}
                           style={buyButtonStyle}
@@ -1836,6 +1987,12 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                         >
                           Compra
                         </button>
+                        </>
+                      )}
+                      {isMobile && isInterested && interestedPrice != null && (
+                        <span style={{ fontSize: '0.7rem', color: theme.star, fontWeight: '600' }}>
+                          {interestedPrice} FM
+                        </span>
                       )}
                       {status !== 'available' && (
                         <button

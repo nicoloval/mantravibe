@@ -241,6 +241,33 @@ export const getBudgetStats = (totalBudget, playerStatus) => {
   };
 };
 
+// ============== GIOCATORI PREFERITI (watchlist, indipendente dallo status) ==============
+
+const INTERESTED_STORAGE_KEY = 'fantacalcio_interested_players';
+
+/**
+ * Struttura: { playerId: { price: number|null, timestamp: string } }
+ * Indipendente da playerStatus - un giocatore può essere "interessante" mentre è ancora
+ * disponibile (o anche dopo, come promemoria), senza toccare acquired/unavailable.
+ */
+export const loadInterestedPlayers = () => {
+  try {
+    const saved = localStorage.getItem(INTERESTED_STORAGE_KEY);
+    return saved ? JSON.parse(saved) : {};
+  } catch (error) {
+    console.warn('Errore nel caricamento dei giocatori preferiti:', error);
+    return {};
+  }
+};
+
+export const saveInterestedPlayers = (interestedPlayers) => {
+  try {
+    localStorage.setItem(INTERESTED_STORAGE_KEY, JSON.stringify(interestedPlayers || {}));
+  } catch (error) {
+    console.error('Errore nel salvataggio dei giocatori preferiti:', error);
+  }
+};
+
 // ============== FUNZIONI ESISTENTI ==============
 
 /**
