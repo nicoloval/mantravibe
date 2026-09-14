@@ -1,17 +1,35 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import FantamilioniBar from './components/FantamilioniBar';
 import InterestPriceBar from './components/InterestPriceBar';
 import Header from './components/Header';
-import RosaAcquistata from './components/RosaAcquistata';
-import MantraGiocatoriTab from './components/MantraGiocatoriTab';
-import SquadreTab from './components/SquadreTab';
 import Settings from './components/Settings';
-import AboutPage from './components/AboutPage';
-import PlayerPage from './components/PlayerPage';
 import { loadBudget, loadPlayerStatus, saveBudget, savePlayerStatus, updatePlayerStatus, loadInterestedPlayers, saveInterestedPlayers } from './utils/storage';
 import { parseCsvRows, downloadCsv } from './utils/csv';
 import { theme, applyThemeMode, getStoredThemeMode } from './theme';
+
+// Code-split the heavy per-tab/per-route components (RosaAcquistata and MantraGiocatoriTab alone
+// are ~2000-2400 lines each) so the initial bundle only pays for whichever one is actually shown,
+// instead of parsing/executing all five up front. Header/FantamilioniBar/InterestPriceBar/Settings
+// stay eager since they're always potentially visible.
+const RosaAcquistata = lazy(() => import('./components/RosaAcquistata'));
+const MantraGiocatoriTab = lazy(() => import('./components/MantraGiocatoriTab'));
+const SquadreTab = lazy(() => import('./components/SquadreTab'));
+const AboutPage = lazy(() => import('./components/AboutPage'));
+const PlayerPage = lazy(() => import('./components/PlayerPage'));
+
+// Shared fallback while a lazy tab/route chunk downloads - same visual treatment as the app's
+// existing "Caricamento dati in corso..." state for consistency.
+const RouteLoadingFallback = () => (
+  <div style={{
+    padding: '3rem',
+    textAlign: 'center',
+    fontSize: '1.125rem',
+    color: theme.textMuted
+  }}>
+    Caricamento...
+  </div>
+);
 
 const App = () => {
   // Stati principali
@@ -672,11 +690,13 @@ const App = () => {
       
       <Routes>
         <Route path="/player/:id" element={
-          <PlayerPage 
-            players={mantraData}
-            playerStatus={currentPlayerStatus}
-            onPlayerStatusChange={handlePlayerStatusChange}
-          />
+          <Suspense fallback={<RouteLoadingFallback />}>
+            <PlayerPage
+              players={mantraData}
+              playerStatus={currentPlayerStatus}
+              onPlayerStatusChange={handlePlayerStatusChange}
+            />
+          </Suspense>
         } />
         <Route path="/*" element={
           <div style={containerStyle}>
@@ -789,7 +809,7 @@ const App = () => {
         )}
 
         {mantraData.length > 0 && (
-          <>
+          <Suspense fallback={<RouteLoadingFallback />}>
             {activeTab === 'giocatori' && (
               <MantraGiocatoriTab
                 players={mantraData}
@@ -820,7 +840,7 @@ const App = () => {
             {activeTab === 'squadre' && (
               <SquadreTab budget={currentBudget} teams={teams} onTeamsChange={handleTeamsChange} maxPlayers={maxPlayers} players={mantraData} />
             )}
-          </>
+          </Suspense>
         )}
       </div>
 
@@ -842,7 +862,11 @@ const App = () => {
       />
           </div>
         } />
-        <Route path="/about" element={<AboutPage />} />
+        <Route path="/about" element={
+          <Suspense fallback={<RouteLoadingFallback />}>
+            <AboutPage />
+          </Suspense>
+        } />
       </Routes>
     </Router>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
 import { getSeasonLabels, SEASON_STAT_BASES } from '../utils/dataUtils';
@@ -466,6 +466,46 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
     return filtered;
   }, [players, searchTerm, selectedRoles, sortConfig, hideAcquired, playerStatus, displayMode, cardSortConfig, cardSortFieldMap, getColumnDisplayValue, showOnlyInterested, interestedPlayers]);
+
+  // Progressive rendering: with up to ~595 players, building every row/card's DOM up front made
+  // every keystroke in the search box (and every sort/filter change) rebuild all of them at
+  // once - the actual jank source at this list size, more so than any single row re-rendering.
+  // Instead, only the first PAGE_SIZE results mount initially; a sentinel element at the end of
+  // the list reveals PAGE_SIZE more once it scrolls into view. Resets to PAGE_SIZE whenever the
+  // filtered/sorted result set itself changes (new search term, role filter, sort, etc.) - this
+  // is a cheaper stand-in for full virtualization (react-window) that doesn't require replacing
+  // the table's native <table> auto-sizing with fixed pixel column widths.
+  const PAGE_SIZE = 60;
+  const [visibleCount, setVisibleCount] = useState(PAGE_SIZE);
+
+  useEffect(() => {
+    setVisibleCount(PAGE_SIZE);
+  }, [filteredAndSortedPlayers]);
+
+  // Kept in a ref rather than a dependency so this callback ref keeps a stable identity - table
+  // and card mode each render their own sentinel element (mutually exclusive, never both at
+  // once), so this needs to reattach whenever the sentinel DOM node itself changes, not on every
+  // filteredAndSortedPlayers change. React 19 supports returning a cleanup function directly
+  // from a callback ref.
+  const totalCountRef = useRef(filteredAndSortedPlayers.length);
+  totalCountRef.current = filteredAndSortedPlayers.length;
+
+  const loadMoreSentinelRef = useCallback((node) => {
+    if (!node) return;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries[0].isIntersecting) {
+        setVisibleCount(prev => Math.min(prev + PAGE_SIZE, totalCountRef.current));
+      }
+    }, { rootMargin: '600px' });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+
+  const visiblePlayers = useMemo(
+    () => filteredAndSortedPlayers.slice(0, visibleCount),
+    [filteredAndSortedPlayers, visibleCount]
+  );
+  const hasMorePlayers = visibleCount < filteredAndSortedPlayers.length;
 
   const handleSort = (key) => {
     setSortConfig(prevConfig => ({
@@ -1092,7 +1132,9 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
           </button>
 
           <div style={{ color: theme.textMuted, fontSize: '0.875rem', marginLeft: isMobile ? 0 : 'auto' }}>
-            {filteredAndSortedPlayers.length} giocatori trovati
+            {hasMorePlayers
+              ? `${visiblePlayers.length} di ${filteredAndSortedPlayers.length} giocatori trovati`
+              : `${filteredAndSortedPlayers.length} giocatori trovati`}
           </div>
         </div>
 
@@ -1480,7 +1522,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       {/* Card Display */}
       {displayMode === 'cards' && (
         <div style={cardsContainerStyle}>
-          {filteredAndSortedPlayers.map((player, index) => {
+          {visiblePlayers.map((player, index) => {
             const playerId = player.id;
             const status = getPlayerStatus(playerId);
             const interestedEntry = interestedPlayers[playerId];
@@ -1753,6 +1795,13 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
         </div>
       )}
 
+      {/* Sentinel for progressive loading - see the visiblePlayers/PAGE_SIZE comment above. */}
+      {displayMode === 'cards' && hasMorePlayers && (
+        <div ref={loadMoreSentinelRef} style={{ padding: '1rem', textAlign: 'center', color: theme.textFaint, fontSize: '0.8rem' }}>
+          Caricamento altri giocatori...
+        </div>
+      )}
+
       {/* Tooltip Overlay */}
       {hoveredColumn && (
         <div
@@ -1826,7 +1875,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             </tr>
           </thead>
           <tbody>
-            {filteredAndSortedPlayers.map((player, index) => {
+            {visiblePlayers.map((player, index) => {
               const playerId = player.id;
               const status = getPlayerStatus(playerId);
               const fantamilioni = getPlayerFantamilioni(playerId);
@@ -2006,6 +2055,13 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                 </tr>
               );
             })}
+            {hasMorePlayers && (
+              <tr ref={loadMoreSentinelRef}>
+                <td colSpan={100} style={{ ...tdStyle, textAlign: 'center', color: theme.textFaint }}>
+                  Caricamento altri giocatori...
+                </td>
+              </tr>
+            )}
           </tbody>
         </table>
         </div>
