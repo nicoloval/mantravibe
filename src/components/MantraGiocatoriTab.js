@@ -984,20 +984,22 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
   return (
     <div style={containerStyle}>
-      {/* Filtri */}
+      {/* Filtri - a single left-aligned, wrapping toolbar rather than several separately
+          centered lines, so wide desktop viewports pack everything onto 1-2 rows (using the
+          full width) while narrow/mobile viewports still wrap each item onto its own line. */}
       <div style={{
         ...filtersStyle,
         display: 'flex',
         flexDirection: 'column',
-        gap: '1rem',
-        alignItems: 'center'
+        gap: '0.75rem',
+        alignItems: 'stretch'
       }}>
-        {/* First Line: Search, Hide Acquired, Display Mode Toggle */}
+        {/* First Line: Search, Hide Acquired, Solo Preferiti, Display Mode Toggle, result count */}
         <div style={{
           display: 'flex',
           gap: '1rem',
           alignItems: 'center',
-          justifyContent: 'center',
+          justifyContent: 'flex-start',
           flexWrap: 'wrap'
         }}>
           <input
@@ -1086,10 +1088,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
           >
             {displayMode === 'table' ? '🃏 Carte' : '📊 Tabella'}
           </button>
-        </div>
 
-        <div style={{ color: theme.textMuted, fontSize: '0.875rem' }}>
-          {filteredAndSortedPlayers.length} giocatori trovati
+          <div style={{ color: theme.textMuted, fontSize: '0.875rem', marginLeft: isMobile ? 0 : 'auto' }}>
+            {filteredAndSortedPlayers.length} giocatori trovati
+          </div>
         </div>
 
         {/* Filtri toggle - mobile only. Everything below (role chips, column/sort controls)
@@ -1113,114 +1115,113 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
           </button>
         )}
 
-        {/* Second Line: Role Filter Buttons */}
+        {/* Second Line: Role Filter Buttons (left) + view controls (right, table: Colonne/
+            Assoluti - cards: Stats/Ordina) - one wrapping row instead of up to three stacked
+            ones, so desktop uses the full width and only wraps when it actually runs out of it. */}
         {showExtraControls && (
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center' }}>
-          {availableRoles.map(role => {
-            const isSelected = selectedRoles.includes(role);
-            const roleColor = roleColorMapping[role] || theme.textMuted;
+        <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'flex-start' }}>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+            {availableRoles.map(role => {
+              const isSelected = selectedRoles.includes(role);
+              const roleColor = roleColorMapping[role] || theme.textMuted;
 
-            return (
-              <button
-                key={role}
-                onClick={() => toggleRole(role)}
-                style={{
-                  padding: '0.5rem 1rem',
-                  fontSize: '0.875rem',
-                  fontWeight: '600',
-                  border: `2px solid ${roleColor}`,
-                  borderRadius: '0.375rem',
-                  backgroundColor: isSelected ? roleColor : 'transparent',
-                  color: isSelected ? 'white' : roleColor,
-                  cursor: 'pointer',
-                  transition: 'all 0.2s',
-                  minWidth: '40px',
-                  textAlign: 'center'
-                }}
-                title={role}
-              >
-                {role}
-              </button>
-            );
-          })}
-        </div>
-        )}
+              return (
+                <button
+                  key={role}
+                  onClick={() => toggleRole(role)}
+                  style={{
+                    padding: '0.5rem 1rem',
+                    fontSize: '0.875rem',
+                    fontWeight: '600',
+                    border: `2px solid ${roleColor}`,
+                    borderRadius: '0.375rem',
+                    backgroundColor: isSelected ? roleColor : 'transparent',
+                    color: isSelected ? 'white' : roleColor,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s',
+                    minWidth: '40px',
+                    textAlign: 'center'
+                  }}
+                  title={role}
+                >
+                  {role}
+                </button>
+              );
+            })}
+          </div>
 
-        {/* Toggle Column Controls Button - Only show in table mode */}
-        {showExtraControls && displayMode === 'table' && (
-        <button
-          onClick={() => setShowColumnControls(!showColumnControls)}
-          style={{
-            padding: '0.5rem 1rem',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-            border: `1px solid ${theme.border}`,
-            borderRadius: '0.375rem',
-            backgroundColor: showColumnControls ? theme.pink : theme.surfaceAlt,
-            color: showColumnControls ? 'white' : theme.text,
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-          }}
-          title={showColumnControls ? 'Nascondi controlli colonne' : 'Mostra controlli colonne'}
-        >
-          {showColumnControls ? 'Nascondi Colonne' : 'Mostra Colonne'}
-        </button>
-        )}
+          {/* Toggle Column Controls + Relative/Absolute Value Toggle - table mode only */}
+          {displayMode === 'table' && (
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', marginLeft: isMobile ? 0 : 'auto' }}>
+            <button
+              onClick={() => setShowColumnControls(!showColumnControls)}
+              style={{
+                padding: '0.5rem 1rem',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                border: `1px solid ${theme.border}`,
+                borderRadius: '0.375rem',
+                backgroundColor: showColumnControls ? theme.pink : theme.surfaceAlt,
+                color: showColumnControls ? 'white' : theme.text,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              title={showColumnControls ? 'Nascondi controlli colonne' : 'Mostra controlli colonne'}
+            >
+              {showColumnControls ? 'Nascondi Colonne' : 'Mostra Colonne'}
+            </button>
 
-        {/* Relative (per-match rate) / Absolute (raw season total) toggle for Gol, Assist,
-            Gol Subiti, xG, xA, Minuti Giocati columns - Presenze/Media Voto/Fantamedia/
-            Ammonizioni/Espulsioni are unaffected, they don't have both forms. */}
-        {showExtraControls && displayMode === 'table' && (
-        <button
-          onClick={() => {
-            const newMode = tableValueMode === 'relative' ? 'absolute' : 'relative';
-            setTableValueMode(newMode);
-            localStorage.setItem('giocatoriTableValueMode', newMode);
-          }}
-          style={{
-            padding: '0.5rem 1rem',
-            fontSize: '0.875rem',
-            fontWeight: '500',
-            border: `1px solid ${theme.border}`,
-            borderRadius: '0.375rem',
-            backgroundColor: theme.surfaceAlt,
-            color: theme.text,
-            cursor: 'pointer',
-            transition: 'all 0.2s'
-          }}
-          title="Cambia Gol, Assist, Gol Subiti, xG, xA e Minuti Giocati tra media a partita e totale stagionale"
-        >
-          {tableValueMode === 'relative' ? 'Mostra Assoluti' : 'Mostra Relativi'}
-        </button>
-        )}
+            {/* Relative (per-match rate) / Absolute (raw season total) toggle for Gol, Assist,
+                Gol Subiti, xG, xA, Minuti Giocati columns - Presenze/Media Voto/Fantamedia/
+                Ammonizioni/Espulsioni are unaffected, they don't have both forms. */}
+            <button
+              onClick={() => {
+                const newMode = tableValueMode === 'relative' ? 'absolute' : 'relative';
+                setTableValueMode(newMode);
+                localStorage.setItem('giocatoriTableValueMode', newMode);
+              }}
+              style={{
+                padding: '0.5rem 1rem',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                border: `1px solid ${theme.border}`,
+                borderRadius: '0.375rem',
+                backgroundColor: theme.surfaceAlt,
+                color: theme.text,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              title="Cambia Gol, Assist, Gol Subiti, xG, xA e Minuti Giocati tra media a partita e totale stagionale"
+            >
+              {tableValueMode === 'relative' ? 'Mostra Assoluti' : 'Mostra Relativi'}
+            </button>
+          </div>
+          )}
 
-        {/* Toggle Card Details Button - Only show in card mode */}
-        {showExtraControls && displayMode === 'cards' && (
-          <button
-            onClick={() => {
-              setShowCardDetails(!showCardDetails);
-              localStorage.setItem('giocatoriShowCardDetails', (!showCardDetails).toString());
-            }}
-            style={{
-              padding: '0.5rem 1rem',
-              fontSize: '0.875rem',
-              fontWeight: '500',
-              border: `1px solid ${theme.border}`,
-              borderRadius: '0.375rem',
-              backgroundColor: showCardDetails ? theme.pink : theme.surfaceAlt,
-              color: showCardDetails ? 'white' : theme.text,
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-            title={showCardDetails ? 'Nascondi statistiche' : 'Mostra statistiche'}
-          >
-            {showCardDetails ? 'Nascondi Stats' : 'Mostra Stats'}
-          </button>
-        )}
+          {/* Toggle Card Details + Card Sorting Menu - card mode only */}
+          {displayMode === 'cards' && (
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center', marginLeft: isMobile ? 0 : 'auto' }}>
+            <button
+              onClick={() => {
+                setShowCardDetails(!showCardDetails);
+                localStorage.setItem('giocatoriShowCardDetails', (!showCardDetails).toString());
+              }}
+              style={{
+                padding: '0.5rem 1rem',
+                fontSize: '0.875rem',
+                fontWeight: '500',
+                border: `1px solid ${theme.border}`,
+                borderRadius: '0.375rem',
+                backgroundColor: showCardDetails ? theme.pink : theme.surfaceAlt,
+                color: showCardDetails ? 'white' : theme.text,
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+              title={showCardDetails ? 'Nascondi statistiche' : 'Mostra statistiche'}
+            >
+              {showCardDetails ? 'Nascondi Stats' : 'Mostra Stats'}
+            </button>
 
-        {/* Card Sorting Menu - Only show in card mode */}
-        {showExtraControls && displayMode === 'cards' && (
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontSize: '0.875rem', fontWeight: '500', color: theme.text }}>
               Ordina per:
             </span>
@@ -1247,9 +1248,9 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             </select>
             <button
               onClick={() => {
-                const newSort = { 
-                  ...cardSortConfig, 
-                  direction: cardSortConfig.direction === 'asc' ? 'desc' : 'asc' 
+                const newSort = {
+                  ...cardSortConfig,
+                  direction: cardSortConfig.direction === 'asc' ? 'desc' : 'asc'
                 };
                 setCardSortConfig(newSort);
                 localStorage.setItem('giocatoriCardSort', JSON.stringify(newSort));
@@ -1270,6 +1271,8 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               {cardSortConfig.direction === 'asc' ? '↑' : '↓'}
             </button>
           </div>
+          )}
+        </div>
         )}
       </div>
 
