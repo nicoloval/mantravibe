@@ -5,7 +5,15 @@ import { useNavigate } from 'react-router-dom';
 import { getTeamColorCoding } from '../utils/dataUtils';
 import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
 import { rankFormations, processPlayersForRanking, DEFAULT_CONFIG } from '../utils/formationRanking';
-import { computeFormationStats, computeFormationScore, SCORE_THRESHOLDS } from '../utils/formationScoring';
+import {
+  computeFormationStats,
+  computeFormationScore,
+  compareCandidatesForSlot,
+  getPlayerFantamedia,
+  SCORE_THRESHOLDS,
+  FANTAMEDIA_FALLBACK_GOALKEEPER,
+  FANTAMEDIA_FALLBACK_DEFAULT
+} from '../utils/formationScoring';
 import { theme } from '../theme';
 
 // Role-category ranking shared by the Rosa column's sort and the formation depth chart's row
@@ -31,6 +39,20 @@ const rosterCategoryForPlayer = (player) => {
   return 'midfielders';
 };
 
+// Formation-score badges: a solid fill of the status color plus dark text, rather than the
+// previous pale tint (~16% opacity) combined with the same color as the text - two shades of the
+// same light hue read as low-contrast, especially in light mode. success/warning/danger are all
+// light/bright enough that a fixed dark text color reads clearly on every one of them.
+const SCORE_BADGE_TEXT_COLOR = '#0b1220';
+const getScoreBadgeStyle = (score) => ({
+  color: SCORE_BADGE_TEXT_COLOR,
+  backgroundColor: score >= SCORE_THRESHOLDS.good
+    ? theme.success
+    : score >= SCORE_THRESHOLDS.ok
+      ? theme.warning
+      : theme.danger
+});
+
 const RosaAcquistata = ({
   players = [],
   playerStatus = {},
@@ -43,9 +65,17 @@ const RosaAcquistata = ({
 }) => {
   const navigate = useNavigate();
   
-  const [selectedTeamId, setSelectedTeamId] = useState(null);
+  // Squadra/modulo selection persists across tab switches (this component unmounts whenever
+  // App.js's activeTab moves away from 'rosa') and across reloads, so coming back to "La Mia
+  // Rosa" restores where you left off instead of resetting to the first team and 4-3-3.
+  const [selectedTeamId, setSelectedTeamId] = useState(() => {
+    const saved = parseInt(localStorage.getItem('rosaAcquistata_selectedTeamId'), 10);
+    return Number.isNaN(saved) ? null : saved;
+  });
   const [formations, setFormations] = useState({});
-  const [selectedFormation, setSelectedFormation] = useState('4-3-3');
+  const [selectedFormation, setSelectedFormation] = useState(() => {
+    return localStorage.getItem('rosaAcquistata_selectedFormation') || '4-3-3';
+  });
   const [formationRankings, setFormationRankings] = useState([]);
   
   // Search and filter state
@@ -86,12 +116,28 @@ const RosaAcquistata = ({
   }, []);
 
 
-  // Initialize selected team when teams are available
+  // Initialize selected team when teams are available, and fall back to the first team if the
+  // remembered selection no longer exists (e.g. that team was deleted in "Squadre").
   useEffect(() => {
-    if (teams.length > 0 && !selectedTeamId) {
+    if (teams.length === 0) return;
+    const stillExists = selectedTeamId != null && teams.some(team => team.id === selectedTeamId);
+    if (!stillExists) {
       setSelectedTeamId(teams[0].id);
     }
   }, [teams, selectedTeamId]);
+
+  // Persist the squadra/modulo selection so it survives switching tabs and reloading.
+  useEffect(() => {
+    if (selectedTeamId != null) {
+      localStorage.setItem('rosaAcquistata_selectedTeamId', String(selectedTeamId));
+    }
+  }, [selectedTeamId]);
+
+  useEffect(() => {
+    if (selectedFormation) {
+      localStorage.setItem('rosaAcquistata_selectedFormation', selectedFormation);
+    }
+  }, [selectedFormation]);
 
   // Get selected team
   const selectedTeam = teams.find(team => team.id === selectedTeamId);
@@ -244,6 +290,11 @@ const RosaAcquistata = ({
 
   // Statistiche totali
   const totalPlayers = teamPlayers.length;
+
+  // Total FVM of every player bought so far, regardless of formation/starting role.
+  const totalRosterFVM = useMemo(() => {
+    return teamPlayers.reduce((sum, player) => sum + (parseFloat(player.FVM) || 0), 0);
+  }, [teamPlayers]);
 
   // Gestori eventi
   const handleRemovePlayer = (playerId) => {
@@ -476,6 +527,7 @@ const RosaAcquistata = ({
     marginBottom: '1.25rem',
     display: 'flex',
     alignItems: 'center',
+    justifyContent: 'center',
     gap: '0.5rem',
     overflowX: 'auto',
     paddingBottom: '0.25rem'
@@ -1168,14 +1220,10 @@ const RosaAcquistata = ({
         }).filter(Boolean);
         
         if (playersWithBestRoles.length === 0) return;
-        
-        // Step 2: Sort by appetibilita (lowest first), then by FPEDIA (highest first) as tiebreaker
-        playersWithBestRoles.sort((a, b) => {
-          if (a.appetibilita !== b.appetibilita) {
-            return a.appetibilita - b.appetibilita; // Lower appetibilita (better quality) first
-          }
-          return b.fpediaScore - a.fpediaScore; // Higher FPEDIA as tiebreaker
-        });
+
+        // Step 2: rank by Fantamedia, then role appetibilita, then FVM - see
+        // compareCandidatesForSlot in formationScoring.js.
+        playersWithBestRoles.sort(compareCandidatesForSlot);
         
         const bestPlayer = playersWithBestRoles[0].playerData;
         const assignedRoleOption = playersWithBestRoles[0].bestRole;
@@ -1286,6 +1334,42 @@ const RosaAcquistata = ({
     return result;
   }, [selectedTeam, players, getFormationRoles, getPlayerRole, formations, selectedFormation, appetibilitaData, translateRoleToItalian, allFormationStats]);
 
+  // Total FVM of the current titolari, and total Fantamedia summed over all 11 starting slots
+  // of the selected formation - not just the filled ones. An empty slot (no eligible player left
+  // to assign) still contributes the role-based fallback (5 for the goalkeeper slot, 6
+  // otherwise), same as a filled slot whose player has no usable Fantamedia data - see
+  // getPlayerFantamedia. This makes the total directly comparable across formations regardless
+  // of how many slots actually got filled.
+  const titolariStats = useMemo(() => {
+    const playersByRole = getPlayersByFormationRoles.playersByRole || {};
+    const positionAssignments = getPlayersByFormationRoles.positionAssignments || {};
+
+    const titolari = Object.entries(playersByRole)
+      .filter(([role]) => role !== 'UNUSED')
+      .flatMap(([, rolePlayers]) => rolePlayers);
+
+    const totalFVM = titolari.reduce((sum, player) => sum + (parseFloat(player.FVM) || 0), 0);
+
+    const assignedByPositionIndex = new Map();
+    Object.values(positionAssignments).forEach(assignment => {
+      const player = (playersByRole[assignment.role] || [])
+        .find(p => p.positionIndex === assignment.positionIndex);
+      if (player) assignedByPositionIndex.set(assignment.positionIndex, player);
+    });
+
+    const slots = formations[selectedFormation]?.positions || [];
+    const totalFantamedia = slots.reduce((sum, slotRoles, positionIndex) => {
+      const assignedPlayer = assignedByPositionIndex.get(positionIndex);
+      if (assignedPlayer) {
+        return sum + getPlayerFantamedia(assignedPlayer);
+      }
+      const isGoalkeeperSlot = slotRoles.includes('P');
+      return sum + (isGoalkeeperSlot ? FANTAMEDIA_FALLBACK_GOALKEEPER : FANTAMEDIA_FALLBACK_DEFAULT);
+    }, 0);
+
+    return { totalFVM, totalFantamedia, count: titolari.length };
+  }, [getPlayersByFormationRoles, formations, selectedFormation]);
+
   // Helper function to get formation stats for any formation - delegates to the shared scoring
   // util (src/utils/formationScoring.js) so this stays in sync with FantamilioniBar's copy.
   const getFormationStats = useCallback((formationName) => {
@@ -1385,8 +1469,7 @@ const RosaAcquistata = ({
               <span style={{
                 fontSize: '0.65rem',
                 fontWeight: 'bold',
-                color: ranking.score >= SCORE_THRESHOLDS.good ? theme.success : ranking.score >= SCORE_THRESHOLDS.ok ? theme.warning : theme.danger,
-                backgroundColor: ranking.score >= SCORE_THRESHOLDS.good ? 'rgba(52, 211, 153, 0.16)' : ranking.score >= SCORE_THRESHOLDS.ok ? 'rgba(251, 191, 36, 0.16)' : 'rgba(248, 113, 113, 0.16)',
+                ...getScoreBadgeStyle(ranking.score),
                 padding: '1px 4px',
                 borderRadius: '3px'
               }}>
@@ -1549,15 +1632,11 @@ const RosaAcquistata = ({
       }).filter(Boolean);
       
       if (playersWithBestRoles.length === 0) return;
-      
-      // Step 2: Sort by appetibilita (lowest first), then by FPEDIA (highest first) as tiebreaker
-      playersWithBestRoles.sort((a, b) => {
-        if (a.appetibilita !== b.appetibilita) {
-          return a.appetibilita - b.appetibilita; // Lower appetibilita (better quality) first
-        }
-        return b.fpediaScore - a.fpediaScore; // Higher FPEDIA as tiebreaker
-      });
-      
+
+      // Step 2: rank by Fantamedia, then role appetibilita, then FVM - see
+      // compareCandidatesForSlot in formationScoring.js.
+      playersWithBestRoles.sort(compareCandidatesForSlot);
+
       const bestPlayer = playersWithBestRoles[0].playerData;
       
       if (bestPlayer) {
@@ -1899,9 +1978,12 @@ const RosaAcquistata = ({
             maxHeight: windowWidth <= 768 ? 'none' : '640px',
             overflowY: 'auto'
           }}>
-            <h3 style={{ textAlign: 'center', marginBottom: '0.5rem', fontSize: '1rem', fontWeight: '600', color: theme.text }}>
+            <h3 style={{ textAlign: 'center', marginBottom: '0.25rem', fontSize: '1rem', fontWeight: '600', color: theme.text }}>
               Rosa ({rosterSorted.length})
             </h3>
+            <div style={{ textAlign: 'center', marginBottom: '0.5rem', fontSize: '0.75rem', color: theme.textMuted, fontWeight: 'bold' }}>
+              FVM totale: {Math.round(totalRosterFVM)}
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
               {rosterSorted.length === 0 && (
                 <div style={{ textAlign: 'center', color: theme.textFaint, fontSize: '0.8rem', padding: '1rem 0' }}>
@@ -1985,8 +2067,7 @@ const RosaAcquistata = ({
                     marginLeft: '0.5rem',
                     fontSize: '0.8rem',
                     fontWeight: 'bold',
-                    color: ranking.score >= SCORE_THRESHOLDS.good ? theme.success : ranking.score >= SCORE_THRESHOLDS.ok ? theme.warning : theme.danger,
-                    backgroundColor: ranking.score >= SCORE_THRESHOLDS.good ? 'rgba(52, 211, 153, 0.16)' : ranking.score >= SCORE_THRESHOLDS.ok ? 'rgba(251, 191, 36, 0.16)' : 'rgba(248, 113, 113, 0.16)',
+                    ...getScoreBadgeStyle(ranking.score),
                     padding: '2px 8px',
                     borderRadius: '4px'
                   }}>
@@ -2003,6 +2084,14 @@ const RosaAcquistata = ({
                 </span>
                 <span style={{ color: theme.text, fontWeight: 'bold' }}>
                   {getPlayersByFormationRoles.totalUsablePlayers} utilizzabili
+                </span>
+              </div>
+              <div style={{ textAlign: 'center', display: 'flex', justifyContent: 'center', gap: '0.75rem', flexWrap: 'wrap', fontSize: '0.75rem', marginTop: '0.25rem' }}>
+                <span style={{ color: theme.textMuted, fontWeight: 'bold' }}>
+                  FVM titolari: {Math.round(titolariStats.totalFVM)}
+                </span>
+                <span style={{ color: theme.textMuted, fontWeight: 'bold' }}>
+                  Fantamedia titolari: {titolariStats.totalFantamedia.toFixed(2)}
                 </span>
               </div>
             </div>
@@ -2026,17 +2115,34 @@ const RosaAcquistata = ({
                           maxWidth: '104px',
                           minHeight: '1.75rem',
                           display: 'flex',
+                          flexDirection: 'column',
                           alignItems: 'center',
                           justifyContent: 'center'
                         }}>
                           {assignedPlayer ? (
-                            <span
-                              onClick={() => navigate(`/player/${assignedPlayer.player_id}`)}
-                              title="Click to view player details"
-                              style={{ cursor: 'pointer', color: theme.blue, fontWeight: '600' }}
-                            >
-                              {assignedPlayer.Nome} <span style={{ color: theme.textFaint, fontWeight: '400' }}>({assignedPlayer.fantamilioni} FM)</span>
-                            </span>
+                            <>
+                              <span
+                                onClick={() => navigate(`/player/${assignedPlayer.player_id}`)}
+                                title="Click to view player details"
+                                style={{
+                                  cursor: 'pointer',
+                                  color: theme.blue,
+                                  fontWeight: '600',
+                                  maxWidth: '100%',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {assignedPlayer.Nome}
+                              </span>
+                              <span
+                                title="Prezzo e Fantamedia usata nel calcolo del punteggio"
+                                style={{ color: theme.textFaint, fontWeight: '400', fontSize: '0.62rem' }}
+                              >
+                                {assignedPlayer.fantamilioni} FM · {getPlayerFantamedia(assignedPlayer).toFixed(2)}
+                              </span>
+                            </>
                           ) : (
                             <span style={{ color: theme.textFaint, fontStyle: 'italic' }}>vuoto</span>
                           )}
@@ -2142,23 +2248,31 @@ const RosaAcquistata = ({
                         })}
                       </div>
                       {playersInPosition.length > 0 ? (
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', minWidth: 0 }}>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: 0 }}>
                           {playersInPosition.map((player, playerIndex) => (
-                            <span
-                              key={`${positionIndex}-${playerIndex}`}
-                              onClick={() => navigate(`/player/${player.player_id}`)}
-                              title="Click to view player details"
-                              style={{
-                                fontWeight: '600',
-                                color: theme.blue,
-                                cursor: 'pointer',
-                                overflow: 'hidden',
-                                textOverflow: 'ellipsis',
-                                whiteSpace: 'nowrap'
-                              }}
-                            >
-                              {player.Nome}
-                            </span>
+                            <div key={`${positionIndex}-${playerIndex}`} style={{ minWidth: 0 }}>
+                              <span
+                                onClick={() => navigate(`/player/${player.player_id}`)}
+                                title="Click to view player details"
+                                style={{
+                                  display: 'block',
+                                  fontWeight: '600',
+                                  color: theme.blue,
+                                  cursor: 'pointer',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {player.Nome}
+                              </span>
+                              <span
+                                title="Prezzo e Fantamedia usata nel calcolo del punteggio"
+                                style={{ color: theme.textFaint, fontWeight: '400', fontSize: '0.62rem' }}
+                              >
+                                {player.fantamilioni} FM · {getPlayerFantamedia(player).toFixed(2)}
+                              </span>
+                            </div>
                           ))}
                         </div>
                       ) : (

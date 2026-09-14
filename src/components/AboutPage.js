@@ -101,9 +101,13 @@ const AboutPage = () => {
           </li>
           <li>
             Per ogni slot, tra i giocatori ancora liberi ed idonei, viene scelto il migliore
-            candidato guardando prima il ruolo più raro che ciascuno potrebbe coprire (per non
-            sprecare in un ruolo comune un giocatore che sa fare anche qualcosa di più raro), e
-            in caso di parità l'<span style={codeStyle}>FVM</span> più alto.
+            candidato guardando prima la <strong>Fantamedia</strong> più alta (media tra
+            Fantamedia 2025-2026 e 2026-2027, o 6/5 di default - vedi sotto) - ma solo se la
+            differenza tra due candidati è di almeno 0.1 punti; sotto quella soglia i due sono
+            considerati alla pari. In caso di parità (o quasi-parità) si guarda il ruolo più raro
+            che ciascuno potrebbe coprire (per non sprecare in un ruolo comune un giocatore che sa
+            fare anche qualcosa di più raro), e infine l'<span style={codeStyle}>FVM</span> più
+            alto.
           </li>
           <li>
             Il giocatore scelto occupa lo slot e non è più disponibile per gli altri; si passa
@@ -162,6 +166,37 @@ const AboutPage = () => {
           sopra il 100). Una rosa che copre tutti gli 11 titolari e ha almeno 2 riserve idonee
           per <em>ogni</em> ruolo richiesto dal modulo, senza giocatori inutilizzabili, arriva
           esattamente a 100.
+        </p>
+      </div>
+
+      <div style={cardStyle}>
+        <h2 style={sectionTitleStyle}>4. FVM e Fantamedia mostrati in rosa</h2>
+        <p style={{ margin: 0 }}>
+          Sotto l'intestazione "Rosa" e "Formazione" vedi tre numeri, tutti calcolati dagli stessi
+          dati usati per il punteggio:
+        </p>
+        <ul style={listStyle}>
+          <li>
+            <strong>FVM totale</strong> - somma dell'<span style={codeStyle}>FVM</span> di
+            <em> tutti</em> i giocatori acquistati, titolari o meno.
+          </li>
+          <li>
+            <strong>FVM titolari</strong> - somma dell'<span style={codeStyle}>FVM</span> dei soli
+            11 titolari assegnati al modulo selezionato.
+          </li>
+          <li>
+            <strong>Fantamedia titolari</strong> - a differenza dell'FVM, <em>non</em> è una
+            media: è la somma della Fantamedia su ciascuno degli 11 slot del modulo, titolare
+            presente o no. Uno slot occupato conta la Fantamedia del suo titolare; uno slot vuoto
+            conta comunque il valore di default (6, o 5 se è lo slot del portiere) - così il
+            numero è sempre confrontabile tra moduli, indipendentemente da quanti slot risultano
+            coperti.
+          </li>
+        </ul>
+        <p style={{ margin: '0.5rem 0 0 0' }}>
+          Anche i box di titolari e riserve mostrano, sotto il nome, prezzo e Fantamedia del
+          singolo giocatore - la stessa Fantamedia usata sia per questi totali sia per decidere
+          gli slot al punto 1.
         </p>
       </div>
 

@@ -81,12 +81,25 @@ For each slot, in priority order:
    E.g. a player eligible for both `A` (2) and `Pc` (1) defaults to `A`, keeping `Pc` open for
    a player who can *only* play `Pc`. This mirrors the standard Mantra convention of playing a
    flexible player in their most defensive usable role by default.
-3. Rank the candidates:
-   - **lowest role appetibilita first** (of each candidate's own best-fit role from step 2)
-   - **tie-break: highest `FVM` first** (fantacalcio valuation - the player's quotazione-derived
-     value from the CSV)
+3. Rank the candidates (`compareCandidatesForSlot` in `formationScoring.js`):
+   - **highest Fantamedia first** — see below for how a player's Fantamedia is computed — but
+     only if the gap between two candidates is at least `FANTAMEDIA_TIE_THRESHOLD` (0.1 points).
+     A gap smaller than that is treated as a tie and falls through to the next criterion, so a
+     6.61 vs 6.58 doesn't override role scarcity the way a real gap (7.8 vs 6.0) should.
+   - **tie-break 1: lowest role appetibilita first** (of each candidate's own best-fit role from
+     step 2) — this is what used to be the primary criterion; it still decides whenever
+     Fantamedia is a near-tie.
+   - **tie-break 2: highest `FVM` first** (fantacalcio valuation - the player's
+     quotazione-derived value from the CSV)
 4. The top-ranked candidate is assigned to the slot, in that best-fit role, and removed from
    the pool. Move to the next slot.
+
+Fantamedia here is not the raw stat: it's the average of the player's `Fantamedia 2025-2026` and
+`Fantamedia 2026-2027` values (only counting a season that actually has data - a season with 0
+appearances stores `0` as a placeholder, not a real average, so it's excluded rather than
+dragging the average down), falling back to a role-based default (5 for a goalkeeper, 6
+otherwise) if neither season has data. Same function (`getPlayerFantamedia`) that computes the
+"Fantamedia titolari"/box display values described further down.
 
 This continues until either all 11 slots are filled or there are no more eligible candidates
 left (capped at 11 assigned players).
@@ -111,8 +124,14 @@ first reserve pass aren't further ranked by role; they just remain in the full s
 
 | Priority | Criterion |
 |---|---|
-| 1st | Role appetibilita of the player's best-fit role for that slot (lower = wins) |
-| 2nd | `FVM` (higher = wins) |
+| 1st | Fantamedia (higher = wins) - only decisive if the gap is >= `FANTAMEDIA_TIE_THRESHOLD` (0.1) |
+| 2nd | Role appetibilita of the player's best-fit role for that slot (lower = wins) |
+| 3rd | `FVM` (higher = wins) |
+
+Note this is a *slot processing order* vs. *candidate ranking* distinction: appetibilita still
+decides which of the 11 slots gets filled first (step 2, unchanged - that's about maximizing how
+many slots get filled at all, not player quality). It only moved to 2nd place in the ranking of
+*who wins* an already-selected slot.
 
 ## The formation score (0-100)
 
@@ -153,3 +172,8 @@ that.
   slotted wherever the greedy pass currently needs them most, based on the ordering in step 2.
 - **Only one reserve layer.** The reserve pass produces at most 11 more players (one per slot);
   a squad's 3rd/4th choice for a given position isn't separately categorized.
+- **Fantamedia-first ranking can occasionally lower slot coverage.** Since Fantamedia now outranks
+  appetibilita for *who wins* a slot, a strong flexible player can win a slot away from a weaker
+  specialist who had no other slot to go to, leaving that specialist unassigned. This trades a
+  small amount of raw coverage (and thus of the score's starter component) for fielding
+  better-performing players.

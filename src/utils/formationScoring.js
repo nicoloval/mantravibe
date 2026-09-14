@@ -16,6 +16,50 @@ const WEIGHTS = { starters: 60, reserves: 40, maxPenalty: 30 };
 // Score bands used to color-code formation buttons in the UI.
 export const SCORE_THRESHOLDS = { good: 75, ok: 50 };
 
+// Fallback Fantamedia when a player has no usable data for either season - goalkeepers get a
+// lower baseline than outfield players, roughly matching typical fantacalcio scoring by role.
+export const FANTAMEDIA_FALLBACK_GOALKEEPER = 5;
+export const FANTAMEDIA_FALLBACK_DEFAULT = 6;
+const FANTAMEDIA_SEASON_KEYS = ['Fantamedia 2025-2026', 'Fantamedia 2026-2027'];
+
+// Two candidates for the same slot with Fantamedia within this many points of each other are
+// treated as tied, falling through to role appetibilita (then FVM) instead of letting a razor-
+// thin gap (6.61 vs 6.58) override the scarcity logic the way a real one (7.8 vs 6.0) should.
+// Exported as a named constant so it can be promoted to a user-tunable setting later without
+// touching the comparison logic itself.
+export const FANTAMEDIA_TIE_THRESHOLD = 0.1;
+
+// A season's Fantamedia of exactly 0 means the player had no appearances that season (final.json
+// uses 0 as a placeholder, not a real average), so it's treated as missing rather than averaged
+// in. A player's Fantamedia is the average of whichever season(s) actually have data; if neither
+// does, it falls back to a role-based default.
+export function getPlayerFantamedia(player) {
+  const availableValues = FANTAMEDIA_SEASON_KEYS
+    .map(key => player[key])
+    .filter(value => typeof value === 'number' && value > 0);
+
+  if (availableValues.length === 0) {
+    return player.Ruolo === 'POR' ? FANTAMEDIA_FALLBACK_GOALKEEPER : FANTAMEDIA_FALLBACK_DEFAULT;
+  }
+  return availableValues.reduce((sum, value) => sum + value, 0) / availableValues.length;
+}
+
+// Ranks two starter/reserve candidates competing for the same slot - shared by assignStarters
+// below and by RosaAcquistata.js's reserve-assignment pass, so titolari, riserve and the score
+// all agree on who wins a slot. Higher Fantamedia wins once the gap clears
+// FANTAMEDIA_TIE_THRESHOLD; within that band, falls back to role appetibilita (lower/rarer wins,
+// preserving slots for players with fewer alternatives), then FVM.
+export function compareCandidatesForSlot(a, b, fantamediaTieThreshold = FANTAMEDIA_TIE_THRESHOLD) {
+  const fantamediaGap = getPlayerFantamedia(b.playerData.player) - getPlayerFantamedia(a.playerData.player);
+  if (Math.abs(fantamediaGap) >= fantamediaTieThreshold) {
+    return fantamediaGap;
+  }
+  if (a.appetibilita !== b.appetibilita) {
+    return a.appetibilita - b.appetibilita;
+  }
+  return b.fpediaScore - a.fpediaScore;
+}
+
 // Builds the {player, possibleRoles, unusedRoles, ...} view of a team's roster against one
 // formation - shared by both the starter-assignment pass and the reserve-bucketing pass.
 function buildTeamPlayersWithRoles(team, formationPositions, players, getRoleRanking, getPlayerRole, translateRoleToItalian) {
@@ -151,12 +195,7 @@ function assignStarters(teamPlayersWithRoles, formationPositions, getRoleRanking
 
     if (playersWithBestRoles.length === 0) return;
 
-    playersWithBestRoles.sort((a, b) => {
-      if (a.appetibilita !== b.appetibilita) {
-        return a.appetibilita - b.appetibilita;
-      }
-      return b.fpediaScore - a.fpediaScore;
-    });
+    playersWithBestRoles.sort(compareCandidatesForSlot);
 
     const bestPlayer = playersWithBestRoles[0].playerData;
     assignedPlayerIds.add(bestPlayer.playerId);

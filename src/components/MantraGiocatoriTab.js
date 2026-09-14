@@ -796,8 +796,19 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
   const nameTdStyle = {
     ...tdStyle,
-    minWidth: '180px',
+    minWidth: '90px',
+    maxWidth: '150px',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
     fontSize: '0.875rem'
+  };
+
+  // Azioni column (star + Compra/status) - no minWidth floor, so it shrinks to fit its buttons
+  // instead of matching every other column's default minimum.
+  const actionsTdStyle = {
+    ...tdStyle,
+    minWidth: '0',
+    padding: '0.35rem 0.25rem'
   };
 
   // Style for missing data cells (-1.00 values)
@@ -837,17 +848,17 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
   const actionsStyle = {
     display: 'flex',
-    gap: '0.5rem',
+    gap: '0.3rem',
     alignItems: 'center'
   };
 
   const buttonStyle = {
-    padding: '0.25rem 0.5rem',
+    padding: '0.2rem 0.35rem',
     borderRadius: '0.25rem',
     border: `1px solid ${theme.border}`,
     backgroundColor: theme.surfaceAlt,
     color: theme.text,
-    fontSize: '0.75rem',
+    fontSize: '0.7rem',
     cursor: 'pointer',
     transition: 'all 0.2s'
   };
@@ -1778,9 +1789,6 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
           <table style={tableStyle}>
           <thead>
             <tr>
-              <ColumnHeader columnName="#" content="#">
-                  #
-              </ColumnHeader>
               <ColumnHeader columnName="Azioni" content="Azioni">
                   Azioni
               </ColumnHeader>
@@ -1833,17 +1841,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
               return (
                 <tr key={index} style={rowStyle} {...priceHoverHandlers(isInterested ? interestedPrice : null)}>
-                  <td style={tdStyle}>
-                    <div style={{
-                      textAlign: 'center',
-                      fontWeight: '500',
-                      color: theme.textMuted,
-                      fontSize: '0.875rem'
-                    }}>
-                      {index + 1}
-                    </div>
-                  </td>
-                  <td style={tdStyle}>
+                  <td style={actionsTdStyle}>
                     <div style={actionsStyle}>
                       {status === 'acquired' && (
                         <span style={acquiredStatusStyle}>Acquistato</span>
@@ -1906,9 +1904,16 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                   {visibleColumns.has('Nome') && (
                     <td style={nameTdStyle}>
                       <div
-                        style={{...playerNameStyle, cursor: 'pointer', color: theme.blue}}
+                        style={{
+                          ...playerNameStyle,
+                          cursor: 'pointer',
+                          color: theme.blue,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
                         onClick={() => navigate(`/player/${player.player_id}`)}
-                        title="Click to view player details"
+                        title={player.Nome}
                       >
                         {player.Nome}
                       </div>
