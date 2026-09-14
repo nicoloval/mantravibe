@@ -65,12 +65,33 @@ def extract_last_name(full_name: str) -> str:
     return parts[-1] if parts else full_name
 
 
+# Fantacalcio's own display name disambiguates a surname collision within ITS database by
+# appending a truncated first-name prefix ending in a period, e.g. "Martinez L." (Lautaro) vs
+# "Martinez Jo." (Josep) - both Inter players; or "Paz N." (Nico Paz) vs a same-surname
+# teammate elsewhere. Requiring a *trailing period* is what keeps this from ever misfiring on a
+# genuine multi-word surname like "De Roon" - those don't end in one.
+SHORT_NAME_SUFFIX_RE = re.compile(r'^(.*\S)\s+([A-Za-zÀ-ÿ]+)\.$')
+
+
+def split_short_name(name: str) -> Tuple[str, str]:
+    """Returns (surname, prefix) - prefix is "" when the name has no disambiguation suffix
+    (the common case, e.g. "Malen", "Carnesecchi")."""
+    if not name:
+        return "", ""
+    match = SHORT_NAME_SUFFIX_RE.match(name.strip())
+    if not match:
+        return name.strip(), ""
+    return match.group(1), match.group(2)
+
+
 def calculate_name_similarity(name1: str, name2: str, threshold: float = 0.8) -> Tuple[float, bool]:
-    """name1 may be a surname only; name2 is expected to be a full name."""
+    """name1 may be a surname only (optionally with a fantacalcio disambiguation suffix - see
+    split_short_name, stripped here before comparing); name2 is expected to be a full name."""
     if not name1 or not name2:
         return 0.0, False
 
-    norm1 = normalize_name(name1)
+    surname1, _ = split_short_name(name1)
+    norm1 = normalize_name(surname1)
     norm2 = normalize_name(name2)
     last_name2 = extract_last_name(norm2)
 

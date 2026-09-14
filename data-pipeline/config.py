@@ -5,7 +5,7 @@ Edit this file when a new Serie A season starts (usually late August/September) 
 fresh downloads in input/ for it - see input/README.md.
 """
 
-# The season input/lista_fantaasta/ and input/statistiche_corrente/ represent, as the year it
+# The season input/quotazioni/ and input/statistiche_corrente/ represent, as the year it
 # starts. e.g. 2026 -> Serie A 2026/2027 (the season currently pre-set here).
 CURRENT_SEASON = 2026
 

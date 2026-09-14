@@ -35,7 +35,7 @@ Mantravibe is a comprehensive web application designed to assist fantasy footbal
 The current data pipeline (see "Data Pipeline" below) builds on ideas and code from a few other projects:
 
 ### [tool-asta-fantacalcio-mantra](https://github.com/bcirillo99/tool-asta-fantacalcio-mantra)
-A standalone, no-build auction-tracking tool. Its `js/data.js` documents the column layout of fantacalcio.it's free `Lista-FantaAsta-Fantacalcio.csv` export and the Mantra role-code scheme (`Por, Dc, B, Dd, Ds, E, M, C, W, T, A, Pc`). `data-pipeline/parse_csv.py` follows that same convention to read the CSV.
+A standalone, no-build auction-tracking tool. Its `js/data.js` documents the Mantra role-code scheme (`Por, Dc, B, Dd, Ds, E, M, C, W, T, A, Pc`) used by fantacalcio.it's exports - originally documented there for the now-retired `Lista-FantaAsta-Fantacalcio.csv` export, but the same codes carry over to the current `Quotazioni_Fantacalcio` xlsx export `data-pipeline/parse_quotazioni.py` reads today.
 
 ### mantradata (local, sibling project)
 A private Python tool (`../mantradata`) that fetches Understat data and fuzzy-matches it against a player list by name/team. `data-pipeline/match_utils.py` and `data-pipeline/enrich.py` are a trimmed-down port of its matching logic, adapted to fetch from Understat's current JSON endpoint (see the Data Pipeline section for why).
@@ -116,32 +116,35 @@ for exact instructions):
 
 | Download | From | Goes in |
 |---|---|---|
-| `Lista-FantaAsta-Fantacalcio.csv` | fantacalcio.it → **App → FantaAsta Live → Calciatori Serie A** | `data-pipeline/input/lista_fantaasta/` |
+| Player list export (`.xlsx`) | [fantacalcio.it/quotazioni-fantacalcio](https://www.fantacalcio.it/quotazioni-fantacalcio) | `data-pipeline/input/quotazioni/` |
 | Current season stats export (`.xlsx`) | [fantacalcio.it/statistiche-serie-a](https://www.fantacalcio.it/statistiche-serie-a/), current season, role "Tutti" | `data-pipeline/input/statistiche_corrente/` |
 | Previous season stats export (`.xlsx`) | same page, previous season, role "Tutti" | `data-pipeline/input/statistiche_precedente/` |
 
+**For all three: set the "Visualizza ruoli" filter to "Mantra" (not "Classic") before
+exporting.** The pipeline reads the Mantra role column; a Classic-mode export may not have it.
+
 Place each file directly in its folder, whatever it's actually named — the pipeline picks up
-whichever file it finds there by type (`.csv`/`.xlsx`) rather than an exact filename, since
-browsers often rename a download that collides with an existing one. This is the only manual
-step — everything else is a command.
+whichever `.xlsx` file it finds there rather than an exact filename, since browsers often rename
+a download that collides with an existing one. This is the only manual step — everything else is
+a command.
 
 ### 2. Build
 
 From the `mantravibe/` root:
 
 ```bash
-npm run data:build   # parses the CSV, applies fantacalcio.it stats, fetches/matches Understat stats, writes public/data/final.json
+npm run data:build   # parses the Quotazioni export, applies fantacalcio.it stats, fetches/matches Understat stats, writes public/data/final.json
 ```
 
 The two fantacalcio.it stats exports are matched by their own internal player id (exact match,
-same id space as the FantaAsta CSV) and are the **primary** source for Presenze, Gol, Assist,
+same id space as the Quotazioni export) and are the **primary** source for Presenze, Gol, Assist,
 Ammonizioni, Espulsioni, Media Voto, Fantamedia and Gol Subiti. Understat is fetched for the
 current season and the previous one (see **Season configuration** below) across 6 European
 leagues, and complements the fantacalcio.it exports: it's the only source for Minuti Giocati, xG
 and xA, and it fills in the other stats too for anyone missing from the Serie A-only
 fantacalcio.it exports (e.g. a player who just transferred in from another league). Understat
 responses are cached under `data-pipeline/cache/`, so re-running `data:build` after tweaking the
-CSV is fast — delete `data-pipeline/cache/` if you want a fully fresh fetch.
+input files is fast — delete `data-pipeline/cache/` if you want a fully fresh fetch.
 
 ### 3. Run the app
 
@@ -154,7 +157,7 @@ roster changes or a new matchday); step 3 is unaffected.
 
 ### Season configuration
 
-The season is **not** read from the CSV — it's set explicitly in `data-pipeline/config.py`:
+The season is **not** read from the Quotazioni export — it's set explicitly in `data-pipeline/config.py`:
 
 ```python
 CURRENT_SEASON = 2026   # Serie A 2026/2027 (pre-set to the current season)
@@ -179,7 +182,7 @@ options — older seasons are still in the JSON, just not exposed in the UI.
 
 ### Notes on the data
 
-- **Base fields** (from the CSV): `Nome`, `Squadra`, `Ruolo Mantra`, `QtA`/`QtI`/`FVM`.
+- **Base fields** (from the Quotazioni export): `Nome`, `Squadra`, `Ruolo Mantra`, `QtA`/`QtI`/`FVM`/`Diff` (the week-over-week quotazione change - signed, so a negative value is a real reading, not a missing-data sentinel like it is for every other field here).
 - **fantacalcio.it fields** (from the two stats exports, id-matched — usually 100% for the
   current season, less for the previous one since it only covers players who were already in
   Serie A): `Presenze`, `Gol`, `Assist`, `Ammonizioni`, `Espulsioni`, `Media Voto`, `Fantamedia`,
@@ -215,19 +218,19 @@ public/
 
 data-pipeline/           # Data ingestion & enrichment (see Data Pipeline section)
 ├── input/                          # Three manual downloads go here, one per subfolder
-│   ├── lista_fantaasta/               # Lista-FantaAsta-Fantacalcio.csv
+│   ├── quotazioni/                    # Quotazioni_Fantacalcio_Stagione_2026_27.xlsx
 │   ├── statistiche_corrente/          # current season stats export (.xlsx)
 │   ├── statistiche_precedente/        # previous season stats export (.xlsx)
 │   └── README.md                      # (the files themselves are gitignored)
 ├── cache/                    # Cached Understat API responses (gitignored)
 ├── config.py                  # CURRENT_SEASON / PREVIOUS_SEASONS - tune the season here
-├── parse_csv.py               # Reads the fantacalcio.it FantaAsta CSV
+├── parse_quotazioni.py        # Reads the fantacalcio.it Quotazioni export
 ├── fantacalcio_stats.py       # Reads a fantacalcio.it stats export, id-matches to players
 ├── input_files.py             # Locates a manual download in input/ by file type
 ├── understat_fetch.py         # Fetches Understat player stats
 ├── match_utils.py              # Name/team fuzzy-matching helpers
 ├── enrich.py                   # Matches players against Understat data (name-matched)
-└── build.py                    # Orchestrator: CSV -> fantacalcio.it stats -> Understat -> public/data/final.json
+└── build.py                    # Orchestrator: Quotazioni -> fantacalcio.it stats -> Understat -> public/data/final.json
 ```
 
 ## 🎮 Usage Guide

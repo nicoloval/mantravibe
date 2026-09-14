@@ -1,8 +1,8 @@
 """
 Locates a manually-downloaded input file by extension rather than exact filename - browsers
 often rename a download that collides with an existing file
-(`Lista-FantaAsta-Fantacalcio (1).csv`), and a filename-based lookup would just silently miss
-it. See input/README.md.
+(`Quotazioni_Fantacalcio_Stagione_2026_27 (1).xlsx`), and a filename-based lookup would just
+silently miss it. See input/README.md.
 """
 
 import glob

@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """
 Builds mantravibe/public/data/final.json:
-  1. parse the fantacalcio.it FantaAsta CSV in input/lista_fantaasta/ (players, Mantra roles,
+  1. parse the fantacalcio.it Quotazioni export in input/quotazioni/ (players, Mantra roles,
      quotazioni)
   2. apply fantacalcio.it's own current/previous season stats exports (Media Voto, Fantamedia,
      Gol Subiti, Presenze, Gol, Assist, Ammonizioni, Espulsioni) - the primary source for
@@ -20,7 +20,7 @@ Usage: uv run python build.py
 import json
 import os
 
-from parse_csv import parse_lista_csv
+from parse_quotazioni import parse_quotazioni
 from fantacalcio_stats import load_stats_by_id, apply_stats
 from understat_fetch import run_fetch_all_leagues_data
 from enrich import match_with_understat, season_label
@@ -29,7 +29,7 @@ from config import CURRENT_SEASON, PREVIOUS_SEASONS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 INPUT_DIR = os.path.join(HERE, "input")
-CSV_DIR = os.path.join(INPUT_DIR, "lista_fantaasta")
+QUOTAZIONI_DIR = os.path.join(INPUT_DIR, "quotazioni")
 STATS_CURRENT_DIR = os.path.join(INPUT_DIR, "statistiche_corrente")
 STATS_PREVIOUS_DIR = os.path.join(INPUT_DIR, "statistiche_precedente")
 CACHE_DIR = os.path.join(HERE, "cache", "understats")
@@ -37,9 +37,9 @@ OUTPUT_FILE = os.path.join(HERE, "..", "public", "data", "final.json")
 
 
 def main():
-    csv_path = find_single_file(CSV_DIR, ".csv")
-    print("Parsing Lista-FantaAsta CSV...")
-    players = parse_lista_csv(csv_path)
+    quotazioni_path = find_single_file(QUOTAZIONI_DIR, ".xlsx")
+    print("Parsing Quotazioni Fantacalcio...")
+    players = parse_quotazioni(quotazioni_path)
     print(f"Parsed {len(players)} players")
 
     print("\nApplying fantacalcio.it stats (current season)...")

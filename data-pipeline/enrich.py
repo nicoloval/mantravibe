@@ -1,11 +1,11 @@
 """
-Matches base player records (from parse_csv.py) against Understat data and flattens the
+Matches base player records (from parse_quotazioni.py) against Understat data and flattens the
 matched seasons into flat, UI-friendly fields. Matching logic ported from
 mantradata/data_retriever.py:match_fantacalcio_with_understat (surname/full-name + team
 disambiguation, then Understat id used to pull the same player's other seasons).
 """
 
-from match_utils import calculate_name_similarity, calculate_team_similarity
+from match_utils import calculate_name_similarity, calculate_team_similarity, split_short_name
 
 # Understat season -> flat field label, e.g. 2026 -> "2026-2027"
 def season_label(season):
@@ -55,10 +55,14 @@ FANTACALCIO_PRIMARY_FIELDS = {"Presenze", "Gol", "Assist", "Ammonizioni", "Espul
 
 
 def _find_understat_match(fc_full_name, fc_squadra, understat_data):
-    """Surname/full-name + team disambiguation. Returns (player_dict, season, league) or None."""
-    match, match_season, match_league = None, None, None
+    """Surname/full-name + team disambiguation. When that yields more than one candidate (two
+    same-surname teammates, e.g. Inter's "Martinez L." / Lautaro and "Martinez Jo." / Josep),
+    fantacalcio's own disambiguation prefix (see split_short_name) is used to break the tie
+    before giving up. Returns (player_dict, season, league) or (None, None, None)."""
+    _, prefix = split_short_name(fc_full_name)
 
     for season, season_data in understat_data.items():
+        candidates = []
         for league, players in season_data.items():
             for player in players:
                 name_sim, name_match = calculate_name_similarity(
@@ -68,15 +72,25 @@ def _find_understat_match(fc_full_name, fc_squadra, understat_data):
                     fc_squadra, player.get("team_title", "")
                 )
                 if name_match and team_match:
-                    if match is None:
-                        match, match_season, match_league = player, season, league
-                    else:
-                        # Ambiguous (same surname/team matched twice) - bail out for this player
-                        return None, None, None
-        if match is not None:
-            break
+                    candidates.append((player, league))
 
-    return match, match_season, match_league
+        if len(candidates) == 1:
+            player, league = candidates[0]
+            return player, season, league
+
+        if len(candidates) > 1 and prefix:
+            narrowed = [
+                (player, league) for player, league in candidates
+                if player.get("player_name", "").split(" ", 1)[0].upper().startswith(prefix.upper())
+            ]
+            if len(narrowed) == 1:
+                player, league = narrowed[0]
+                return player, season, league
+
+        if candidates:
+            return None, None, None  # still ambiguous - bail out for this player
+
+    return None, None, None
 
 
 def match_with_understat(players, understat_data):
@@ -86,7 +100,7 @@ def match_with_understat(players, understat_data):
 
     for player in players:
         record = dict(player)
-        fc_full_name = record.get("NomeCompleto") or record.get("Nome", "")
+        fc_full_name = record.get("Nome", "")
         fc_squadra = record.get("Squadra", "")
 
         match, match_season, _ = _find_understat_match(fc_full_name, fc_squadra, understat_data)

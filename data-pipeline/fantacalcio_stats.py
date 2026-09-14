@@ -7,8 +7,8 @@ columns - we only need "Tutti". Row 1 is a title, row 2 is the header:
 
     Id, R, Rm, Nome, Squadra, Pv, Mv, Fm, Gf, Gs, Rp, Rc, R+, R-, Ass, Amm, Esp, Au
 
-"Id" is fantacalcio.it's own internal player id - the same one used in the FantaAsta CSV
-(parse_csv.py), so matching against the base player list is an exact id lookup, not the fuzzy
+"Id" is fantacalcio.it's own internal player id - the same one used in the Quotazioni export
+(parse_quotazioni.py), so matching against the base player list is an exact id lookup, not the fuzzy
 name matching enrich.py needs for Understat.
 """
 
