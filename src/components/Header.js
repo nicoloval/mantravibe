@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { calculateBudgetStats, getRoleCategoryColor, getRoleCategoryName } from '../utils/budgetStats';
+import { AppLogoIcon, TeamCountIcon, BudgetIcon, ThemeLightIcon, ThemeDarkIcon, InfoIcon, SettingsIcon } from '../icons';
 import { theme } from '../theme';
 
 const Header = ({ dataCount = 0, teams = [], players = [], themeMode, onToggleTheme, onOpenSettings }) => {
@@ -118,7 +119,8 @@ const Header = ({ dataCount = 0, teams = [], players = [], themeMode, onToggleTh
     <header style={headerStyle}>
       <div style={containerStyle}>
         <h1 style={titleStyle}>
-          ⚽ Mantravibe
+          <AppLogoIcon size={22} />
+          Mantravibe
         </h1>
 
         {/* Role spending as a single stacked bar - % of total budget, not % of spend so far
@@ -177,48 +179,48 @@ const Header = ({ dataCount = 0, teams = [], players = [], themeMode, onToggleTh
         <div style={statsStyle}>
           {/* Total players bought */}
           <div style={statItemStyle}>
-            <span>👥</span>
+            <TeamCountIcon size={14} />
             <span>{budgetStats.totalPlayersBought}</span>
           </div>
 
           {/* Budget remaining / total */}
           <div style={statItemStyle}>
-            <span>💰</span>
+            <BudgetIcon size={14} />
             <span>{budgetStats.totalBudgetRemaining.toLocaleString()}/{budgetStats.totalBudgetInitial.toLocaleString()}</span>
           </div>
         </div>
 
         {onToggleTheme && (
           <button
-            style={{ ...iconButtonStyle, fontSize: '1.3rem' }}
+            style={iconButtonStyle}
             onClick={onToggleTheme}
             title={themeMode === 'light' ? 'Passa al tema scuro' : 'Passa al tema chiaro'}
-            onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
-            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
-            {themeMode === 'light' ? '🌙' : '☀️'}
+            {themeMode === 'light' ? <ThemeDarkIcon size={20} /> : <ThemeLightIcon size={20} />}
           </button>
         )}
 
         <button
-          style={{ ...iconButtonStyle, fontSize: '1.4rem' }}
+          style={iconButtonStyle}
           onClick={() => navigate('/about')}
           title="Come funziona la formazione"
-          onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
-          onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+          onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+          onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
         >
-          ℹ️
+          <InfoIcon size={21} />
         </button>
 
         {onOpenSettings && (
           <button
-            style={{ ...iconButtonStyle, fontSize: '1.6rem' }}
+            style={iconButtonStyle}
             onClick={onOpenSettings}
             title="Settings"
-            onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
-            onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+            onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.1)'}
+            onMouseLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
           >
-            ⚙️
+            <SettingsIcon size={23} />
           </button>
         )}
       </div>

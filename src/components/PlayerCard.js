@@ -242,7 +242,7 @@ const PlayerCard = ({
       {/* Badge infortunio - Solo se il giocatore è infortunato */}
       {isInjured && (
         <div style={injuryBadgeStyle}>
-          🩹 INFORTUNATO
+          INFORTUNATO
         </div>
       )}
       

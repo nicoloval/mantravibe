@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
 import { getSeasonLabels, SEASON_STAT_BASES } from '../utils/dataUtils';
 import { theme } from '../theme';
+import { TrendUpIcon, TrendDownIcon } from '../icons';
 import StatTrendTable from './StatTrendTable';
 
 // Pure helpers with no dependency on component state/props - kept at module scope (a stable
@@ -476,7 +477,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
 
 
   const getSortIcon = (key) => {
-    if (sortConfig.key !== key) return '↕️';
+    if (sortConfig.key !== key) return '↕';
     return sortConfig.direction === 'asc' ? '↑' : '↓';
   };
 
@@ -544,14 +545,15 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     return columnName.substring(0, 8);
   };
 
-  // Helper function to get trend emoji
-  const getTrendEmoji = (trend) => {
+  // Helper function to get a trend indicator - an icon when there's a clear direction (no text
+  // otherwise conveys this), plain "=" when flat/unknown.
+  const getTrendIcon = (trend) => {
     if (!trend) return '=';
     const trendLower = trend.toLowerCase();
     if (trendLower.includes('up') || trendLower.includes('crescita') || trendLower.includes('positivo')) {
-      return '📈';
+      return <TrendUpIcon size={16} color={theme.success} />;
     } else if (trendLower.includes('down') || trendLower.includes('calo') || trendLower.includes('negativo')) {
-      return '📉';
+      return <TrendDownIcon size={16} color={theme.danger} />;
     }
     return '=';
   };
@@ -1086,7 +1088,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
               justifyContent: 'center'
             }}
           >
-            {displayMode === 'table' ? '🃏 Carte' : '📊 Tabella'}
+            {displayMode === 'table' ? 'Carte' : 'Tabella'}
           </button>
 
           <div style={{ color: theme.textMuted, fontSize: '0.875rem', marginLeft: isMobile ? 0 : 'auto' }}>
@@ -1539,7 +1541,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                     gap: '0.5rem'
                   }}>
                     <span style={{ fontSize: '1.2rem' }}>
-                      {getTrendEmoji(player.Trend)}
+                      {getTrendIcon(player.Trend)}
                     </span>
                     <div
                       style={{...cardTitleStyle, cursor: 'pointer', color: theme.blue}}

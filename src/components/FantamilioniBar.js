@@ -598,7 +598,7 @@ const FantamilioniBar = ({
           fontSize: '13px',
           fontWeight: '500'
         }}>
-          🛒 Clicca su "Compra" per iniziare l'acquisto di un giocatore
+          Clicca su "Compra" per iniziare l'acquisto di un giocatore
         </div>
       )}
     </div>

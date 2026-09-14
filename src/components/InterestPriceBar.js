@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { InterestedIcon } from '../icons';
 import { theme } from '../theme';
 
 // Same "bar at the top of the page" pattern as FantamilioniBar (the Compra flow), but for
@@ -62,7 +63,7 @@ const InterestPriceBar = ({ player, existingPrice = null, onConfirm, onCancel })
       gap: '16px',
       flexWrap: 'wrap'
     }}>
-      <span style={{ fontSize: '20px' }}>⭐</span>
+      <InterestedIcon size={22} color={theme.star} fill={theme.star} />
 
       <div style={{ minWidth: '140px' }}>
         <div style={{ fontWeight: 'bold', fontSize: '16px', color: theme.text }}>{player.Nome}</div>

@@ -10,6 +10,7 @@ import Settings from './components/Settings';
 import AboutPage from './components/AboutPage';
 import PlayerPage from './components/PlayerPage';
 import { loadBudget, loadPlayerStatus, saveBudget, savePlayerStatus, updatePlayerStatus, loadInterestedPlayers, saveInterestedPlayers } from './utils/storage';
+import { parseCsvRows, downloadCsv } from './utils/csv';
 import { theme, applyThemeMode, getStoredThemeMode } from './theme';
 
 const App = () => {
@@ -535,6 +536,61 @@ const App = () => {
     }
   };
 
+  // Preferiti (interestedPlayers) export/import as a standalone CSV - Nome (the internal player
+  // name used everywhere else for matching, e.g. player.Nome) and Prezzo, one row per starred
+  // player. Kept separate from handleExport/handleImport's full JSON snapshot since this is the
+  // one slice of state people plausibly want to move between browsers/devices on its own.
+  const handleExportInterested = () => {
+    const rows = Object.entries(interestedPlayers)
+      .map(([playerId, info]) => {
+        const player = mantraData.find(p => String(p.id) === String(playerId));
+        return player ? [player.Nome, info?.price ?? ''] : null;
+      })
+      .filter(Boolean);
+
+    downloadCsv(`mantravibe-preferiti-${new Date().toISOString().split('T')[0]}.csv`, ['Nome', 'Prezzo'], rows);
+  };
+
+  // Merges into the existing preferiti rather than replacing them, so importing an older/partial
+  // export can't silently drop players starred since. Rows whose Nome doesn't match any
+  // currently-loaded player are skipped and reported.
+  const handleImportInterested = (csvText) => {
+    try {
+      const rows = parseCsvRows(csvText);
+      if (rows.length === 0) {
+        throw new Error('Nessuna riga trovata nel file');
+      }
+
+      const updates = {};
+      const notFound = [];
+
+      rows.forEach(([nome, prezzoRaw]) => {
+        if (!nome) return;
+        const player = mantraData.find(p => p.Nome === nome);
+        if (!player) {
+          notFound.push(nome);
+          return;
+        }
+        const price = parseInt(prezzoRaw, 10);
+        updates[player.id] = {
+          price: Number.isFinite(price) ? price : null,
+          timestamp: new Date().toISOString()
+        };
+      });
+
+      setInterestedPlayers(prev => ({ ...prev, ...updates }));
+
+      const importedCount = Object.keys(updates).length;
+      let message = `Importati ${importedCount} preferiti.`;
+      if (notFound.length > 0) {
+        message += ` Non trovati (${notFound.length}): ${notFound.join(', ')}`;
+      }
+      alert(message);
+    } catch (error) {
+      alert('Errore durante l\'importazione dei preferiti: ' + error.message);
+    }
+  };
+
   return (
     <Router>
       {/* Declaration Popup */}
@@ -696,7 +752,6 @@ const App = () => {
             color: theme.danger,
             textAlign: 'center'
           }}>
-            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>⚠️</div>
             <div style={{ fontSize: '1.125rem', fontWeight: '600', marginBottom: '0.5rem' }}>
               Errore di caricamento
             </div>
@@ -711,7 +766,6 @@ const App = () => {
             fontSize: '1.125rem',
             color: theme.textMuted
           }}>
-            <div style={{ marginBottom: '1rem', fontSize: '3rem' }}>⚽</div>
             <div style={{ fontWeight: '600', marginBottom: '0.5rem' }}>
               Benvenuto in Fantavibe!
             </div>
@@ -770,6 +824,8 @@ const App = () => {
         onReset={handleReset}
         onExport={handleExport}
         onImport={handleImport}
+        onExportInterested={handleExportInterested}
+        onImportInterested={handleImportInterested}
       />
           </div>
         } />

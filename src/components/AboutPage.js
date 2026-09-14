@@ -1,5 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
+import { InfoIcon } from '../icons';
 import { theme } from '../theme';
 
 // Explains, in plain Italian, the two things about "La Mia Rosa" that aren't obvious from the
@@ -74,7 +75,7 @@ const AboutPage = () => {
         <button style={backButtonStyle} onClick={() => navigate('/')}>
           ← Torna a Giocatori
         </button>
-        <h1 style={titleStyle}>ℹ️ Come funziona la Formazione</h1>
+        <h1 style={titleStyle}><InfoIcon size={24} /> Come funziona la Formazione</h1>
       </div>
 
       <div style={cardStyle}>
@@ -266,7 +267,10 @@ const titleStyle = {
   fontSize: '1.5rem',
   fontWeight: '700',
   color: theme.text,
-  margin: 0
+  margin: 0,
+  display: 'flex',
+  alignItems: 'center',
+  gap: '0.5rem'
 };
 
 const cardStyle = {

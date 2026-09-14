@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
+import { SettingsIcon } from '../icons';
 import { theme } from '../theme';
 
-const Settings = ({ 
-  isOpen, 
-  onClose, 
-  budget, 
-  onBudgetChange, 
-  minPlayers, 
-  onMinPlayersChange, 
-  maxPlayers, 
+const Settings = ({
+  isOpen,
+  onClose,
+  budget,
+  onBudgetChange,
+  minPlayers,
+  onMinPlayersChange,
+  maxPlayers,
   onMaxPlayersChange,
   onReset,
   onExport,
-  onImport
+  onImport,
+  onExportInterested,
+  onImportInterested
 }) => {
   const [, setImportFile] = useState(null);
 
@@ -37,6 +40,20 @@ const Settings = ({
 
   const handleExport = () => {
     onExport();
+  };
+
+  // CSV parsing happens in App.js (matching rows against the loaded player list needs the
+  // full player data, which Settings.js doesn't have) - this just hands over the raw text.
+  const handleImportInterested = (event) => {
+    const file = event.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        onImportInterested(e.target.result);
+        event.target.value = ''; // Reset file input
+      };
+      reader.readAsText(file);
+    }
   };
 
   const handleReset = () => {
@@ -141,8 +158,13 @@ const Settings = ({
     width: '100%'
   };
 
+  // Shared by both <button> and the file-input <label> below - box-sizing/display are set
+  // explicitly because a <label> defaults to display:inline (which ignores `width`) and
+  // content-box sizing, while a <button> defaults to border-box, so without this the two would
+  // render at different sizes despite sharing the same width/padding values.
   const buttonStyle = {
     width: '200px',
+    boxSizing: 'border-box',
     padding: '12px 16px',
     border: 'none',
     borderRadius: '8px',
@@ -150,7 +172,10 @@ const Settings = ({
     fontWeight: '600',
     fontSize: '0.875rem',
     transition: 'all 0.2s',
-    textAlign: 'center'
+    textAlign: 'center',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center'
   };
 
   const exportButtonStyle = {
@@ -165,17 +190,39 @@ const Settings = ({
     color: 'white'
   };
 
+  const exportInterestedButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: theme.star,
+    color: 'white'
+  };
+
+  const importInterestedButtonStyle = {
+    ...buttonStyle,
+    backgroundColor: theme.star,
+    color: 'white',
+    opacity: 0.85
+  };
+
   const resetButtonStyle = {
     ...buttonStyle,
     backgroundColor: theme.danger,
     color: 'white'
   };
 
+  const sectionLabelStyle = {
+    fontSize: '0.75rem',
+    fontWeight: '600',
+    color: theme.textFaint,
+    textTransform: 'uppercase',
+    letterSpacing: '0.03em',
+    textAlign: 'center'
+  };
+
   return (
     <div style={modalOverlayStyle}>
       <div style={modalStyle}>
         <div style={headerStyle}>
-          <h2 style={titleStyle}>⚙️</h2>
+          <h2 style={{ ...titleStyle, display: 'flex', alignItems: 'center' }}><SettingsIcon size={26} /></h2>
           <button style={closeButtonStyle} onClick={onClose}>×</button>
         </div>
         
@@ -222,15 +269,15 @@ const Settings = ({
 
           {/* Buttons */}
           <div style={buttonGroupStyle}>
-            <button 
+            <button
               style={exportButtonStyle}
               onClick={handleExport}
             >
-              📤 Export Data
+              Export Data
             </button>
-            
+
             <label htmlFor="import-file" style={importButtonStyle}>
-              📥 Import Data
+              Import Data
               <input
                 type="file"
                 id="import-file"
@@ -240,11 +287,31 @@ const Settings = ({
               />
             </label>
 
-            <button 
+            <div style={sectionLabelStyle}>Giocatori preferiti (CSV)</div>
+
+            <button
+              style={exportInterestedButtonStyle}
+              onClick={onExportInterested}
+            >
+              Export Preferiti
+            </button>
+
+            <label htmlFor="import-interested-file" style={importInterestedButtonStyle}>
+              Import Preferiti
+              <input
+                type="file"
+                id="import-interested-file"
+                accept=".csv"
+                onChange={handleImportInterested}
+                style={{ display: 'none' }}
+              />
+            </label>
+
+            <button
               style={resetButtonStyle}
               onClick={handleReset}
             >
-              🗑️ Reset Everything
+              Reset Everything
             </button>
           </div>
         </div>

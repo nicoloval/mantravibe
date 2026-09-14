@@ -235,7 +235,7 @@ const RosaAcquistata = ({
 
   // Get sort icon
   const getSortIcon = useCallback((key) => {
-    if (sortConfig.key !== key) return '↕️';
+    if (sortConfig.key !== key) return '↕';
     return sortConfig.direction === 'asc' ? '↑' : '↓';
   }, [sortConfig]);
 
@@ -1863,7 +1863,6 @@ const RosaAcquistata = ({
 
 
         <div style={emptyStateStyle}>
-          <div style={{ fontSize: '3rem', marginBottom: '1rem' }}>😔</div>
           <h2 style={{
             fontSize: '1.5rem',
             fontWeight: '600',

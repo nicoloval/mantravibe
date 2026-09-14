@@ -316,7 +316,6 @@ const PlayersTab = ({
         {/* Istruzioni quando non c'è ricerca */}
         {!searchTerm && (
           <div style={instructionStyle}>
-            <div style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>💡</div>
             <div style={{ fontSize: '1rem', fontWeight: '600', color: '#374151', marginBottom: '0.5rem' }}>
               Cerca o naviga per ruolo
             </div>
@@ -442,7 +441,7 @@ const PlayersTab = ({
       {searchTerm && searchTerm.length < 2 && (
         <div style={emptyStateStyle}>
           <p style={{ fontSize: '1.1rem', color: '#374151' }}>
-            ⌨️ Digita almeno 2 caratteri per cercare...
+            Digita almeno 2 caratteri per cercare...
           </p>
         </div>
       )}
@@ -473,9 +472,6 @@ const PlayersTab = ({
         // Empty state
         (searchTerm?.length >= 2 || (!searchTerm && players.length > 0)) && (
           <div style={emptyStateStyle}>
-            <div style={{ fontSize: '2rem', marginBottom: '1rem' }}>
-              {isSearchMode ? '😔' : '🤷‍♂️'}
-            </div>
             <p style={{ fontSize: '1.1rem', marginBottom: '0.5rem', color: '#374151' }}>
               {isSearchMode 
                 ? `Nessun giocatore ${selectedRole} trovato per "${searchTerm}"`
