@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { calculateBudgetStats, getRoleCategoryColor, getRoleCategoryName } from '../utils/budgetStats';
 import { theme } from '../theme';
 
 const Header = ({ dataCount = 0, teams = [], players = [], themeMode, onToggleTheme, onOpenSettings }) => {
+  const navigate = useNavigate();
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -197,6 +199,16 @@ const Header = ({ dataCount = 0, teams = [], players = [], themeMode, onToggleTh
             {themeMode === 'light' ? '🌙' : '☀️'}
           </button>
         )}
+
+        <button
+          style={{ ...iconButtonStyle, fontSize: '1.4rem' }}
+          onClick={() => navigate('/about')}
+          title="Come funziona la formazione"
+          onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+          onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+        >
+          ℹ️
+        </button>
 
         {onOpenSettings && (
           <button

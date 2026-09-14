@@ -7,6 +7,7 @@ import RosaAcquistata from './components/RosaAcquistata';
 import MantraGiocatoriTab from './components/MantraGiocatoriTab';
 import SquadreTab from './components/SquadreTab';
 import Settings from './components/Settings';
+import AboutPage from './components/AboutPage';
 import PlayerPage from './components/PlayerPage';
 import { loadBudget, loadPlayerStatus, saveBudget, savePlayerStatus, updatePlayerStatus, loadInterestedPlayers, saveInterestedPlayers } from './utils/storage';
 import { theme, applyThemeMode, getStoredThemeMode } from './theme';
@@ -772,6 +773,7 @@ const App = () => {
       />
           </div>
         } />
+        <Route path="/about" element={<AboutPage />} />
       </Routes>
     </Router>
   );
