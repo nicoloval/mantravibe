@@ -5,6 +5,50 @@ import { getSeasonLabels, SEASON_STAT_BASES } from '../utils/dataUtils';
 import { theme } from '../theme';
 import StatTrendTable from './StatTrendTable';
 
+// Pure helpers with no dependency on component state/props - kept at module scope (a stable
+// reference across renders) rather than redefined inside the component on every render, which
+// is what forced react-hooks/exhaustive-deps to flag every hook that used them further down.
+
+// Checks if data is missing (negative values). Unmatched players (no Understat data) simply
+// omit the field (undefined/null) rather than carrying a negative sentinel - both must count
+// as missing, or sort comparators that do `!isMissingData(x) ? x : -Infinity` end up comparing
+// undefined values (NaN), which silently corrupts the whole sort order.
+const isMissingData = (value) => {
+  if (value === undefined || value === null) return true;
+  return typeof value === 'number' && value < 0;
+};
+
+// Per-match averages (goals/assists/xG/xA/minutes divided by appearances), used by both the
+// card's prev->cur trend and the table (see getColumnDisplayValue below) - a raw per-season
+// total isn't comparable between a season that's only a few matches old and a full previous
+// one, so showing it plain was mostly noise rather than an actual trend/comparison. Dividing
+// by Presenze keeps both seasons (and every player, regardless of appearances) on the same
+// per-appearance scale. Gol Subiti only applies to goalkeepers - see the role filtering where
+// this list is used in the table and card rendering below.
+const PER_MATCH_BASES = ['Minuti Giocati', 'Gol', 'Assist', 'Gol Subiti', 'xG', 'xA'];
+const PER_MATCH_LABELS = {
+  'Minuti Giocati': 'Min/Partita',
+  'Gol': 'Gol/Partita',
+  'Assist': 'Assist/Partita',
+  'Gol Subiti': 'Gol Sub./Partita',
+  'xG': 'xG/Partita',
+  'xA': 'xA/Partita'
+};
+
+const getPerMatchAverage = (player, base, season) => {
+  const presenze = player[`Presenze ${season}`];
+  const raw = player[`${base} ${season}`];
+  if (isMissingData(presenze) || isMissingData(raw) || presenze <= 0) return undefined;
+  return raw / presenze;
+};
+
+const formatPerMatchValue = (value, base) => {
+  if (typeof value !== 'number') return '-';
+  // Minutes-per-appearance reads as a whole number (e.g. "68"), like the raw minutes field
+  // does; goals/assists/xG/xA per appearance are fractional, so keep 2 decimals.
+  return base === 'Minuti Giocati' ? Math.round(value).toString() : value.toFixed(2);
+};
+
 const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusChange, onPlayerAcquire, roles = [], interestedPlayers = {}, onToggleInterested }) => {
   const navigate = useNavigate();
   // Derived from the data itself (see data-pipeline/config.py) - never hardcode season strings below.
@@ -249,50 +293,11 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     });
   };
 
-  // Helper function to check if data is missing (negative values)
-  const isMissingData = (value) => {
-    // Unmatched players (no Understat data) simply omit the field (undefined/null) rather
-    // than carrying a negative sentinel - both must count as missing, or sort comparators
-    // that do `!isMissingData(x) ? x : -Infinity` end up comparing undefined values (NaN),
-    // which silently corrupts the whole sort order.
-    if (value === undefined || value === null) return true;
-    return typeof value === 'number' && value < 0;
-  };
-
-  // Per-match averages (goals/assists/xG/xA/minutes divided by appearances), used by both the
-  // card's prev->cur trend and the table (see getColumnDisplayValue below) - a raw per-season
-  // total isn't comparable between a season that's only a few matches old and a full previous
-  // one, so showing it plain was mostly noise rather than an actual trend/comparison. Dividing
-  // by Presenze keeps both seasons (and every player, regardless of appearances) on the same
-  // per-appearance scale. Gol Subiti only applies to goalkeepers - see the role filtering where
-  // this list is used in the table and card rendering below.
-  const PER_MATCH_BASES = ['Minuti Giocati', 'Gol', 'Assist', 'Gol Subiti', 'xG', 'xA'];
-  const PER_MATCH_LABELS = {
-    'Minuti Giocati': 'Min/Partita',
-    'Gol': 'Gol/Partita',
-    'Assist': 'Assist/Partita',
-    'Gol Subiti': 'Gol Sub./Partita',
-    'xG': 'xG/Partita',
-    'xA': 'xA/Partita'
-  };
-
-  const getPerMatchAverage = (player, base, season) => {
-    const presenze = player[`Presenze ${season}`];
-    const raw = player[`${base} ${season}`];
-    if (isMissingData(presenze) || isMissingData(raw) || presenze <= 0) return undefined;
-    return raw / presenze;
-  };
-
-  const formatPerMatchValue = (value, base) => {
-    if (typeof value !== 'number') return '-';
-    // Minutes-per-appearance reads as a whole number (e.g. "68"), like the raw minutes
-    // field does; goals/assists/xG/xA per appearance are fractional, so keep 2 decimals.
-    return base === 'Minuti Giocati' ? Math.round(value).toString() : value.toFixed(2);
-  };
-
   // Splits a "{base} {season}" column name (e.g. "Gol 2026-2027") back into its parts, or null
-  // if it isn't a season-stat column at all (Nome, Squadra, QtA, ...).
-  const parseSeasonColumn = (column) => {
+  // if it isn't a season-stat column at all (Nome, Squadra, QtA, ...). Depends on CUR_SEASON/
+  // PREV_SEASON (derived from data), so unlike the helpers above this can't be a module-level
+  // constant - memoized so getColumnDisplayValue below has a stable reference to depend on.
+  const parseSeasonColumn = useCallback((column) => {
     if (column.endsWith(` ${CUR_SEASON}`)) {
       return { base: column.slice(0, -(CUR_SEASON.length + 1)), season: CUR_SEASON };
     }
@@ -300,18 +305,18 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       return { base: column.slice(0, -(PREV_SEASON.length + 1)), season: PREV_SEASON };
     }
     return null;
-  };
+  }, [CUR_SEASON, PREV_SEASON]);
 
   // The table shows the same primary number the cards do for a given column - the per-match
   // rate for PER_MATCH_BASES (a raw season total isn't comparable between a current season
   // that's only a few games old and a full previous one), the field as-is for everything else.
-  const getColumnDisplayValue = (player, column) => {
+  const getColumnDisplayValue = useCallback((player, column) => {
     const parsed = parseSeasonColumn(column);
     if (parsed && PER_MATCH_BASES.includes(parsed.base) && tableValueMode === 'relative') {
       return getPerMatchAverage(player, parsed.base, parsed.season);
     }
     return player[column];
-  };
+  }, [parseSeasonColumn, tableValueMode]);
 
   // Card sort dropdown options - the fixed fields plus one entry per SEASON_STAT_BASES x season,
   // generated from the same canonical list the table columns and card stat rows use so a stat
