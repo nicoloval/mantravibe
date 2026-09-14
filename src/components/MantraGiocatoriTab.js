@@ -3,25 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
 import { getSeasonLabels, SEASON_STAT_BASES } from '../utils/dataUtils';
 import { theme } from '../theme';
-
-// Tiny 2-point trend line (previous season -> current season) for a single stat.
-const Sparkline = ({ prev, cur, width = 46, height = 18 }) => {
-  if (typeof prev !== 'number' || typeof cur !== 'number' || prev < 0 || cur < 0) return null;
-  const max = Math.max(prev, cur, 0);
-  const min = Math.min(prev, cur, 0);
-  const range = (max - min) || 1;
-  const y = (v) => height - 3 - ((v - min) / range) * (height - 6);
-  const x0 = 3;
-  const x1 = width - 3;
-  const trendColor = cur > prev ? theme.success : cur < prev ? theme.danger : theme.textFaint;
-  return (
-    <svg width={width} height={height} style={{ display: 'block', flexShrink: 0 }}>
-      <line x1={x0} y1={y(prev)} x2={x1} y2={y(cur)} stroke={trendColor} strokeWidth="2" strokeLinecap="round" />
-      <circle cx={x0} cy={y(prev)} r="2" fill={theme.textFaint} />
-      <circle cx={x1} cy={y(cur)} r="2.5" fill={trendColor} />
-    </svg>
-  );
-};
+import StatTrendTable from './StatTrendTable';
 
 const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusChange, onPlayerAcquire, roles = [], interestedPlayers = {}, onToggleInterested }) => {
   const navigate = useNavigate();
@@ -337,6 +319,11 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   const cardSortFields = useMemo(() => [
     { key: 'fvm', label: 'FVM', get: (p) => p['FVM'] },
     { key: 'qta', label: 'Quotazione (QtA)', get: (p) => p['QtA'] },
+    { key: 'qti', label: 'Quotazione Iniziale (QtI)', get: (p) => p['QtI'] },
+    // signed: true - Diff is legitimately negative (quotazione dropped), unlike every other
+    // sortable stat here where a negative number means "missing" (see isMissingData). Skips
+    // that clamp-to--Infinity treatment below so negative Diffs sort correctly among themselves.
+    { key: 'diff', label: 'Diff', signed: true, get: (p) => (typeof p.Diff === 'number' ? p.Diff : 0) },
     { key: 'nome', label: 'Nome', get: (p) => p.Nome || '' },
     { key: 'squadra', label: 'Squadra', get: (p) => p.Squadra || '' },
     { key: 'prezzo', label: 'Prezzo', get: (p) => (typeof p.Prezzo === 'number' ? p.Prezzo : 0) },
@@ -430,8 +417,13 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
             : bVal.localeCompare(aVal);
         }
 
-        aVal = !isMissingData(aVal) ? aVal : -Infinity;
-        bVal = !isMissingData(bVal) ? bVal : -Infinity;
+        if (field.signed) {
+          aVal = typeof aVal === 'number' ? aVal : 0;
+          bVal = typeof bVal === 'number' ? bVal : 0;
+        } else {
+          aVal = !isMissingData(aVal) ? aVal : -Infinity;
+          bVal = !isMissingData(bVal) ? bVal : -Infinity;
+        }
         return cardSortConfig.direction === 'asc'
           ? aVal - bVal
           : bVal - aVal;
@@ -510,8 +502,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       'Nome': 'Nome',
       'Squadra': 'Squadra',
       'Ruolo Mantra': 'Ruolo',
+      'QtI': 'QtI',
       'QtA': 'QtA',
       'FVM': 'FVM',
+      'Diff': 'Diff',
       'Presenze': 'P',
       'Minuti Giocati': 'MG',
       'Media Voto': 'MV',
@@ -601,53 +595,20 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     return String(value || '-');
   }, []);
 
-  // One row of the card's prev->cur trend table (see the "Conditional Stats" block below) -
-  // factored out so the generic per-base loop and the special-cased Voto row (which pairs
-  // Media Voto + Fantamedia rather than an avg + raw total) can share the exact same layout.
-  const renderStatTrendRow = ({ key, label, primaryPrev, primaryCur, parenPrev = '', parenCur = '', sparkPrev, sparkCur, prevMissing = false, curMissing = false }) => (
-    <div key={key} style={{
-      display: 'grid',
-      // minmax(0, 1fr) rather than a bare 1fr so the label can actually shrink/ellipsize
-      // instead of forcing this row (and the card) wider than its container - see
-      // cardsContainerStyle for the same issue one level up. On mobile the fixed-width tracks
-      // (222px+ before the flexible label even gets a share) don't fit inside a narrow card, so
-      // the parenthetical column is dropped there and the row collapses to 4 columns.
-      gridTemplateColumns: isMobile
-        ? 'minmax(0, 1fr) 2.5rem 46px 2.5rem'
-        : 'minmax(0, 1fr) 2.5rem 3rem 46px 2.5rem 3rem',
-      alignItems: 'center',
-      columnGap: '0.25rem',
-      padding: '0.25rem 0.375rem',
-      backgroundColor: theme.surface,
-      borderRadius: '0.25rem',
-      fontVariantNumeric: 'tabular-nums'
-    }}>
-      <span style={{ fontSize: '0.75rem', color: theme.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
-      <span
-        style={{ fontSize: '0.8rem', fontWeight: '600', color: prevMissing ? theme.danger : theme.textMuted, textAlign: 'right' }}
-        title={parenPrev || undefined}
-      >
-        {primaryPrev}
-      </span>
-      {!isMobile && (
-        <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
-          {parenPrev}
-        </span>
-      )}
-      <Sparkline prev={sparkPrev} cur={sparkCur} />
-      <span
-        style={{ fontSize: '0.8rem', fontWeight: '700', color: curMissing ? theme.danger : theme.text, textAlign: 'right' }}
-        title={parenCur || undefined}
-      >
-        {primaryCur}
-      </span>
-      {!isMobile && (
-        <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
-          {parenCur}
-        </span>
-      )}
-    </div>
-  );
+  // Diff (week-over-week quotazione change) is signed - unlike every other stat, a negative
+  // value is a real, meaningful reading (price dropped) rather than isMissingData's "no data"
+  // sentinel, so it needs its own formatting/coloring instead of formatValue's.
+  const formatDiff = (value) => {
+    if (typeof value !== 'number') return '-';
+    return value > 0 ? `+${value}` : String(value);
+  };
+
+  const getDiffColor = (value) => {
+    if (typeof value !== 'number') return theme.textMuted;
+    if (value > 0) return theme.success;
+    if (value < 0) return theme.danger;
+    return theme.textMuted;
+  };
 
   // Simple Column Header component with tooltip
   const ColumnHeader = ({ children, content, columnName, onClick }) => {
@@ -722,8 +683,10 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     const customFields = [
       'Nome',
       'Squadra',
+      'QtI',
       'QtA',
       'FVM',
+      'Diff',
       ...SEASON_STAT_BASES.map(base => `${base} ${CUR_SEASON}`),
       ...SEASON_STAT_BASES.map(base => `${base} ${PREV_SEASON}`)
     ];
@@ -960,9 +923,9 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     marginBottom: '0.75rem'
   };
 
-  const cardStatsGrid2Style = {
+  const cardStatsGridStyle = {
     display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
+    gridTemplateColumns: 'repeat(4, 1fr)',
     gap: '0.5rem',
     marginBottom: '1rem'
   };
@@ -1381,7 +1344,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                 flexWrap: 'wrap',
                 alignItems: 'center'
               }}>
-                {getColumns().filter(column => column === 'QtA' || column === 'FVM').map(column => (
+                {getColumns().filter(column => ['QtI', 'QtA', 'FVM', 'Diff'].includes(column)).map(column => (
                   <button
                     key={column}
                     onClick={() => toggleColumn(column)}
@@ -1731,17 +1694,19 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                   borderRadius: '0.375rem',
                   marginBottom: '0.5rem'
                 }}>
-                <div style={cardStatsGrid2Style}>
-                  {['QtA', 'FVM'].map((statColumn, statIndex) => {
+                <div style={cardStatsGridStyle}>
+                  {['QtI', 'QtA', 'FVM', 'Diff'].map((statColumn, statIndex) => {
                     const value = player[statColumn];
-                    const isMissing = isMissingData(value);
-                    const displayValue = formatValue(value, statColumn);
+                    const isDiff = statColumn === 'Diff';
+                    const isMissing = !isDiff && isMissingData(value);
+                    const displayValue = isDiff ? formatDiff(value) : formatValue(value, statColumn);
+                    const valueColor = isDiff ? getDiffColor(value) : (isMissing ? theme.danger : theme.text);
 
                     return (
                       <div key={statIndex} style={statItemStyle}>
                         <div style={{
                           ...statValueStyle,
-                          color: isMissing ? theme.danger : theme.text
+                          color: valueColor
                         }}>
                           {displayValue}
                         </div>
@@ -1756,88 +1721,11 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                 
                 {/* Conditional Stats - Only show when details are enabled */}
                 {showCardDetails && (
-                  <>
-                    
-                    {/* Season stats, current vs previous, each with a prev->cur trend spark */}
-                    <div style={{
-                      backgroundColor: theme.surfaceAlt,
-                      padding: '0.5rem',
-                      borderRadius: '0.375rem',
-                      marginBottom: '0.5rem'
-                    }}>
-                      <div style={{ fontSize: '0.7rem', fontWeight: '600', color: theme.textFaint, marginBottom: '0.375rem', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
-                        {PREV_SEASON} → {CUR_SEASON}
-                      </div>
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-                        {(() => {
-                          const isGoalkeeper = player.Ruolo === 'POR';
-                          const bases = ['Presenze', ...PER_MATCH_BASES.filter(base => base !== 'Gol Subiti' || isGoalkeeper), 'Ammonizioni'];
-
-                          return bases.flatMap((base) => {
-                            const isPerMatch = PER_MATCH_BASES.includes(base);
-                            const rawPrev = player[`${base} ${PREV_SEASON}`];
-                            const rawCur = player[`${base} ${CUR_SEASON}`];
-                            const avgPrev = isPerMatch ? getPerMatchAverage(player, base, PREV_SEASON) : undefined;
-                            const avgCur = isPerMatch ? getPerMatchAverage(player, base, CUR_SEASON) : undefined;
-                            // The sparkline tracks the per-match average (comparable across
-                            // seasons of different length); Presenze/Ammonizioni have no average
-                            // and just track their raw count instead.
-                            const sparkPrev = isPerMatch ? avgPrev : rawPrev;
-                            const sparkCur = isPerMatch ? avgCur : rawCur;
-                            const prevMissing = isMissingData(rawPrev);
-                            const curMissing = isMissingData(rawCur);
-                            const label = isPerMatch ? PER_MATCH_LABELS[base] : base;
-                            // Presenze/Ammonizioni have no per-match average, so no raw total to
-                            // show alongside it either.
-                            const parenPrev = isPerMatch ? `(${formatValue(rawPrev, base)})` : '';
-                            const parenCur = isPerMatch ? `(${formatValue(rawCur, base)})` : '';
-
-                            const row = renderStatTrendRow({
-                              key: base,
-                              label,
-                              primaryPrev: isPerMatch ? formatPerMatchValue(avgPrev, base) : formatValue(rawPrev, base),
-                              primaryCur: isPerMatch ? formatPerMatchValue(avgCur, base) : formatValue(rawCur, base),
-                              parenPrev,
-                              parenCur,
-                              sparkPrev,
-                              sparkCur,
-                              prevMissing,
-                              curMissing
-                            });
-
-                            if (base !== 'Presenze') return [row];
-
-                            // Voto row - Media Voto (the raw referee-style grade, primary
-                            // number) paired with Fantamedia (the fantasy-adjusted score,
-                            // parenthetical) rather than the generic avg/raw-total pairing
-                            // above, since both are already per-match averages from
-                            // fantacalcio.it - there's no separate "raw total" for either.
-                            const mvPrev = player[`Media Voto ${PREV_SEASON}`];
-                            const mvCur = player[`Media Voto ${CUR_SEASON}`];
-                            const fmPrev = player[`Fantamedia ${PREV_SEASON}`];
-                            const fmCur = player[`Fantamedia ${CUR_SEASON}`];
-                            const votoRow = renderStatTrendRow({
-                              key: 'Voto',
-                              label: 'Voto',
-                              primaryPrev: formatValue(mvPrev, 'Media Voto'),
-                              primaryCur: formatValue(mvCur, 'Media Voto'),
-                              parenPrev: isMissingData(fmPrev) ? '' : `(${formatValue(fmPrev, 'Fantamedia')})`,
-                              parenCur: isMissingData(fmCur) ? '' : `(${formatValue(fmCur, 'Fantamedia')})`,
-                              sparkPrev: mvPrev,
-                              sparkCur: mvCur,
-                              prevMissing: isMissingData(mvPrev),
-                              curMissing: isMissingData(mvCur)
-                            });
-
-                            return [row, votoRow];
-                          });
-                        })()}
-                      </div>
-                    </div>
-
-                  </>
+                  <div style={{ marginBottom: '0.5rem' }}>
+                    <StatTrendTable player={player} curSeason={CUR_SEASON} prevSeason={PREV_SEASON} />
+                  </div>
                 )}
-                
+
               </div>
             );
           })}
@@ -2082,17 +1970,20 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                     const notApplicable = column.startsWith('Gol Subiti ') && player.Ruolo !== 'POR';
                     const parsed = parseSeasonColumn(column);
                     const showingRate = parsed && PER_MATCH_BASES.includes(parsed.base) && tableValueMode === 'relative';
+                    const isDiff = column === 'Diff';
                     const value = getColumnDisplayValue(player, column);
-                    const isMissing = !notApplicable && isMissingData(value);
+                    const isMissing = !notApplicable && !isDiff && isMissingData(value);
                     const cellStyle = isMissing ? missingDataTdStyle : tdStyle;
                     const displayText = notApplicable
                       ? '-'
-                      : showingRate
-                        ? formatPerMatchValue(value, parsed.base)
-                        : formatValue(value, column);
+                      : isDiff
+                        ? formatDiff(value)
+                        : showingRate
+                          ? formatPerMatchValue(value, parsed.base)
+                          : formatValue(value, column);
 
                     return (
-                      <td key={column} style={cellStyle}>
+                      <td key={column} style={isDiff ? { ...cellStyle, color: getDiffColor(value), fontWeight: '600' } : cellStyle}>
                         {displayText}
                       </td>
                     );

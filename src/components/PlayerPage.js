@@ -2,6 +2,7 @@ import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getSeasonLabels, seasonStatBasesForPlayer } from '../utils/dataUtils';
 import { theme } from '../theme';
+import StatTrendTable from './StatTrendTable';
 
 const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) => {
   const { id } = useParams();
@@ -55,6 +56,23 @@ const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) =
     }
     return value.toString();
   };
+
+  // Diff (week-over-week quotazione change) is signed - unlike everything else here, a
+  // negative value is a real reading (price dropped), not formatValue's "negative means N/A".
+  const formatDiff = (value) => {
+    if (typeof value !== 'number') return 'N/A';
+    return value > 0 ? `+${value}` : String(value);
+  };
+
+  const getDiffColor = (value) => {
+    if (typeof value !== 'number') return theme.textMuted;
+    if (value > 0) return theme.success;
+    if (value < 0) return theme.danger;
+    return theme.textMuted;
+  };
+
+  // "2025-2026" -> "25/26" - compact column header for the Statistiche table below.
+  const shortSeason = (season) => `${season.slice(2, 4)}/${season.slice(7, 9)}`;
 
   // Parse skills
   const skills = useMemo(() => {
@@ -151,42 +169,51 @@ const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) =
         {/* Quotazioni */}
         <div style={statsSectionStyle}>
           <h3 style={sectionTitleStyle}>Quotazioni</h3>
-          <div style={statsListStyle}>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>QtA</span>
-              <span style={statValueStyle}>{formatValue(player['QtA'])}</span>
+          <div style={compactStatsListStyle}>
+            <div style={compactStatItemStyle}>
+              <span style={compactStatLabelStyle}>QtI</span>
+              <span style={compactStatValueStyle}>{formatValue(player['QtI'])}</span>
             </div>
-            <div style={statItemStyle}>
-              <span style={statLabelStyle}>FVM</span>
-              <span style={statValueStyle}>{formatValue(player['FVM'])}</span>
+            <div style={compactStatItemStyle}>
+              <span style={compactStatLabelStyle}>QtA</span>
+              <span style={compactStatValueStyle}>{formatValue(player['QtA'])}</span>
+            </div>
+            <div style={compactStatItemStyle}>
+              <span style={compactStatLabelStyle}>FVM</span>
+              <span style={compactStatValueStyle}>{formatValue(player['FVM'])}</span>
+            </div>
+            <div style={compactStatItemStyle}>
+              <span style={compactStatLabelStyle}>Diff</span>
+              <span style={{ ...compactStatValueStyle, color: getDiffColor(player['Diff']) }}>{formatDiff(player['Diff'])}</span>
             </div>
           </div>
         </div>
 
-        {/* Current season performance */}
+        {/* Absolute (raw season total) values, both seasons side by side per stat - compact
+            counterpart to Andamento below, which shows the same stats as per-match rates with
+            a trend diagram instead. */}
         <div style={statsSectionStyle}>
-          <h3 style={sectionTitleStyle}>{`Performance ${CUR_SEASON}`}</h3>
-          <div style={statsListStyle}>
-            {seasonStatBases.map(base => (
-              <div key={base} style={statItemStyle}>
-                <span style={statLabelStyle}>{`${base} ${CUR_SEASON}`}</span>
-                <span style={statValueStyle}>{formatValue(player[`${base} ${CUR_SEASON}`])}</span>
-              </div>
-            ))}
+          <h3 style={sectionTitleStyle}>Statistiche</h3>
+          <div style={compactStatRowStyle}>
+            <span />
+            <span style={compactStatHeaderStyle}>{shortSeason(PREV_SEASON)}</span>
+            <span style={compactStatHeaderStyle}>{shortSeason(CUR_SEASON)}</span>
           </div>
+          {seasonStatBases.map(base => (
+            <div key={base} style={compactStatRowStyle}>
+              <span style={compactStatLabelStyle}>{base}</span>
+              <span style={compactStatValueStyle}>{formatValue(player[`${base} ${PREV_SEASON}`])}</span>
+              <span style={compactStatValueStyle}>{formatValue(player[`${base} ${CUR_SEASON}`])}</span>
+            </div>
+          ))}
         </div>
 
-        {/* Previous season performance */}
-        <div style={statsSectionStyle}>
-          <h3 style={sectionTitleStyle}>{`Performance ${PREV_SEASON}`}</h3>
-          <div style={statsListStyle}>
-            {seasonStatBases.map(base => (
-              <div key={base} style={statItemStyle}>
-                <span style={statLabelStyle}>{`${base} ${PREV_SEASON}`}</span>
-                <span style={statValueStyle}>{formatValue(player[`${base} ${PREV_SEASON}`])}</span>
-              </div>
-            ))}
-          </div>
+        {/* Performance trend - per-match rates (fairer than raw totals for a current season
+            that's only a few games old) with a prev->cur sparkline per stat, same treatment
+            the Giocatori cards use, so a player's trend reads identically in both places. */}
+        <div style={{ ...statsSectionStyle, gridColumn: '1 / -1' }}>
+          <h3 style={sectionTitleStyle}>Andamento</h3>
+          <StatTrendTable player={player} curSeason={CUR_SEASON} prevSeason={PREV_SEASON} />
         </div>
       </div>
     </div>
@@ -350,33 +377,51 @@ const sectionTitleStyle = {
   borderBottom: `2px solid ${theme.border}`
 };
 
-const statsListStyle = {
+// Compact single-value row (Quotazioni).
+const compactStatsListStyle = {
   display: 'flex',
   flexDirection: 'column',
-  gap: '0.75rem'
+  gap: '0.125rem'
 };
 
-const statItemStyle = {
+const compactStatItemStyle = {
   display: 'flex',
   justifyContent: 'space-between',
   alignItems: 'center',
-  padding: '0.5rem 0',
+  padding: '0.25rem 0',
   borderBottom: `1px solid ${theme.borderSoft}`
 };
 
-const statLabelStyle = {
-  fontSize: '0.875rem',
+const compactStatLabelStyle = {
+  fontSize: '0.8rem',
   color: theme.textMuted,
-  fontWeight: '500',
-  flex: 1
+  fontWeight: '500'
 };
 
-const statValueStyle = {
-  fontSize: '1rem',
+const compactStatValueStyle = {
+  fontSize: '0.875rem',
   color: theme.text,
   fontWeight: '600',
+  textAlign: 'right'
+};
+
+// Compact two-value row (Statistiche: prev season, cur season side by side per stat).
+const compactStatRowStyle = {
+  display: 'grid',
+  gridTemplateColumns: 'minmax(0, 1fr) 3.25rem 3.25rem',
+  alignItems: 'center',
+  columnGap: '0.5rem',
+  padding: '0.25rem 0',
+  borderBottom: `1px solid ${theme.borderSoft}`
+};
+
+const compactStatHeaderStyle = {
+  fontSize: '0.7rem',
+  color: theme.textFaint,
+  fontWeight: '600',
   textAlign: 'right',
-  minWidth: '80px'
+  textTransform: 'uppercase',
+  letterSpacing: '0.03em'
 };
 
 const errorStyle = {
