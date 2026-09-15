@@ -10,6 +10,8 @@ Builds mantravibe/public/data/final.json:
      Giocati/xG/xA (which fantacalcio.it doesn't track at all) and fills gaps in step 2's
      fields for anyone missing from the Serie A-only fantacalcio.it exports
   4. write the result to ../public/data/final.json
+  5. compute Fantamedia percentiles ("fasce") by Mantra role and season from that same result,
+     and write ../public/data/fantamedia_percentiles.json - see fantamedia_percentiles.py
 
 Season is configured in config.py (CURRENT_SEASON / PREVIOUS_SEASONS) - update it there
 when a new Serie A season starts.
@@ -25,6 +27,7 @@ from fantacalcio_stats import load_stats_by_id, apply_stats
 from understat_fetch import run_fetch_all_leagues_data
 from enrich import match_with_understat, season_label
 from input_files import find_single_file
+from fantamedia_percentiles import compute_fantamedia_percentiles
 from config import CURRENT_SEASON, PREVIOUS_SEASONS
 
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -34,6 +37,7 @@ STATS_CURRENT_DIR = os.path.join(INPUT_DIR, "statistiche_corrente")
 STATS_PREVIOUS_DIR = os.path.join(INPUT_DIR, "statistiche_precedente")
 CACHE_DIR = os.path.join(HERE, "cache", "understats")
 OUTPUT_FILE = os.path.join(HERE, "..", "public", "data", "final.json")
+PERCENTILES_OUTPUT_FILE = os.path.join(HERE, "..", "public", "data", "fantamedia_percentiles.json")
 
 
 def main():
@@ -64,6 +68,13 @@ def main():
         json.dump(enriched, f, indent=2, ensure_ascii=False)
 
     print(f"\nWrote {len(enriched)} players to {os.path.relpath(OUTPUT_FILE, HERE)}")
+
+    print("\nComputing Fantamedia percentiles by role...")
+    percentile_seasons = [season_label(s) for s in [CURRENT_SEASON] + PREVIOUS_SEASONS]
+    percentiles = compute_fantamedia_percentiles(enriched, percentile_seasons)
+    with open(PERCENTILES_OUTPUT_FILE, "w", encoding="utf-8") as f:
+        json.dump(percentiles, f, indent=2, ensure_ascii=False)
+    print(f"Wrote fantamedia percentiles to {os.path.relpath(PERCENTILES_OUTPUT_FILE, HERE)}")
 
 
 if __name__ == "__main__":

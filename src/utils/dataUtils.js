@@ -21,6 +21,23 @@ export const seasonStatBasesForPlayer = (player) =>
     return !requiredRole || player?.Ruolo === requiredRole;
   });
 
+/**
+ * Parses player['Ruolo Mantra'] into a plain role-code array (e.g. ["Dc", "B"]). The field is
+ * stored as a Python-repr string ("['Dc', 'B']"), not JSON, so it needs the quote swap below
+ * before parsing - occasionally it's already an array (or missing) instead, handled as well.
+ */
+export const parseMantraRoles = (player) => {
+  const raw = player?.['Ruolo Mantra'];
+  if (!raw) return [];
+  if (Array.isArray(raw)) return raw;
+  if (typeof raw !== 'string') return [raw];
+  try {
+    return JSON.parse(raw.replace(/'/g, '"'));
+  } catch {
+    return [raw];
+  }
+};
+
 const SEASON_FIELD_REGEX = new RegExp(`^(?:${SEASON_STAT_BASES.join('|')}) (\\d{4}-\\d{4})$`);
 
 /**

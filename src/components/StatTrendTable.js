@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { theme } from '../theme';
+import { getFasciaEntries, fasciaColor, bestFasciaIndex, fasciaTooltipText } from '../utils/fasceColors';
 
 // Tiny 2-point trend line (previous season -> current season) for a single stat.
 const Sparkline = ({ prev, cur, width = 46, height = 18 }) => {
@@ -67,7 +68,13 @@ const formatPerMatchValue = (value, base) => {
 // "raw" sub-columns empty rather than using a different layout. On mobile the fixed-width
 // tracks (222px+ before the flexible label even gets a share) don't fit inside a narrow card,
 // so the parenthetical column is dropped there and the row collapses to 4 columns.
-const StatTrendRow = ({ label, primaryPrev, primaryCur, parenPrev = '', parenCur = '', sparkPrev, sparkCur, prevMissing = false, curMissing = false, isMobile }) => (
+// fasciaPrev/fasciaCur (optional): { index, color, tooltip } - the fascia number itself,
+// colored, appended after the primary value in parentheses (e.g. "7.38 (1)") - color alone
+// doesn't tell you which of the 10 fasce it is, so the number is shown too, with the full
+// role/fascia breakdown available via native tooltip. Absent for every other row (no fascia
+// data for Presenze/Gol/...) and whenever the caller doesn't pass a fasciaLookup at all - see
+// StatTrendTable below.
+const StatTrendRow = ({ label, primaryPrev, primaryCur, parenPrev = '', parenCur = '', sparkPrev, sparkCur, prevMissing = false, curMissing = false, isMobile, fasciaPrev = null, fasciaCur = null }) => (
   <div style={{
     display: 'grid',
     gridTemplateColumns: isMobile
@@ -82,10 +89,13 @@ const StatTrendRow = ({ label, primaryPrev, primaryCur, parenPrev = '', parenCur
   }}>
     <span style={{ fontSize: '0.75rem', color: theme.textMuted, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</span>
     <span
-      style={{ fontSize: '0.8rem', fontWeight: '600', color: prevMissing ? theme.danger : theme.textMuted, textAlign: 'right' }}
-      title={parenPrev || undefined}
+      style={{ fontSize: '0.8rem', fontWeight: '600', color: prevMissing ? theme.danger : theme.textMuted, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.2rem' }}
+      title={fasciaPrev ? fasciaPrev.tooltip : (parenPrev || undefined)}
     >
       {primaryPrev}
+      {fasciaPrev && (
+        <span style={{ color: fasciaPrev.color, fontWeight: '800' }}>({fasciaPrev.index + 1})</span>
+      )}
     </span>
     {!isMobile && (
       <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
@@ -94,10 +104,13 @@ const StatTrendRow = ({ label, primaryPrev, primaryCur, parenPrev = '', parenCur
     )}
     <Sparkline prev={sparkPrev} cur={sparkCur} />
     <span
-      style={{ fontSize: '0.8rem', fontWeight: '700', color: curMissing ? theme.danger : theme.text, textAlign: 'right' }}
-      title={parenCur || undefined}
+      style={{ fontSize: '0.8rem', fontWeight: '700', color: curMissing ? theme.danger : theme.text, display: 'inline-flex', alignItems: 'center', justifyContent: 'flex-end', gap: '0.2rem' }}
+      title={fasciaCur ? fasciaCur.tooltip : (parenCur || undefined)}
     >
       {primaryCur}
+      {fasciaCur && (
+        <span style={{ color: fasciaCur.color, fontWeight: '800' }}>({fasciaCur.index + 1})</span>
+      )}
     </span>
     {!isMobile && (
       <span style={{ fontSize: '0.7rem', color: theme.textFaint, textAlign: 'right' }}>
@@ -111,7 +124,15 @@ const StatTrendRow = ({ label, primaryPrev, primaryCur, parenPrev = '', parenCur
 // Gol/Assist/Gol Subiti/xG/xA, Ammonizioni), each with a two-point sparkline. Used by both the
 // Giocatori cards and the player detail page so a player's trend reads identically everywhere -
 // see MantraGiocatoriTab.js's card rendering for the sibling call site.
-const StatTrendTable = ({ player, curSeason, prevSeason }) => {
+//
+// fasciaLookup (optional): when passed, the Voto row's Fantamedia figure gets a colored fascia
+// number (see fasceColors.js) - only MantraGiocatoriTab's cards pass this, since PlayerPage
+// already has its own dedicated Percentili card and doesn't need it repeated here too.
+// preferFantamedia (optional): the cards show Fantavoto (Fantamedia) as the headline number
+// with Media Voto as the parenthetical, rather than the classic Voto-primary layout PlayerPage's
+// Andamento section keeps - the fascia badge is about Fantamedia, so it needs to be the number
+// that's actually prominent.
+const StatTrendTable = ({ player, curSeason, prevSeason, fasciaLookup = null, preferFantamedia = false }) => {
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   useEffect(() => {
     const handleResize = () => setWindowWidth(window.innerWidth);
@@ -160,27 +181,43 @@ const StatTrendTable = ({ player, curSeason, prevSeason }) => {
 
     if (base !== 'Presenze') return [row];
 
-    // Voto row - Media Voto (the raw referee-style grade, primary number) paired with
-    // Fantamedia (the fantasy-adjusted score, parenthetical) rather than the generic avg/raw
-    // total pairing above, since both are already per-match averages from fantacalcio.it -
-    // there's no separate "raw total" for either.
+    // Voto row - normally Media Voto (the raw referee-style grade) as the primary number paired
+    // with Fantamedia (the fantasy-adjusted score) as the parenthetical, since both are already
+    // per-match averages from fantacalcio.it - there's no separate "raw total" for either. Cards
+    // (preferFantamedia) flip this: Fantavoto (Fantamedia) primary, Voto parenthetical.
     const mvPrev = player[`Media Voto ${prevSeason}`];
     const mvCur = player[`Media Voto ${curSeason}`];
     const fmPrev = player[`Fantamedia ${prevSeason}`];
     const fmCur = player[`Fantamedia ${curSeason}`];
+
+    const votoPrimaryPrev = preferFantamedia ? fmPrev : mvPrev;
+    const votoPrimaryCur = preferFantamedia ? fmCur : mvCur;
+    const votoParenPrev = preferFantamedia ? mvPrev : fmPrev;
+    const votoParenCur = preferFantamedia ? mvCur : fmCur;
+
+    const fasciaOf = (season) => {
+      if (!fasciaLookup) return null;
+      const entries = getFasciaEntries(fasciaLookup, player, season);
+      const best = bestFasciaIndex(entries);
+      if (best === null) return null;
+      return { index: best, color: fasciaColor(best), tooltip: fasciaTooltipText(entries) };
+    };
+
     const votoRow = (
       <StatTrendRow
         key="Voto"
-        label="Voto"
-        primaryPrev={formatValue(mvPrev)}
-        primaryCur={formatValue(mvCur)}
-        parenPrev={isMissingData(fmPrev) ? '' : `(${formatValue(fmPrev)})`}
-        parenCur={isMissingData(fmCur) ? '' : `(${formatValue(fmCur)})`}
-        sparkPrev={mvPrev}
-        sparkCur={mvCur}
-        prevMissing={isMissingData(mvPrev)}
-        curMissing={isMissingData(mvCur)}
+        label={preferFantamedia ? 'Fantavoto' : 'Voto'}
+        primaryPrev={formatValue(votoPrimaryPrev)}
+        primaryCur={formatValue(votoPrimaryCur)}
+        parenPrev={isMissingData(votoParenPrev) ? '' : `(${formatValue(votoParenPrev)})`}
+        parenCur={isMissingData(votoParenCur) ? '' : `(${formatValue(votoParenCur)})`}
+        sparkPrev={votoPrimaryPrev}
+        sparkCur={votoPrimaryCur}
+        prevMissing={isMissingData(votoPrimaryPrev)}
+        curMissing={isMissingData(votoPrimaryCur)}
         isMobile={isMobile}
+        fasciaPrev={preferFantamedia ? fasciaOf(prevSeason) : null}
+        fasciaCur={preferFantamedia ? fasciaOf(curSeason) : null}
       />
     );
 

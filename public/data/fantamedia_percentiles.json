@@ -1,0 +1,7098 @@
+{
+  "2026-2027": {
+    "P": [
+      [
+        {
+          "player_id": 5841,
+          "Nome": "Svilar",
+          "Squadra": "Roma",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 4360,
+          "Nome": "Caprile",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 4431,
+          "Nome": "Carnesecchi",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 6482,
+          "Nome": "Mandas",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 6415,
+          "Nome": "Palmisani",
+          "Squadra": "Frosinone",
+          "Fantamedia": 5.38
+        }
+      ],
+      [
+        {
+          "player_id": 4964,
+          "Nome": "Vicario",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.12
+        },
+        {
+          "player_id": 4312,
+          "Nome": "Maignan",
+          "Squadra": "Milan",
+          "Fantamedia": 5.12
+        }
+      ],
+      [
+        {
+          "player_id": 6966,
+          "Nome": "Butez",
+          "Squadra": "Como",
+          "Fantamedia": 4.83
+        },
+        {
+          "player_id": 572,
+          "Nome": "Meret",
+          "Squadra": "Napoli",
+          "Fantamedia": 4.67
+        }
+      ],
+      [
+        {
+          "player_id": 6662,
+          "Nome": "Corvi",
+          "Squadra": "Parma",
+          "Fantamedia": 4.62
+        },
+        {
+          "player_id": 133,
+          "Nome": "Skorupski",
+          "Squadra": "Bologna",
+          "Fantamedia": 4.5
+        }
+      ],
+      [
+        {
+          "player_id": 5116,
+          "Nome": "Martinez Jo.",
+          "Squadra": "Inter",
+          "Fantamedia": 4.38
+        },
+        {
+          "player_id": 2134,
+          "Nome": "Falcone",
+          "Squadra": "Lecce",
+          "Fantamedia": 4.25
+        }
+      ],
+      [
+        {
+          "player_id": 4236,
+          "Nome": "Muric",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 4.12
+        },
+        {
+          "player_id": 6534,
+          "Nome": "Perri",
+          "Squadra": "Torino",
+          "Fantamedia": 4.0
+        }
+      ],
+      [
+        {
+          "player_id": 6462,
+          "Nome": "Okoye",
+          "Squadra": "Udinese",
+          "Fantamedia": 3.88
+        },
+        {
+          "player_id": 7332,
+          "Nome": "Bijlow",
+          "Squadra": "Genoa",
+          "Fantamedia": 3.75
+        }
+      ],
+      [
+        {
+          "player_id": 7457,
+          "Nome": "Mascardi",
+          "Squadra": "Torino",
+          "Fantamedia": 3.75
+        },
+        {
+          "player_id": 6248,
+          "Nome": "Stankovic F.",
+          "Squadra": "Venezia",
+          "Fantamedia": 3.25
+        }
+      ],
+      [
+        {
+          "player_id": 2521,
+          "Nome": "De Gea",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 2.88
+        },
+        {
+          "player_id": 4485,
+          "Nome": "Thiam",
+          "Squadra": "Monza",
+          "Fantamedia": 2.83
+        }
+      ]
+    ],
+    "Dc": [
+      [
+        {
+          "player_id": 5877,
+          "Nome": "Carlos Augusto",
+          "Squadra": "Inter",
+          "Fantamedia": 9.0
+        },
+        {
+          "player_id": 6217,
+          "Nome": "Bisseck",
+          "Squadra": "Inter",
+          "Fantamedia": 7.67
+        },
+        {
+          "player_id": 6989,
+          "Nome": "Tiago Gabriel",
+          "Squadra": "Lecce",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 7469,
+          "Nome": "Bracaglia",
+          "Squadra": "Frosinone",
+          "Fantamedia": 7.12
+        },
+        {
+          "player_id": 2788,
+          "Nome": "Bremer",
+          "Squadra": "Juventus",
+          "Fantamedia": 7.0
+        },
+        {
+          "player_id": 4807,
+          "Nome": "Hermoso",
+          "Squadra": "Roma",
+          "Fantamedia": 7.0
+        },
+        {
+          "player_id": 6869,
+          "Nome": "Ramon",
+          "Squadra": "Como",
+          "Fantamedia": 7.0
+        },
+        {
+          "player_id": 6495,
+          "Nome": "Comuzzo",
+          "Squadra": "Torino",
+          "Fantamedia": 6.75
+        }
+      ],
+      [
+        {
+          "player_id": 4705,
+          "Nome": "Balerdi",
+          "Squadra": "Roma",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 6021,
+          "Nome": "Abankwah",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 6320,
+          "Nome": "Doekhi",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.67
+        },
+        {
+          "player_id": 2296,
+          "Nome": "Mancini",
+          "Squadra": "Roma",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 6631,
+          "Nome": "Ghilardi",
+          "Squadra": "Roma",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 4409,
+          "Nome": "Rrahmani",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.38
+        },
+        {
+          "player_id": 7564,
+          "Nome": "Leysen F.",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.38
+        },
+        {
+          "player_id": 5641,
+          "Nome": "Chalobah T.",
+          "Squadra": "Como",
+          "Fantamedia": 6.33
+        }
+      ],
+      [
+        {
+          "player_id": 7526,
+          "Nome": "Comert",
+          "Squadra": "Torino",
+          "Fantamedia": 6.33
+        },
+        {
+          "player_id": 7268,
+          "Nome": "Rodriguez Ju.",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 6893,
+          "Nome": "Kempf",
+          "Squadra": "Como",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 5739,
+          "Nome": "De Winter",
+          "Squadra": "Milan",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 2120,
+          "Nome": "Bastoni",
+          "Squadra": "Inter",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 4976,
+          "Nome": "Kalulu",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 5833,
+          "Nome": "Gila",
+          "Squadra": "Milan",
+          "Fantamedia": 6.12
+        }
+      ],
+      [
+        {
+          "player_id": 5514,
+          "Nome": "Vasquez",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 7274,
+          "Nome": "Zè Pedro",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 7467,
+          "Nome": "Calvani",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 6956,
+          "Nome": "Solet",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5526,
+          "Nome": "Scalvini",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5701,
+          "Nome": "Obert",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5010,
+          "Nome": "Ismajli",
+          "Squadra": "Torino",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 6672,
+          "Nome": "Idzes",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 7532,
+          "Nome": "Kofler",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 7326,
+          "Nome": "Helland",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 4159,
+          "Nome": "Akanji",
+          "Squadra": "Inter",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 6664,
+          "Nome": "Delprato",
+          "Squadra": "Parma",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 6642,
+          "Nome": "Coco",
+          "Squadra": "Torino",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 2514,
+          "Nome": "Stones",
+          "Squadra": "Inter",
+          "Fantamedia": 5.83
+        }
+      ],
+      [
+        {
+          "player_id": 4952,
+          "Nome": "Monterisi",
+          "Squadra": "Frosinone",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 5022,
+          "Nome": "Pavlovic",
+          "Squadra": "Milan",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 4317,
+          "Nome": "N'Dicka",
+          "Squadra": "Roma",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 5675,
+          "Nome": "Theate",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 2640,
+          "Nome": "Kolasinac",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 4177,
+          "Nome": "Pavard",
+          "Squadra": "Inter",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7012,
+          "Nome": "Provstgaard",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 5820,
+          "Nome": "Bertola",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7478,
+          "Nome": "Franjic",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 6042,
+          "Nome": "Lucumì",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 7410,
+          "Nome": "Viery",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 4657,
+          "Nome": "Celik",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 5757,
+          "Nome": "Cittadini",
+          "Squadra": "Frosinone",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 4925,
+          "Nome": "Carboni A.",
+          "Squadra": "Monza",
+          "Fantamedia": 5.62
+        }
+      ],
+      [
+        {
+          "player_id": 7235,
+          "Nome": "Troilo",
+          "Squadra": "Parma",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 5994,
+          "Nome": "Ebosse",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 5750,
+          "Nome": "Ostigard",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 4137,
+          "Nome": "Diego Carlos",
+          "Squadra": "Parma",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7212,
+          "Nome": "Heggem",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 6766,
+          "Nome": "Kelly L.",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 5578,
+          "Nome": "Kossounou",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.5
+        }
+      ],
+      [
+        {
+          "player_id": 7240,
+          "Nome": "Siebert",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7238,
+          "Nome": "Kouadio",
+          "Squadra": "Monza",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 4378,
+          "Nome": "Ranieri L.",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 6660,
+          "Nome": "Marcandalli",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.38
+        },
+        {
+          "player_id": 6638,
+          "Nome": "Marin R.",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.38
+        },
+        {
+          "player_id": 6659,
+          "Nome": "Lucchesi",
+          "Squadra": "Monza",
+          "Fantamedia": 5.25
+        },
+        {
+          "player_id": 5365,
+          "Nome": "Dragusin",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.12
+        }
+      ],
+      [
+        {
+          "player_id": 7294,
+          "Nome": "Valdepenas",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.0
+        },
+        {
+          "player_id": 6632,
+          "Nome": "Gaspar K.",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.0
+        },
+        {
+          "player_id": 7253,
+          "Nome": "Bella-Kotchap",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.0
+        },
+        {
+          "player_id": 4263,
+          "Nome": "Kabasele",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.0
+        },
+        {
+          "player_id": 6890,
+          "Nome": "Moreno M.",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.0
+        },
+        {
+          "player_id": 6892,
+          "Nome": "Schingtienne",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.0
+        },
+        {
+          "player_id": 7538,
+          "Nome": "Halhal",
+          "Squadra": "Venezia",
+          "Fantamedia": 3.5
+        }
+      ]
+    ],
+    "Ds": [
+      [
+        {
+          "player_id": 5877,
+          "Nome": "Carlos Augusto",
+          "Squadra": "Inter",
+          "Fantamedia": 9.0
+        },
+        {
+          "player_id": 5555,
+          "Nome": "Kamara H.",
+          "Squadra": "Udinese",
+          "Fantamedia": 7.88
+        },
+        {
+          "player_id": 7485,
+          "Nome": "Mangas",
+          "Squadra": "Monza",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 7469,
+          "Nome": "Bracaglia",
+          "Squadra": "Frosinone",
+          "Fantamedia": 7.12
+        }
+      ],
+      [
+        {
+          "player_id": 5851,
+          "Nome": "Doig",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 7.0
+        },
+        {
+          "player_id": 6867,
+          "Nome": "Valle",
+          "Squadra": "Como",
+          "Fantamedia": 6.67
+        },
+        {
+          "player_id": 5620,
+          "Nome": "Tavares N.",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.67
+        },
+        {
+          "player_id": 7564,
+          "Nome": "Leysen F.",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.38
+        }
+      ],
+      [
+        {
+          "player_id": 4734,
+          "Nome": "Miranda J.",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.33
+        },
+        {
+          "player_id": 7268,
+          "Nome": "Rodriguez Ju.",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 4845,
+          "Nome": "Correia T.",
+          "Squadra": "Venezia",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 5514,
+          "Nome": "Vasquez",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.12
+        }
+      ],
+      [
+        {
+          "player_id": 5862,
+          "Nome": "Valeri",
+          "Squadra": "Parma",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 5838,
+          "Nome": "Birindelli",
+          "Squadra": "Monza",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 5701,
+          "Nome": "Obert",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 6496,
+          "Nome": "Bartesaghi",
+          "Squadra": "Milan",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 4817,
+          "Nome": "Pedraza",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 7255,
+          "Nome": "Britschgi",
+          "Squadra": "Parma",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 1852,
+          "Nome": "Spinazzola",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 4502,
+          "Nome": "Gallo",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.83
+        }
+      ],
+      [
+        {
+          "player_id": 5675,
+          "Nome": "Theate",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 2640,
+          "Nome": "Kolasinac",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7219,
+          "Nome": "Bernasconi",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 5820,
+          "Nome": "Bertola",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 4375,
+          "Nome": "Terzic",
+          "Squadra": "Frosinone",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7483,
+          "Nome": "Alhassane",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7478,
+          "Nome": "Franjic",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 6531,
+          "Nome": "Jimenez A.",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.67
+        }
+      ],
+      [
+        {
+          "player_id": 7410,
+          "Nome": "Viery",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 5695,
+          "Nome": "Haps",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 4925,
+          "Nome": "Carboni A.",
+          "Squadra": "Monza",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 5994,
+          "Nome": "Ebosse",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.62
+        }
+      ],
+      [
+        {
+          "player_id": 7212,
+          "Nome": "Heggem",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 6766,
+          "Nome": "Kelly L.",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 5273,
+          "Nome": "Estupinan",
+          "Squadra": "Milan",
+          "Fantamedia": 5.5
+        }
+      ],
+      [
+        {
+          "player_id": 4378,
+          "Nome": "Ranieri L.",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7182,
+          "Nome": "Ndaba",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7294,
+          "Nome": "Valdepenas",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.0
+        }
+      ]
+    ],
+    "Dd": [
+      [
+        {
+          "player_id": 6681,
+          "Nome": "Sagrado",
+          "Squadra": "Venezia",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 6821,
+          "Nome": "Hainaut",
+          "Squadra": "Venezia",
+          "Fantamedia": 7.12
+        },
+        {
+          "player_id": 6021,
+          "Nome": "Abankwah",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 7220,
+          "Nome": "Belghali",
+          "Squadra": "Torino",
+          "Fantamedia": 6.5
+        }
+      ],
+      [
+        {
+          "player_id": 6238,
+          "Nome": "Oyono A.",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 5641,
+          "Nome": "Chalobah T.",
+          "Squadra": "Como",
+          "Fantamedia": 6.33
+        },
+        {
+          "player_id": 6727,
+          "Nome": "Couto",
+          "Squadra": "Como",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 5739,
+          "Nome": "De Winter",
+          "Squadra": "Milan",
+          "Fantamedia": 6.25
+        }
+      ],
+      [
+        {
+          "player_id": 7573,
+          "Nome": "Cinquegrano",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 4845,
+          "Nome": "Correia T.",
+          "Squadra": "Venezia",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 4976,
+          "Nome": "Kalulu",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 2816,
+          "Nome": "Di Lorenzo",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.12
+        }
+      ],
+      [
+        {
+          "player_id": 7274,
+          "Nome": "Zè Pedro",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 6990,
+          "Nome": "Veiga D.",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 5838,
+          "Nome": "Birindelli",
+          "Squadra": "Monza",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 5678,
+          "Nome": "Holm",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 4433,
+          "Nome": "Zortea",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 7255,
+          "Nome": "Britschgi",
+          "Squadra": "Parma",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 7326,
+          "Nome": "Helland",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 6664,
+          "Nome": "Delprato",
+          "Squadra": "Parma",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 554,
+          "Nome": "Zappacosta",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 4994,
+          "Nome": "Vojvoda",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 4177,
+          "Nome": "Pavard",
+          "Squadra": "Inter",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7131,
+          "Nome": "Floriani Mussolini",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 5820,
+          "Nome": "Bertola",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 7476,
+          "Nome": "Bakoune",
+          "Squadra": "Monza",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 6814,
+          "Nome": "Norton-Cuffy",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 6531,
+          "Nome": "Jimenez A.",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.67
+        }
+      ],
+      [
+        {
+          "player_id": 4657,
+          "Nome": "Celik",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 5578,
+          "Nome": "Kossounou",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7238,
+          "Nome": "Kouadio",
+          "Squadra": "Monza",
+          "Fantamedia": 5.5
+        }
+      ],
+      [
+        {
+          "player_id": 6047,
+          "Nome": "Ehizibue",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 4887,
+          "Nome": "Bellanova",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.25
+        },
+        {
+          "player_id": 7175,
+          "Nome": "Joao Mario",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.25
+        }
+      ]
+    ],
+    "B": [
+      [
+        {
+          "player_id": 5877,
+          "Nome": "Carlos Augusto",
+          "Squadra": "Inter",
+          "Fantamedia": 9.0
+        },
+        {
+          "player_id": 6217,
+          "Nome": "Bisseck",
+          "Squadra": "Inter",
+          "Fantamedia": 7.67
+        },
+        {
+          "player_id": 6989,
+          "Nome": "Tiago Gabriel",
+          "Squadra": "Lecce",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 7469,
+          "Nome": "Bracaglia",
+          "Squadra": "Frosinone",
+          "Fantamedia": 7.12
+        },
+        {
+          "player_id": 2788,
+          "Nome": "Bremer",
+          "Squadra": "Juventus",
+          "Fantamedia": 7.0
+        },
+        {
+          "player_id": 4807,
+          "Nome": "Hermoso",
+          "Squadra": "Roma",
+          "Fantamedia": 7.0
+        },
+        {
+          "player_id": 6869,
+          "Nome": "Ramon",
+          "Squadra": "Como",
+          "Fantamedia": 7.0
+        },
+        {
+          "player_id": 6495,
+          "Nome": "Comuzzo",
+          "Squadra": "Torino",
+          "Fantamedia": 6.75
+        }
+      ],
+      [
+        {
+          "player_id": 4705,
+          "Nome": "Balerdi",
+          "Squadra": "Roma",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 6021,
+          "Nome": "Abankwah",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 6320,
+          "Nome": "Doekhi",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.67
+        },
+        {
+          "player_id": 2296,
+          "Nome": "Mancini",
+          "Squadra": "Roma",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 6631,
+          "Nome": "Ghilardi",
+          "Squadra": "Roma",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 4409,
+          "Nome": "Rrahmani",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.38
+        },
+        {
+          "player_id": 7564,
+          "Nome": "Leysen F.",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.38
+        },
+        {
+          "player_id": 5641,
+          "Nome": "Chalobah T.",
+          "Squadra": "Como",
+          "Fantamedia": 6.33
+        }
+      ],
+      [
+        {
+          "player_id": 7526,
+          "Nome": "Comert",
+          "Squadra": "Torino",
+          "Fantamedia": 6.33
+        },
+        {
+          "player_id": 7268,
+          "Nome": "Rodriguez Ju.",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 6893,
+          "Nome": "Kempf",
+          "Squadra": "Como",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 5739,
+          "Nome": "De Winter",
+          "Squadra": "Milan",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 2120,
+          "Nome": "Bastoni",
+          "Squadra": "Inter",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 4976,
+          "Nome": "Kalulu",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 5833,
+          "Nome": "Gila",
+          "Squadra": "Milan",
+          "Fantamedia": 6.12
+        }
+      ],
+      [
+        {
+          "player_id": 5514,
+          "Nome": "Vasquez",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 7274,
+          "Nome": "Zè Pedro",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 7467,
+          "Nome": "Calvani",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 6956,
+          "Nome": "Solet",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5526,
+          "Nome": "Scalvini",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5701,
+          "Nome": "Obert",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5010,
+          "Nome": "Ismajli",
+          "Squadra": "Torino",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 6672,
+          "Nome": "Idzes",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 7532,
+          "Nome": "Kofler",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 7326,
+          "Nome": "Helland",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 4159,
+          "Nome": "Akanji",
+          "Squadra": "Inter",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 6664,
+          "Nome": "Delprato",
+          "Squadra": "Parma",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 6642,
+          "Nome": "Coco",
+          "Squadra": "Torino",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 2514,
+          "Nome": "Stones",
+          "Squadra": "Inter",
+          "Fantamedia": 5.83
+        }
+      ],
+      [
+        {
+          "player_id": 4952,
+          "Nome": "Monterisi",
+          "Squadra": "Frosinone",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 5022,
+          "Nome": "Pavlovic",
+          "Squadra": "Milan",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 4317,
+          "Nome": "N'Dicka",
+          "Squadra": "Roma",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 5675,
+          "Nome": "Theate",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 2640,
+          "Nome": "Kolasinac",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 4177,
+          "Nome": "Pavard",
+          "Squadra": "Inter",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7012,
+          "Nome": "Provstgaard",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 5820,
+          "Nome": "Bertola",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7478,
+          "Nome": "Franjic",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 6042,
+          "Nome": "Lucumì",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 7410,
+          "Nome": "Viery",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 4657,
+          "Nome": "Celik",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 5757,
+          "Nome": "Cittadini",
+          "Squadra": "Frosinone",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 4925,
+          "Nome": "Carboni A.",
+          "Squadra": "Monza",
+          "Fantamedia": 5.62
+        }
+      ],
+      [
+        {
+          "player_id": 7235,
+          "Nome": "Troilo",
+          "Squadra": "Parma",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 5994,
+          "Nome": "Ebosse",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 5750,
+          "Nome": "Ostigard",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 4137,
+          "Nome": "Diego Carlos",
+          "Squadra": "Parma",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7212,
+          "Nome": "Heggem",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 6766,
+          "Nome": "Kelly L.",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 5578,
+          "Nome": "Kossounou",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.5
+        }
+      ],
+      [
+        {
+          "player_id": 7240,
+          "Nome": "Siebert",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7238,
+          "Nome": "Kouadio",
+          "Squadra": "Monza",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 4378,
+          "Nome": "Ranieri L.",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 6660,
+          "Nome": "Marcandalli",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.38
+        },
+        {
+          "player_id": 6638,
+          "Nome": "Marin R.",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.38
+        },
+        {
+          "player_id": 6659,
+          "Nome": "Lucchesi",
+          "Squadra": "Monza",
+          "Fantamedia": 5.25
+        },
+        {
+          "player_id": 5365,
+          "Nome": "Dragusin",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.12
+        }
+      ],
+      [
+        {
+          "player_id": 7294,
+          "Nome": "Valdepenas",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.0
+        },
+        {
+          "player_id": 6632,
+          "Nome": "Gaspar K.",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.0
+        },
+        {
+          "player_id": 7253,
+          "Nome": "Bella-Kotchap",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.0
+        },
+        {
+          "player_id": 4263,
+          "Nome": "Kabasele",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.0
+        },
+        {
+          "player_id": 6890,
+          "Nome": "Moreno M.",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.0
+        },
+        {
+          "player_id": 6892,
+          "Nome": "Schingtienne",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.0
+        },
+        {
+          "player_id": 7538,
+          "Nome": "Halhal",
+          "Squadra": "Venezia",
+          "Fantamedia": 3.5
+        }
+      ]
+    ],
+    "E": [
+      [
+        {
+          "player_id": 6372,
+          "Nome": "Moreira",
+          "Squadra": "Milan",
+          "Fantamedia": 9.5
+        },
+        {
+          "player_id": 5877,
+          "Nome": "Carlos Augusto",
+          "Squadra": "Inter",
+          "Fantamedia": 9.0
+        },
+        {
+          "player_id": 5555,
+          "Nome": "Kamara H.",
+          "Squadra": "Udinese",
+          "Fantamedia": 7.88
+        },
+        {
+          "player_id": 7485,
+          "Nome": "Mangas",
+          "Squadra": "Monza",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 6681,
+          "Nome": "Sagrado",
+          "Squadra": "Venezia",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 6274,
+          "Nome": "Diouf",
+          "Squadra": "Inter",
+          "Fantamedia": 7.5
+        }
+      ],
+      [
+        {
+          "player_id": 7181,
+          "Nome": "Wesley",
+          "Squadra": "Roma",
+          "Fantamedia": 7.17
+        },
+        {
+          "player_id": 6821,
+          "Nome": "Hainaut",
+          "Squadra": "Venezia",
+          "Fantamedia": 7.12
+        },
+        {
+          "player_id": 5851,
+          "Nome": "Doig",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 7.0
+        },
+        {
+          "player_id": 4856,
+          "Nome": "Chukwueze",
+          "Squadra": "Milan",
+          "Fantamedia": 7.0
+        },
+        {
+          "player_id": 6867,
+          "Nome": "Valle",
+          "Squadra": "Como",
+          "Fantamedia": 6.67
+        },
+        {
+          "player_id": 5620,
+          "Nome": "Tavares N.",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.67
+        }
+      ],
+      [
+        {
+          "player_id": 254,
+          "Nome": "Dimarco",
+          "Squadra": "Inter",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 7220,
+          "Nome": "Belghali",
+          "Squadra": "Torino",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 6238,
+          "Nome": "Oyono A.",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 4892,
+          "Nome": "Saelemaekers",
+          "Squadra": "Milan",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 7060,
+          "Nome": "Cacciamani",
+          "Squadra": "Torino",
+          "Fantamedia": 6.38
+        },
+        {
+          "player_id": 4734,
+          "Nome": "Miranda J.",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.33
+        }
+      ],
+      [
+        {
+          "player_id": 6727,
+          "Nome": "Couto",
+          "Squadra": "Como",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 7573,
+          "Nome": "Cinquegrano",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 7599,
+          "Nome": "Lulli",
+          "Squadra": "Roma",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 4845,
+          "Nome": "Correia T.",
+          "Squadra": "Venezia",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 2816,
+          "Nome": "Di Lorenzo",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 5862,
+          "Nome": "Valeri",
+          "Squadra": "Parma",
+          "Fantamedia": 6.12
+        }
+      ],
+      [
+        {
+          "player_id": 7069,
+          "Nome": "Fortini",
+          "Squadra": "Torino",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 6990,
+          "Nome": "Veiga D.",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 5838,
+          "Nome": "Birindelli",
+          "Squadra": "Monza",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 4998,
+          "Nome": "Molina N.",
+          "Squadra": "Roma",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5701,
+          "Nome": "Obert",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 6496,
+          "Nome": "Bartesaghi",
+          "Squadra": "Milan",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 5678,
+          "Nome": "Holm",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 4433,
+          "Nome": "Zortea",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 4817,
+          "Nome": "Pedraza",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 7255,
+          "Nome": "Britschgi",
+          "Squadra": "Parma",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5301,
+          "Nome": "Luis Henrique",
+          "Squadra": "Inter",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 1852,
+          "Nome": "Spinazzola",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.88
+        }
+      ],
+      [
+        {
+          "player_id": 6664,
+          "Nome": "Delprato",
+          "Squadra": "Parma",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 554,
+          "Nome": "Zappacosta",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 4502,
+          "Nome": "Gallo",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 4994,
+          "Nome": "Vojvoda",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7219,
+          "Nome": "Bernasconi",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 7131,
+          "Nome": "Floriani Mussolini",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 4375,
+          "Nome": "Terzic",
+          "Squadra": "Frosinone",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7483,
+          "Nome": "Alhassane",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7478,
+          "Nome": "Franjic",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7476,
+          "Nome": "Bakoune",
+          "Squadra": "Monza",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 6814,
+          "Nome": "Norton-Cuffy",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 6531,
+          "Nome": "Jimenez A.",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 4657,
+          "Nome": "Celik",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 5695,
+          "Nome": "Haps",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 6020,
+          "Nome": "Ellertsson",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.62
+        }
+      ],
+      [
+        {
+          "player_id": 6047,
+          "Nome": "Ehizibue",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 5273,
+          "Nome": "Estupinan",
+          "Squadra": "Milan",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7182,
+          "Nome": "Ndaba",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 4887,
+          "Nome": "Bellanova",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.25
+        },
+        {
+          "player_id": 7175,
+          "Nome": "Joao Mario",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.25
+        }
+      ]
+    ],
+    "M": [
+      [
+        {
+          "player_id": 2194,
+          "Nome": "Calhanoglu",
+          "Squadra": "Inter",
+          "Fantamedia": 8.5
+        },
+        {
+          "player_id": 5504,
+          "Nome": "Coulibaly L.",
+          "Squadra": "Lecce",
+          "Fantamedia": 8.12
+        },
+        {
+          "player_id": 7198,
+          "Nome": "Piotrowski",
+          "Squadra": "Udinese",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 7248,
+          "Nome": "Gorter",
+          "Squadra": "Lecce",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 7311,
+          "Nome": "Romano",
+          "Squadra": "Cagliari",
+          "Fantamedia": 7.38
+        }
+      ],
+      [
+        {
+          "player_id": 4287,
+          "Nome": "Lobotka",
+          "Squadra": "Napoli",
+          "Fantamedia": 7.38
+        },
+        {
+          "player_id": 6680,
+          "Nome": "Karlstrom",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.88
+        },
+        {
+          "player_id": 5792,
+          "Nome": "Ederson D.S.",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 4870,
+          "Nome": "Adopo",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 7412,
+          "Nome": "Milla",
+          "Squadra": "Como",
+          "Fantamedia": 6.75
+        }
+      ],
+      [
+        {
+          "player_id": 2528,
+          "Nome": "Matic",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 7472,
+          "Nome": "Calò",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.62
+        },
+        {
+          "player_id": 6917,
+          "Nome": "Masini",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.62
+        },
+        {
+          "player_id": 5507,
+          "Nome": "Busio",
+          "Squadra": "Venezia",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 827,
+          "Nome": "Locatelli",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.33
+        }
+      ],
+      [
+        {
+          "player_id": 5007,
+          "Nome": "Ilic",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.33
+        },
+        {
+          "player_id": 6151,
+          "Nome": "Perrone",
+          "Squadra": "Como",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 779,
+          "Nome": "Cristante",
+          "Squadra": "Roma",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 4459,
+          "Nome": "Rovella",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 7203,
+          "Nome": "Jashari",
+          "Squadra": "Milan",
+          "Fantamedia": 6.25
+        }
+      ],
+      [
+        {
+          "player_id": 6191,
+          "Nome": "Belahyane",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 5589,
+          "Nome": "Konè M.",
+          "Squadra": "Roma",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 5858,
+          "Nome": "Ferguson",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 4260,
+          "Nome": "Winks",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 4465,
+          "Nome": "Fagioli",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 5298,
+          "Nome": "Pobega",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 7535,
+          "Nome": "Fitz-Jim",
+          "Squadra": "Torino",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 1871,
+          "Nome": "Deiola",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 7341,
+          "Nome": "Amorim",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5457,
+          "Nome": "Maleh",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 6246,
+          "Nome": "Lipani",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 2606,
+          "Nome": "Modric",
+          "Squadra": "Milan",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 5946,
+          "Nome": "Sow",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 7138,
+          "Nome": "Ordonez C.",
+          "Squadra": "Parma",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 5674,
+          "Nome": "Basic",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 6170,
+          "Nome": "Gineitis",
+          "Squadra": "Torino",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 6054,
+          "Nome": "Moro N.",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7473,
+          "Nome": "Cichella",
+          "Squadra": "Frosinone",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7208,
+          "Nome": "Miller L.",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 6212,
+          "Nome": "Zarraga",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 4364,
+          "Nome": "Gaetano",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 7464,
+          "Nome": "Oulai",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 5791,
+          "Nome": "Frendrup",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.62
+        }
+      ],
+      [
+        {
+          "player_id": 6898,
+          "Nome": "Keita M.",
+          "Squadra": "Parma",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 7322,
+          "Nome": "Ngom",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 6005,
+          "Nome": "Ilkhan",
+          "Squadra": "Torino",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7528,
+          "Nome": "Amondarain",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.25
+        }
+      ]
+    ],
+    "C": [
+      [
+        {
+          "player_id": 2848,
+          "Nome": "Frattesi",
+          "Squadra": "Lazio",
+          "Fantamedia": 9.12
+        },
+        {
+          "player_id": 2194,
+          "Nome": "Calhanoglu",
+          "Squadra": "Inter",
+          "Fantamedia": 8.5
+        },
+        {
+          "player_id": 6190,
+          "Nome": "Pisilli",
+          "Squadra": "Roma",
+          "Fantamedia": 8.33
+        },
+        {
+          "player_id": 6684,
+          "Nome": "Ekkelenkamp",
+          "Squadra": "Udinese",
+          "Fantamedia": 8.25
+        },
+        {
+          "player_id": 6677,
+          "Nome": "Adzic",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 8.25
+        },
+        {
+          "player_id": 5504,
+          "Nome": "Coulibaly L.",
+          "Squadra": "Lecce",
+          "Fantamedia": 8.12
+        },
+        {
+          "player_id": 152,
+          "Nome": "Zielinski",
+          "Squadra": "Inter",
+          "Fantamedia": 7.75
+        },
+        {
+          "player_id": 5685,
+          "Nome": "Koopmeiners",
+          "Squadra": "Juventus",
+          "Fantamedia": 7.67
+        },
+        {
+          "player_id": 2379,
+          "Nome": "Rabiot",
+          "Squadra": "Milan",
+          "Fantamedia": 7.5
+        }
+      ],
+      [
+        {
+          "player_id": 1870,
+          "Nome": "Barella",
+          "Squadra": "Inter",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 6274,
+          "Nome": "Diouf",
+          "Squadra": "Inter",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 7198,
+          "Nome": "Piotrowski",
+          "Squadra": "Udinese",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 7248,
+          "Nome": "Gorter",
+          "Squadra": "Lecce",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 7311,
+          "Nome": "Romano",
+          "Squadra": "Cagliari",
+          "Fantamedia": 7.38
+        },
+        {
+          "player_id": 4287,
+          "Nome": "Lobotka",
+          "Squadra": "Napoli",
+          "Fantamedia": 7.38
+        },
+        {
+          "player_id": 1933,
+          "Nome": "Mandragora",
+          "Squadra": "Torino",
+          "Fantamedia": 6.88
+        },
+        {
+          "player_id": 6680,
+          "Nome": "Karlstrom",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.88
+        },
+        {
+          "player_id": 5792,
+          "Nome": "Ederson D.S.",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.75
+        }
+      ],
+      [
+        {
+          "player_id": 5119,
+          "Nome": "Samardzic",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 4870,
+          "Nome": "Adopo",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 7412,
+          "Nome": "Milla",
+          "Squadra": "Como",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 2528,
+          "Nome": "Matic",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 7472,
+          "Nome": "Calò",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.62
+        },
+        {
+          "player_id": 6917,
+          "Nome": "Masini",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.62
+        },
+        {
+          "player_id": 7036,
+          "Nome": "Bakola",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 5507,
+          "Nome": "Busio",
+          "Squadra": "Venezia",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 5559,
+          "Nome": "Da Cunha",
+          "Squadra": "Como",
+          "Fantamedia": 6.38
+        }
+      ],
+      [
+        {
+          "player_id": 827,
+          "Nome": "Locatelli",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.33
+        },
+        {
+          "player_id": 6593,
+          "Nome": "Akinsanmiro",
+          "Squadra": "Monza",
+          "Fantamedia": 6.33
+        },
+        {
+          "player_id": 5007,
+          "Nome": "Ilic",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.33
+        },
+        {
+          "player_id": 6151,
+          "Nome": "Perrone",
+          "Squadra": "Como",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 779,
+          "Nome": "Cristante",
+          "Squadra": "Roma",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 4459,
+          "Nome": "Rovella",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 7624,
+          "Nome": "Braganca",
+          "Squadra": "Torino",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 7203,
+          "Nome": "Jashari",
+          "Squadra": "Milan",
+          "Fantamedia": 6.25
+        }
+      ],
+      [
+        {
+          "player_id": 5295,
+          "Nome": "Musah",
+          "Squadra": "Milan",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 5172,
+          "Nome": "Jones C.",
+          "Squadra": "Inter",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 7070,
+          "Nome": "Sucic P.",
+          "Squadra": "Inter",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 6191,
+          "Nome": "Belahyane",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 5589,
+          "Nome": "Konè M.",
+          "Squadra": "Roma",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 5858,
+          "Nome": "Ferguson",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 4260,
+          "Nome": "Winks",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 7314,
+          "Nome": "Taylor K.",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 6010,
+          "Nome": "Fazzini",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5036,
+          "Nome": "Caqueret",
+          "Squadra": "Como",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 4465,
+          "Nome": "Fagioli",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5298,
+          "Nome": "Pobega",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 7535,
+          "Nome": "Fitz-Jim",
+          "Squadra": "Torino",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 1871,
+          "Nome": "Deiola",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 7341,
+          "Nome": "Amorim",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5457,
+          "Nome": "Maleh",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 6903,
+          "Nome": "Hasa",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 6246,
+          "Nome": "Lipani",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 2606,
+          "Nome": "Modric",
+          "Squadra": "Milan",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 5844,
+          "Nome": "Thorstvedt",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 5946,
+          "Nome": "Sow",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 6666,
+          "Nome": "Bernabè",
+          "Squadra": "Parma",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 7138,
+          "Nome": "Ordonez C.",
+          "Squadra": "Parma",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 4777,
+          "Nome": "McTominay",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 5674,
+          "Nome": "Basic",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 6170,
+          "Nome": "Gineitis",
+          "Squadra": "Torino",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 6994,
+          "Nome": "Perez K.",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 6054,
+          "Nome": "Moro N.",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7473,
+          "Nome": "Cichella",
+          "Squadra": "Frosinone",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7208,
+          "Nome": "Miller L.",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 6212,
+          "Nome": "Zarraga",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 4364,
+          "Nome": "Gaetano",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.67
+        }
+      ],
+      [
+        {
+          "player_id": 7464,
+          "Nome": "Oulai",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 4947,
+          "Nome": "Brescianini",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 5791,
+          "Nome": "Frendrup",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 6020,
+          "Nome": "Ellertsson",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 6898,
+          "Nome": "Keita M.",
+          "Squadra": "Parma",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 4199,
+          "Nome": "Loftus-Cheek",
+          "Squadra": "Milan",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 2077,
+          "Nome": "Pasalic",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 6294,
+          "Nome": "Ndour",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.5
+        }
+      ],
+      [
+        {
+          "player_id": 7322,
+          "Nome": "Ngom",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 6005,
+          "Nome": "Ilkhan",
+          "Squadra": "Torino",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 6908,
+          "Nome": "Atta",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.38
+        },
+        {
+          "player_id": 4220,
+          "Nome": "Zambo Anguissa",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.33
+        },
+        {
+          "player_id": 6252,
+          "Nome": "Folorunsho",
+          "Squadra": "Monza",
+          "Fantamedia": 5.33
+        },
+        {
+          "player_id": 7528,
+          "Nome": "Amondarain",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.25
+        },
+        {
+          "player_id": 4911,
+          "Nome": "Douglas Luiz",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.25
+        },
+        {
+          "player_id": 5319,
+          "Nome": "Sohm",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.17
+        }
+      ]
+    ],
+    "W": [
+      [
+        {
+          "player_id": 5761,
+          "Nome": "Zhegrova",
+          "Squadra": "Juventus",
+          "Fantamedia": 9.75
+        },
+        {
+          "player_id": 6372,
+          "Nome": "Moreira",
+          "Squadra": "Milan",
+          "Fantamedia": 9.5
+        },
+        {
+          "player_id": 6204,
+          "Nome": "Kvernadze",
+          "Squadra": "Frosinone",
+          "Fantamedia": 8.62
+        },
+        {
+          "player_id": 7078,
+          "Nome": "Mastantuono",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 8.38
+        },
+        {
+          "player_id": 6967,
+          "Nome": "Diao",
+          "Squadra": "Como",
+          "Fantamedia": 8.38
+        }
+      ],
+      [
+        {
+          "player_id": 4179,
+          "Nome": "Gonzalez N.",
+          "Squadra": "Juventus",
+          "Fantamedia": 7.83
+        },
+        {
+          "player_id": 6618,
+          "Nome": "Cissè A.",
+          "Squadra": "Milan",
+          "Fantamedia": 7.62
+        },
+        {
+          "player_id": 7223,
+          "Nome": "Vergara",
+          "Squadra": "Napoli",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 5735,
+          "Nome": "Volpato",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 4856,
+          "Nome": "Chukwueze",
+          "Squadra": "Milan",
+          "Fantamedia": 7.0
+        }
+      ],
+      [
+        {
+          "player_id": 5500,
+          "Nome": "Cancellieri",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 254,
+          "Nome": "Dimarco",
+          "Squadra": "Inter",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 632,
+          "Nome": "Zaccagni",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 6884,
+          "Nome": "Conceicao",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 4892,
+          "Nome": "Saelemaekers",
+          "Squadra": "Milan",
+          "Fantamedia": 6.5
+        }
+      ],
+      [
+        {
+          "player_id": 536,
+          "Nome": "Politano",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.38
+        },
+        {
+          "player_id": 7060,
+          "Nome": "Cacciamani",
+          "Squadra": "Torino",
+          "Fantamedia": 6.38
+        },
+        {
+          "player_id": 5422,
+          "Nome": "Zalewski",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.33
+        },
+        {
+          "player_id": 184,
+          "Nome": "Bernardeschi",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 5998,
+          "Nome": "Zerbin",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.25
+        }
+      ],
+      [
+        {
+          "player_id": 5295,
+          "Nome": "Musah",
+          "Squadra": "Milan",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 6530,
+          "Nome": "Ghedjemis",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 6827,
+          "Nome": "Njie",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 6207,
+          "Nome": "Almqvist",
+          "Squadra": "Parma",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 6506,
+          "Nome": "Fini",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.12
+        }
+      ],
+      [
+        {
+          "player_id": 4970,
+          "Nome": "Messias",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 7551,
+          "Nome": "Schmid",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5301,
+          "Nome": "Luis Henrique",
+          "Squadra": "Inter",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 6815,
+          "Nome": "Fadera",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 7351,
+          "Nome": "Santos A.",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 6895,
+          "Nome": "Dominguez B.",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 6592,
+          "Nome": "Forson O.",
+          "Squadra": "Monza",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 2832,
+          "Nome": "Boga",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 2167,
+          "Nome": "Orsolini",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7129,
+          "Nome": "Rodriguez Je.",
+          "Squadra": "Como",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 4436,
+          "Nome": "Cambiaghi",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 6549,
+          "Nome": "Pierotti",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7623,
+          "Nome": "Gnonto",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7001,
+          "Nome": "N'Dri",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 7436,
+          "Nome": "Alajbegovic",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 7602,
+          "Nome": "Fatah",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 6398,
+          "Nome": "Isaksen",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 6844,
+          "Nome": "Rowe",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.5
+        }
+      ],
+      [
+        {
+          "player_id": 4479,
+          "Nome": "Elmas",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7619,
+          "Nome": "Monteiro J.",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7409,
+          "Nome": "Meichtry",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7183,
+          "Nome": "Aboukhlal",
+          "Squadra": "Torino",
+          "Fantamedia": 5.5
+        }
+      ]
+    ],
+    "T": [
+      [
+        {
+          "player_id": 2848,
+          "Nome": "Frattesi",
+          "Squadra": "Lazio",
+          "Fantamedia": 9.12
+        },
+        {
+          "player_id": 7078,
+          "Nome": "Mastantuono",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 8.38
+        },
+        {
+          "player_id": 6684,
+          "Nome": "Ekkelenkamp",
+          "Squadra": "Udinese",
+          "Fantamedia": 8.25
+        },
+        {
+          "player_id": 6677,
+          "Nome": "Adzic",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 8.25
+        },
+        {
+          "player_id": 7126,
+          "Nome": "Baturina",
+          "Squadra": "Como",
+          "Fantamedia": 7.88
+        }
+      ],
+      [
+        {
+          "player_id": 4896,
+          "Nome": "Maldini",
+          "Squadra": "Cagliari",
+          "Fantamedia": 7.88
+        },
+        {
+          "player_id": 5685,
+          "Nome": "Koopmeiners",
+          "Squadra": "Juventus",
+          "Fantamedia": 7.67
+        },
+        {
+          "player_id": 2517,
+          "Nome": "De Bruyne",
+          "Squadra": "Napoli",
+          "Fantamedia": 7.62
+        },
+        {
+          "player_id": 6618,
+          "Nome": "Cissè A.",
+          "Squadra": "Milan",
+          "Fantamedia": 7.62
+        },
+        {
+          "player_id": 2379,
+          "Nome": "Rabiot",
+          "Squadra": "Milan",
+          "Fantamedia": 7.5
+        }
+      ],
+      [
+        {
+          "player_id": 7223,
+          "Nome": "Vergara",
+          "Squadra": "Napoli",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 5735,
+          "Nome": "Volpato",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 7.5
+        },
+        {
+          "player_id": 6875,
+          "Nome": "Paz N.",
+          "Squadra": "Como",
+          "Fantamedia": 7.25
+        },
+        {
+          "player_id": 7556,
+          "Nome": "Mora",
+          "Squadra": "Roma",
+          "Fantamedia": 7.12
+        },
+        {
+          "player_id": 5119,
+          "Nome": "Samardzic",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.75
+        }
+      ],
+      [
+        {
+          "player_id": 5800,
+          "Nome": "Gudmundsson A.",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.67
+        },
+        {
+          "player_id": 5878,
+          "Nome": "Colpani",
+          "Squadra": "Monza",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 7036,
+          "Nome": "Bakola",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 5559,
+          "Nome": "Da Cunha",
+          "Squadra": "Como",
+          "Fantamedia": 6.38
+        }
+      ],
+      [
+        {
+          "player_id": 184,
+          "Nome": "Bernardeschi",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 4970,
+          "Nome": "Messias",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 7314,
+          "Nome": "Taylor K.",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 6010,
+          "Nome": "Fazzini",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 7551,
+          "Nome": "Schmid",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5036,
+          "Nome": "Caqueret",
+          "Squadra": "Como",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 6783,
+          "Nome": "Unai Gomez",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 6903,
+          "Nome": "Hasa",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 5823,
+          "Nome": "Baldanzi",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 5844,
+          "Nome": "Thorstvedt",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 6592,
+          "Nome": "Forson O.",
+          "Squadra": "Monza",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 4777,
+          "Nome": "McTominay",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 6994,
+          "Nome": "Perez K.",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7436,
+          "Nome": "Alajbegovic",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 4947,
+          "Nome": "Brescianini",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 4199,
+          "Nome": "Loftus-Cheek",
+          "Squadra": "Milan",
+          "Fantamedia": 5.62
+        }
+      ],
+      [
+        {
+          "player_id": 6844,
+          "Nome": "Rowe",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 2077,
+          "Nome": "Pasalic",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 2765,
+          "Nome": "Odgaard",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 4479,
+          "Nome": "Elmas",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.5
+        }
+      ],
+      [
+        {
+          "player_id": 7409,
+          "Nome": "Meichtry",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 6908,
+          "Nome": "Atta",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.38
+        },
+        {
+          "player_id": 5687,
+          "Nome": "Vlasic",
+          "Squadra": "Torino",
+          "Fantamedia": 5.38
+        },
+        {
+          "player_id": 6252,
+          "Nome": "Folorunsho",
+          "Squadra": "Monza",
+          "Fantamedia": 5.33
+        }
+      ]
+    ],
+    "A": [
+      [
+        {
+          "player_id": 6646,
+          "Nome": "Adams C.",
+          "Squadra": "Torino",
+          "Fantamedia": 8.67
+        },
+        {
+          "player_id": 6204,
+          "Nome": "Kvernadze",
+          "Squadra": "Frosinone",
+          "Fantamedia": 8.62
+        },
+        {
+          "player_id": 5734,
+          "Nome": "Soulè",
+          "Squadra": "Roma",
+          "Fantamedia": 8.38
+        },
+        {
+          "player_id": 6967,
+          "Nome": "Diao",
+          "Squadra": "Como",
+          "Fantamedia": 8.38
+        }
+      ],
+      [
+        {
+          "player_id": 7546,
+          "Nome": "Robinson J.",
+          "Squadra": "Monza",
+          "Fantamedia": 8.25
+        },
+        {
+          "player_id": 309,
+          "Nome": "Dybala",
+          "Squadra": "Roma",
+          "Fantamedia": 8.12
+        },
+        {
+          "player_id": 6556,
+          "Nome": "Noslin",
+          "Squadra": "Lazio",
+          "Fantamedia": 8.0
+        },
+        {
+          "player_id": 4896,
+          "Nome": "Maldini",
+          "Squadra": "Cagliari",
+          "Fantamedia": 7.88
+        }
+      ],
+      [
+        {
+          "player_id": 4179,
+          "Nome": "Gonzalez N.",
+          "Squadra": "Juventus",
+          "Fantamedia": 7.83
+        },
+        {
+          "player_id": 531,
+          "Nome": "Berardi",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 7.33
+        },
+        {
+          "player_id": 6875,
+          "Nome": "Paz N.",
+          "Squadra": "Como",
+          "Fantamedia": 7.25
+        },
+        {
+          "player_id": 4371,
+          "Nome": "Raspadori",
+          "Squadra": "Atalanta",
+          "Fantamedia": 7.17
+        }
+      ],
+      [
+        {
+          "player_id": 7561,
+          "Nome": "Lontani",
+          "Squadra": "Parma",
+          "Fantamedia": 7.12
+        },
+        {
+          "player_id": 6904,
+          "Nome": "Yeboah J.",
+          "Squadra": "Venezia",
+          "Fantamedia": 7.0
+        },
+        {
+          "player_id": 5500,
+          "Nome": "Cancellieri",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.75
+        },
+        {
+          "player_id": 5800,
+          "Nome": "Gudmundsson A.",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.67
+        }
+      ],
+      [
+        {
+          "player_id": 632,
+          "Nome": "Zaccagni",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 6884,
+          "Nome": "Conceicao",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 6060,
+          "Nome": "Laurientè",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 6530,
+          "Nome": "Ghedjemis",
+          "Squadra": "Frosinone",
+          "Fantamedia": 6.25
+        }
+      ],
+      [
+        {
+          "player_id": 5672,
+          "Nome": "Dia",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.25
+        },
+        {
+          "player_id": 6827,
+          "Nome": "Njie",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 6207,
+          "Nome": "Almqvist",
+          "Squadra": "Parma",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 7351,
+          "Nome": "Santos A.",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 6895,
+          "Nome": "Dominguez B.",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 2832,
+          "Nome": "Boga",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 7120,
+          "Nome": "Lang",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 2167,
+          "Nome": "Orsolini",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 7129,
+          "Nome": "Rodriguez Je.",
+          "Squadra": "Como",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 4436,
+          "Nome": "Cambiaghi",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 6752,
+          "Nome": "Woltemade",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7623,
+          "Nome": "Gnonto",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 7001,
+          "Nome": "N'Dri",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7602,
+          "Nome": "Fatah",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 6398,
+          "Nome": "Isaksen",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 5995,
+          "Nome": "De Ketelaere",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.62
+        }
+      ],
+      [
+        {
+          "player_id": 6164,
+          "Nome": "Vitinha O.",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 7619,
+          "Nome": "Monteiro J.",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7183,
+          "Nome": "Aboukhlal",
+          "Squadra": "Torino",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 7213,
+          "Nome": "Frigan",
+          "Squadra": "Parma",
+          "Fantamedia": 5.5
+        }
+      ]
+    ],
+    "Pc": [
+      [
+        {
+          "player_id": 5585,
+          "Nome": "Malen",
+          "Squadra": "Roma",
+          "Fantamedia": 11.75
+        },
+        {
+          "player_id": 5436,
+          "Nome": "Raimondo",
+          "Squadra": "Frosinone",
+          "Fantamedia": 9.62
+        },
+        {
+          "player_id": 4871,
+          "Nome": "Thuram",
+          "Squadra": "Inter",
+          "Fantamedia": 9.0
+        },
+        {
+          "player_id": 7523,
+          "Nome": "Varela G.",
+          "Squadra": "Monza",
+          "Fantamedia": 8.67
+        }
+      ],
+      [
+        {
+          "player_id": 7071,
+          "Nome": "Esposito F.P.",
+          "Squadra": "Inter",
+          "Fantamedia": 8.5
+        },
+        {
+          "player_id": 2764,
+          "Nome": "Martinez L.",
+          "Squadra": "Inter",
+          "Fantamedia": 8.0
+        },
+        {
+          "player_id": 6669,
+          "Nome": "Bonny",
+          "Squadra": "Inter",
+          "Fantamedia": 8.0
+        },
+        {
+          "player_id": 6052,
+          "Nome": "Hojlund",
+          "Squadra": "Napoli",
+          "Fantamedia": 7.75
+        }
+      ],
+      [
+        {
+          "player_id": 7017,
+          "Nome": "Douvikas",
+          "Squadra": "Como",
+          "Fantamedia": 7.75
+        },
+        {
+          "player_id": 7554,
+          "Nome": "Romero D.",
+          "Squadra": "Parma",
+          "Fantamedia": 7.33
+        },
+        {
+          "player_id": 7023,
+          "Nome": "Pellegrino M.",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 7.12
+        },
+        {
+          "player_id": 5637,
+          "Nome": "Davis K.",
+          "Squadra": "Udinese",
+          "Fantamedia": 7.0
+        }
+      ],
+      [
+        {
+          "player_id": 7347,
+          "Nome": "Bowie",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 7.0
+        },
+        {
+          "player_id": 7374,
+          "Nome": "Mendy P.",
+          "Squadra": "Cagliari",
+          "Fantamedia": 7.0
+        },
+        {
+          "player_id": 7272,
+          "Nome": "Gueye",
+          "Squadra": "Udinese",
+          "Fantamedia": 7.0
+        },
+        {
+          "player_id": 2137,
+          "Nome": "Scamacca",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.88
+        }
+      ],
+      [
+        {
+          "player_id": 6675,
+          "Nome": "Dovbyk",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.67
+        },
+        {
+          "player_id": 7600,
+          "Nome": "Osmajic",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.67
+        },
+        {
+          "player_id": 6397,
+          "Nome": "Ramos G.",
+          "Squadra": "Milan",
+          "Fantamedia": 6.62
+        },
+        {
+          "player_id": 7484,
+          "Nome": "Adams A.",
+          "Squadra": "Venezia",
+          "Fantamedia": 6.5
+        }
+      ],
+      [
+        {
+          "player_id": 4359,
+          "Nome": "Piccoli",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 6435,
+          "Nome": "Krstovic",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.38
+        },
+        {
+          "player_id": 2097,
+          "Nome": "Kean",
+          "Squadra": "Como",
+          "Fantamedia": 6.33
+        },
+        {
+          "player_id": 6572,
+          "Nome": "Castro S.",
+          "Squadra": "Roma",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 2155,
+          "Nome": "Cutrone",
+          "Squadra": "Monza",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 6215,
+          "Nome": "Lucca",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 5694,
+          "Nome": "Beto",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.75
+        }
+      ],
+      [
+        {
+          "player_id": 2061,
+          "Nome": "Simeone",
+          "Squadra": "Torino",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 6229,
+          "Nome": "Tourè E.",
+          "Squadra": "Parma",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 7252,
+          "Nome": "Stulic",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.5
+        }
+      ],
+      [
+        {
+          "player_id": 7342,
+          "Nome": "Elphege",
+          "Squadra": "Parma",
+          "Fantamedia": 5.5
+        },
+        {
+          "player_id": 5951,
+          "Nome": "Kolo Muani",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.38
+        },
+        {
+          "player_id": 2038,
+          "Nome": "Pinamonti",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.25
+        }
+      ],
+      [
+        {
+          "player_id": 4923,
+          "Nome": "Colombo",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.25
+        },
+        {
+          "player_id": 5029,
+          "Nome": "Geubbels",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.25
+        },
+        {
+          "player_id": 7161,
+          "Nome": "Bayo V.",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.0
+        }
+      ]
+    ]
+  },
+  "2025-2026": {
+    "P": [
+      [
+        {
+          "player_id": 2170,
+          "Nome": "Milinkovic-Savic V.",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.65
+        },
+        {
+          "player_id": 4431,
+          "Nome": "Carnesecchi",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.58
+        }
+      ],
+      [
+        {
+          "player_id": 5841,
+          "Nome": "Svilar",
+          "Squadra": "Roma",
+          "Fantamedia": 5.45
+        },
+        {
+          "player_id": 4312,
+          "Nome": "Maignan",
+          "Squadra": "Milan",
+          "Fantamedia": 5.42
+        }
+      ],
+      [
+        {
+          "player_id": 6966,
+          "Nome": "Butez",
+          "Squadra": "Como",
+          "Fantamedia": 5.37
+        },
+        {
+          "player_id": 2814,
+          "Nome": "Provedel",
+          "Squadra": "Inter",
+          "Fantamedia": 5.35
+        }
+      ],
+      [
+        {
+          "player_id": 5876,
+          "Nome": "Di Gregorio",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.33
+        },
+        {
+          "player_id": 133,
+          "Nome": "Skorupski",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.28
+        }
+      ],
+      [
+        {
+          "player_id": 2134,
+          "Nome": "Falcone",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.22
+        },
+        {
+          "player_id": 6662,
+          "Nome": "Corvi",
+          "Squadra": "Parma",
+          "Fantamedia": 5.09
+        }
+      ],
+      [
+        {
+          "player_id": 6462,
+          "Nome": "Okoye",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.08
+        },
+        {
+          "player_id": 2521,
+          "Nome": "De Gea",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.0
+        }
+      ],
+      [
+        {
+          "player_id": 4957,
+          "Nome": "Montipò",
+          "Squadra": "Venezia",
+          "Fantamedia": 4.94
+        },
+        {
+          "player_id": 4360,
+          "Nome": "Caprile",
+          "Squadra": "Cagliari",
+          "Fantamedia": 4.87
+        }
+      ],
+      [
+        {
+          "player_id": 7332,
+          "Nome": "Bijlow",
+          "Squadra": "Genoa",
+          "Fantamedia": 4.78
+        },
+        {
+          "player_id": 4236,
+          "Nome": "Muric",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 4.77
+        }
+      ],
+      [
+        {
+          "player_id": 6641,
+          "Nome": "Suzuki",
+          "Squadra": "Parma",
+          "Fantamedia": 4.75
+        }
+      ],
+      [
+        {
+          "player_id": 5320,
+          "Nome": "Paleari",
+          "Squadra": "Torino",
+          "Fantamedia": 4.52
+        }
+      ]
+    ],
+    "Dc": [
+      [
+        {
+          "player_id": 2788,
+          "Nome": "Bremer",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.81
+        },
+        {
+          "player_id": 6217,
+          "Nome": "Bisseck",
+          "Squadra": "Inter",
+          "Fantamedia": 6.65
+        },
+        {
+          "player_id": 5022,
+          "Nome": "Pavlovic",
+          "Squadra": "Milan",
+          "Fantamedia": 6.62
+        },
+        {
+          "player_id": 5750,
+          "Nome": "Ostigard",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.52
+        },
+        {
+          "player_id": 6893,
+          "Nome": "Kempf",
+          "Squadra": "Como",
+          "Fantamedia": 6.52
+        },
+        {
+          "player_id": 2296,
+          "Nome": "Mancini",
+          "Squadra": "Roma",
+          "Fantamedia": 6.51
+        },
+        {
+          "player_id": 6986,
+          "Nome": "Rensch",
+          "Squadra": "Roma",
+          "Fantamedia": 6.5
+        }
+      ],
+      [
+        {
+          "player_id": 4409,
+          "Nome": "Rrahmani",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.45
+        },
+        {
+          "player_id": 5526,
+          "Nome": "Scalvini",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.44
+        },
+        {
+          "player_id": 4159,
+          "Nome": "Akanji",
+          "Squadra": "Inter",
+          "Fantamedia": 6.41
+        },
+        {
+          "player_id": 4807,
+          "Nome": "Hermoso",
+          "Squadra": "Roma",
+          "Fantamedia": 6.41
+        },
+        {
+          "player_id": 6956,
+          "Nome": "Solet",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.4
+        },
+        {
+          "player_id": 4976,
+          "Nome": "Kalulu",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.35
+        },
+        {
+          "player_id": 2120,
+          "Nome": "Bastoni",
+          "Squadra": "Inter",
+          "Fantamedia": 6.34
+        }
+      ],
+      [
+        {
+          "player_id": 4317,
+          "Nome": "N'Dicka",
+          "Squadra": "Roma",
+          "Fantamedia": 6.32
+        },
+        {
+          "player_id": 4657,
+          "Nome": "Celik",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.27
+        },
+        {
+          "player_id": 6485,
+          "Nome": "Kristensen T.",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.23
+        },
+        {
+          "player_id": 5831,
+          "Nome": "Gatti",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.22
+        },
+        {
+          "player_id": 4263,
+          "Nome": "Kabasele",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.18
+        },
+        {
+          "player_id": 4210,
+          "Nome": "Mina",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 5877,
+          "Nome": "Carlos Augusto",
+          "Squadra": "Inter",
+          "Fantamedia": 6.16
+        }
+      ],
+      [
+        {
+          "player_id": 6202,
+          "Nome": "Beukema",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.16
+        },
+        {
+          "player_id": 6869,
+          "Nome": "Ramon",
+          "Squadra": "Como",
+          "Fantamedia": 6.14
+        },
+        {
+          "player_id": 5514,
+          "Nome": "Vasquez",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.14
+        },
+        {
+          "player_id": 4137,
+          "Nome": "Diego Carlos",
+          "Squadra": "Parma",
+          "Fantamedia": 6.1
+        },
+        {
+          "player_id": 5578,
+          "Nome": "Kossounou",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.09
+        },
+        {
+          "player_id": 6766,
+          "Nome": "Kelly L.",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.07
+        },
+        {
+          "player_id": 6989,
+          "Nome": "Tiago Gabriel",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.01
+        }
+      ],
+      [
+        {
+          "player_id": 6664,
+          "Nome": "Delprato",
+          "Squadra": "Parma",
+          "Fantamedia": 6.01
+        },
+        {
+          "player_id": 4461,
+          "Nome": "Zappa",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.98
+        },
+        {
+          "player_id": 5833,
+          "Nome": "Gila",
+          "Squadra": "Milan",
+          "Fantamedia": 5.95
+        },
+        {
+          "player_id": 6631,
+          "Nome": "Ghilardi",
+          "Squadra": "Roma",
+          "Fantamedia": 5.95
+        },
+        {
+          "player_id": 2640,
+          "Nome": "Kolasinac",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.94
+        },
+        {
+          "player_id": 460,
+          "Nome": "Romagnoli",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.92
+        },
+        {
+          "player_id": 6663,
+          "Nome": "Circati",
+          "Squadra": "Parma",
+          "Fantamedia": 5.92
+        }
+      ],
+      [
+        {
+          "player_id": 6642,
+          "Nome": "Coco",
+          "Squadra": "Torino",
+          "Fantamedia": 5.91
+        },
+        {
+          "player_id": 5010,
+          "Nome": "Ismajli",
+          "Squadra": "Torino",
+          "Fantamedia": 5.9
+        },
+        {
+          "player_id": 6672,
+          "Nome": "Idzes",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.9
+        },
+        {
+          "player_id": 5739,
+          "Nome": "De Winter",
+          "Squadra": "Milan",
+          "Fantamedia": 5.9
+        },
+        {
+          "player_id": 6042,
+          "Nome": "Lucumì",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.89
+        },
+        {
+          "player_id": 4751,
+          "Nome": "Tomori",
+          "Squadra": "Milan",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 2724,
+          "Nome": "Buongiorno",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.88
+        }
+      ],
+      [
+        {
+          "player_id": 6046,
+          "Nome": "Hien",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.86
+        },
+        {
+          "player_id": 7068,
+          "Nome": "Vitik",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.86
+        },
+        {
+          "player_id": 7012,
+          "Nome": "Provstgaard",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.85
+        },
+        {
+          "player_id": 4401,
+          "Nome": "Gabbia",
+          "Squadra": "Milan",
+          "Fantamedia": 5.84
+        },
+        {
+          "player_id": 6660,
+          "Nome": "Marcandalli",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.84
+        },
+        {
+          "player_id": 5820,
+          "Nome": "Bertola",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.84
+        },
+        {
+          "player_id": 5307,
+          "Nome": "Valenti",
+          "Squadra": "Parma",
+          "Fantamedia": 5.83
+        }
+      ],
+      [
+        {
+          "player_id": 5812,
+          "Nome": "Terracciano F.",
+          "Squadra": "Milan",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 5701,
+          "Nome": "Obert",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.82
+        },
+        {
+          "player_id": 7212,
+          "Nome": "Heggem",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.8
+        },
+        {
+          "player_id": 787,
+          "Nome": "Djimsiti",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.8
+        },
+        {
+          "player_id": 4378,
+          "Nome": "Ranieri L.",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.79
+        },
+        {
+          "player_id": 7240,
+          "Nome": "Siebert",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.76
+        }
+      ],
+      [
+        {
+          "player_id": 6495,
+          "Nome": "Comuzzo",
+          "Squadra": "Torino",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7253,
+          "Nome": "Bella-Kotchap",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 4374,
+          "Nome": "Walukiewicz",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.74
+        },
+        {
+          "player_id": 7268,
+          "Nome": "Rodriguez Ju.",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.72
+        },
+        {
+          "player_id": 5994,
+          "Nome": "Ebosse",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.72
+        },
+        {
+          "player_id": 7235,
+          "Nome": "Troilo",
+          "Squadra": "Parma",
+          "Fantamedia": 5.71
+        }
+      ],
+      [
+        {
+          "player_id": 6916,
+          "Nome": "Ahanor",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.69
+        },
+        {
+          "player_id": 7274,
+          "Nome": "Zè Pedro",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.68
+        },
+        {
+          "player_id": 5840,
+          "Nome": "Olivera",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.68
+        },
+        {
+          "player_id": 5603,
+          "Nome": "Pongracic",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 6632,
+          "Nome": "Gaspar K.",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.64
+        },
+        {
+          "player_id": 256,
+          "Nome": "Juan Jesus",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.62
+        }
+      ]
+    ],
+    "Ds": [
+      [
+        {
+          "player_id": 1852,
+          "Nome": "Spinazzola",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.55
+        },
+        {
+          "player_id": 7329,
+          "Nome": "Obrador",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.41
+        },
+        {
+          "player_id": 6867,
+          "Nome": "Valle",
+          "Squadra": "Como",
+          "Fantamedia": 6.23
+        },
+        {
+          "player_id": 5427,
+          "Nome": "Gutierrez",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.17
+        }
+      ],
+      [
+        {
+          "player_id": 5877,
+          "Nome": "Carlos Augusto",
+          "Squadra": "Inter",
+          "Fantamedia": 6.16
+        },
+        {
+          "player_id": 7219,
+          "Nome": "Bernasconi",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.16
+        },
+        {
+          "player_id": 5514,
+          "Nome": "Vasquez",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.14
+        },
+        {
+          "player_id": 4734,
+          "Nome": "Miranda J.",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.1
+        }
+      ],
+      [
+        {
+          "player_id": 2593,
+          "Nome": "Martin",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.1
+        },
+        {
+          "player_id": 5862,
+          "Nome": "Valeri",
+          "Squadra": "Parma",
+          "Fantamedia": 6.09
+        },
+        {
+          "player_id": 7125,
+          "Nome": "Idrissi R.",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.09
+        },
+        {
+          "player_id": 6766,
+          "Nome": "Kelly L.",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.07
+        }
+      ],
+      [
+        {
+          "player_id": 6496,
+          "Nome": "Bartesaghi",
+          "Squadra": "Milan",
+          "Fantamedia": 6.05
+        },
+        {
+          "player_id": 5520,
+          "Nome": "Cambiaso",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.99
+        },
+        {
+          "player_id": 4502,
+          "Nome": "Gallo",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.99
+        }
+      ],
+      [
+        {
+          "player_id": 5449,
+          "Nome": "Parisi",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.98
+        },
+        {
+          "player_id": 2188,
+          "Nome": "Marusic",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.97
+        },
+        {
+          "player_id": 2640,
+          "Nome": "Kolasinac",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.94
+        }
+      ],
+      [
+        {
+          "player_id": 5555,
+          "Nome": "Kamara H.",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.87
+        },
+        {
+          "player_id": 5820,
+          "Nome": "Bertola",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.84
+        },
+        {
+          "player_id": 5812,
+          "Nome": "Terracciano F.",
+          "Squadra": "Milan",
+          "Fantamedia": 5.83
+        }
+      ],
+      [
+        {
+          "player_id": 5701,
+          "Nome": "Obert",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.82
+        },
+        {
+          "player_id": 2728,
+          "Nome": "Pellegrini Lu.",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.81
+        },
+        {
+          "player_id": 5620,
+          "Nome": "Tavares N.",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.8
+        }
+      ],
+      [
+        {
+          "player_id": 7212,
+          "Nome": "Heggem",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.8
+        },
+        {
+          "player_id": 4378,
+          "Nome": "Ranieri L.",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.79
+        },
+        {
+          "player_id": 5851,
+          "Nome": "Doig",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.76
+        }
+      ],
+      [
+        {
+          "player_id": 7268,
+          "Nome": "Rodriguez Ju.",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.72
+        },
+        {
+          "player_id": 5994,
+          "Nome": "Ebosse",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.72
+        },
+        {
+          "player_id": 7255,
+          "Nome": "Britschgi",
+          "Squadra": "Parma",
+          "Fantamedia": 5.7
+        }
+      ],
+      [
+        {
+          "player_id": 6916,
+          "Nome": "Ahanor",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.69
+        },
+        {
+          "player_id": 5840,
+          "Nome": "Olivera",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.68
+        },
+        {
+          "player_id": 256,
+          "Nome": "Juan Jesus",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.62
+        }
+      ]
+    ],
+    "Dd": [
+      [
+        {
+          "player_id": 6986,
+          "Nome": "Rensch",
+          "Squadra": "Roma",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 5678,
+          "Nome": "Holm",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.44
+        },
+        {
+          "player_id": 4976,
+          "Nome": "Kalulu",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.35
+        },
+        {
+          "player_id": 2816,
+          "Nome": "Di Lorenzo",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.33
+        }
+      ],
+      [
+        {
+          "player_id": 7211,
+          "Nome": "Athekame",
+          "Squadra": "Milan",
+          "Fantamedia": 6.32
+        },
+        {
+          "player_id": 554,
+          "Nome": "Zappacosta",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.3
+        },
+        {
+          "player_id": 5527,
+          "Nome": "Zanoli",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.29
+        },
+        {
+          "player_id": 4657,
+          "Nome": "Celik",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.27
+        }
+      ],
+      [
+        {
+          "player_id": 4994,
+          "Nome": "Vojvoda",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.24
+        },
+        {
+          "player_id": 6485,
+          "Nome": "Kristensen T.",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.23
+        },
+        {
+          "player_id": 7220,
+          "Nome": "Belghali",
+          "Squadra": "Torino",
+          "Fantamedia": 6.21
+        }
+      ],
+      [
+        {
+          "player_id": 5578,
+          "Nome": "Kossounou",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.09
+        },
+        {
+          "player_id": 6814,
+          "Nome": "Norton-Cuffy",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.09
+        },
+        {
+          "player_id": 5885,
+          "Nome": "Dodò",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.03
+        }
+      ],
+      [
+        {
+          "player_id": 6664,
+          "Nome": "Delprato",
+          "Squadra": "Parma",
+          "Fantamedia": 6.01
+        },
+        {
+          "player_id": 5520,
+          "Nome": "Cambiaso",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.99
+        },
+        {
+          "player_id": 4461,
+          "Nome": "Zappa",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.98
+        }
+      ],
+      [
+        {
+          "player_id": 2188,
+          "Nome": "Marusic",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.97
+        },
+        {
+          "player_id": 6047,
+          "Nome": "Ehizibue",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.96
+        },
+        {
+          "player_id": 6426,
+          "Nome": "Pedersen",
+          "Squadra": "Torino",
+          "Fantamedia": 5.96
+        }
+      ],
+      [
+        {
+          "player_id": 5739,
+          "Nome": "De Winter",
+          "Squadra": "Milan",
+          "Fantamedia": 5.9
+        },
+        {
+          "player_id": 4433,
+          "Nome": "Zortea",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.89
+        },
+        {
+          "player_id": 7014,
+          "Nome": "Smolcic I.",
+          "Squadra": "Como",
+          "Fantamedia": 5.84
+        }
+      ],
+      [
+        {
+          "player_id": 5820,
+          "Nome": "Bertola",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.84
+        },
+        {
+          "player_id": 5812,
+          "Nome": "Terracciano F.",
+          "Squadra": "Milan",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 4887,
+          "Nome": "Bellanova",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.82
+        }
+      ],
+      [
+        {
+          "player_id": 4374,
+          "Nome": "Walukiewicz",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.74
+        },
+        {
+          "player_id": 2263,
+          "Nome": "Lazzari",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.74
+        },
+        {
+          "player_id": 7131,
+          "Nome": "Floriani Mussolini",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.72
+        }
+      ],
+      [
+        {
+          "player_id": 7255,
+          "Nome": "Britschgi",
+          "Squadra": "Parma",
+          "Fantamedia": 5.7
+        },
+        {
+          "player_id": 6990,
+          "Nome": "Veiga D.",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.69
+        },
+        {
+          "player_id": 7274,
+          "Nome": "Zè Pedro",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.68
+        }
+      ]
+    ],
+    "B": [
+      [
+        {
+          "player_id": 2788,
+          "Nome": "Bremer",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.81
+        },
+        {
+          "player_id": 6217,
+          "Nome": "Bisseck",
+          "Squadra": "Inter",
+          "Fantamedia": 6.65
+        },
+        {
+          "player_id": 5022,
+          "Nome": "Pavlovic",
+          "Squadra": "Milan",
+          "Fantamedia": 6.62
+        },
+        {
+          "player_id": 5750,
+          "Nome": "Ostigard",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.52
+        },
+        {
+          "player_id": 6893,
+          "Nome": "Kempf",
+          "Squadra": "Como",
+          "Fantamedia": 6.52
+        },
+        {
+          "player_id": 2296,
+          "Nome": "Mancini",
+          "Squadra": "Roma",
+          "Fantamedia": 6.51
+        },
+        {
+          "player_id": 6986,
+          "Nome": "Rensch",
+          "Squadra": "Roma",
+          "Fantamedia": 6.5
+        }
+      ],
+      [
+        {
+          "player_id": 4409,
+          "Nome": "Rrahmani",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.45
+        },
+        {
+          "player_id": 5526,
+          "Nome": "Scalvini",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.44
+        },
+        {
+          "player_id": 4159,
+          "Nome": "Akanji",
+          "Squadra": "Inter",
+          "Fantamedia": 6.41
+        },
+        {
+          "player_id": 4807,
+          "Nome": "Hermoso",
+          "Squadra": "Roma",
+          "Fantamedia": 6.41
+        },
+        {
+          "player_id": 6956,
+          "Nome": "Solet",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.4
+        },
+        {
+          "player_id": 4976,
+          "Nome": "Kalulu",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.35
+        },
+        {
+          "player_id": 2120,
+          "Nome": "Bastoni",
+          "Squadra": "Inter",
+          "Fantamedia": 6.34
+        }
+      ],
+      [
+        {
+          "player_id": 4317,
+          "Nome": "N'Dicka",
+          "Squadra": "Roma",
+          "Fantamedia": 6.32
+        },
+        {
+          "player_id": 4657,
+          "Nome": "Celik",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.27
+        },
+        {
+          "player_id": 6485,
+          "Nome": "Kristensen T.",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.23
+        },
+        {
+          "player_id": 5831,
+          "Nome": "Gatti",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.22
+        },
+        {
+          "player_id": 4263,
+          "Nome": "Kabasele",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.18
+        },
+        {
+          "player_id": 4210,
+          "Nome": "Mina",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 5877,
+          "Nome": "Carlos Augusto",
+          "Squadra": "Inter",
+          "Fantamedia": 6.16
+        }
+      ],
+      [
+        {
+          "player_id": 6202,
+          "Nome": "Beukema",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.16
+        },
+        {
+          "player_id": 6869,
+          "Nome": "Ramon",
+          "Squadra": "Como",
+          "Fantamedia": 6.14
+        },
+        {
+          "player_id": 5514,
+          "Nome": "Vasquez",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.14
+        },
+        {
+          "player_id": 4137,
+          "Nome": "Diego Carlos",
+          "Squadra": "Parma",
+          "Fantamedia": 6.1
+        },
+        {
+          "player_id": 5578,
+          "Nome": "Kossounou",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.09
+        },
+        {
+          "player_id": 6766,
+          "Nome": "Kelly L.",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.07
+        },
+        {
+          "player_id": 6989,
+          "Nome": "Tiago Gabriel",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.01
+        }
+      ],
+      [
+        {
+          "player_id": 6664,
+          "Nome": "Delprato",
+          "Squadra": "Parma",
+          "Fantamedia": 6.01
+        },
+        {
+          "player_id": 4461,
+          "Nome": "Zappa",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.98
+        },
+        {
+          "player_id": 5833,
+          "Nome": "Gila",
+          "Squadra": "Milan",
+          "Fantamedia": 5.95
+        },
+        {
+          "player_id": 6631,
+          "Nome": "Ghilardi",
+          "Squadra": "Roma",
+          "Fantamedia": 5.95
+        },
+        {
+          "player_id": 2640,
+          "Nome": "Kolasinac",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.94
+        },
+        {
+          "player_id": 460,
+          "Nome": "Romagnoli",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.92
+        },
+        {
+          "player_id": 6663,
+          "Nome": "Circati",
+          "Squadra": "Parma",
+          "Fantamedia": 5.92
+        }
+      ],
+      [
+        {
+          "player_id": 6642,
+          "Nome": "Coco",
+          "Squadra": "Torino",
+          "Fantamedia": 5.91
+        },
+        {
+          "player_id": 5010,
+          "Nome": "Ismajli",
+          "Squadra": "Torino",
+          "Fantamedia": 5.9
+        },
+        {
+          "player_id": 6672,
+          "Nome": "Idzes",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.9
+        },
+        {
+          "player_id": 5739,
+          "Nome": "De Winter",
+          "Squadra": "Milan",
+          "Fantamedia": 5.9
+        },
+        {
+          "player_id": 6042,
+          "Nome": "Lucumì",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.89
+        },
+        {
+          "player_id": 4751,
+          "Nome": "Tomori",
+          "Squadra": "Milan",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 2724,
+          "Nome": "Buongiorno",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.88
+        }
+      ],
+      [
+        {
+          "player_id": 6046,
+          "Nome": "Hien",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.86
+        },
+        {
+          "player_id": 7068,
+          "Nome": "Vitik",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.86
+        },
+        {
+          "player_id": 7012,
+          "Nome": "Provstgaard",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.85
+        },
+        {
+          "player_id": 4401,
+          "Nome": "Gabbia",
+          "Squadra": "Milan",
+          "Fantamedia": 5.84
+        },
+        {
+          "player_id": 6660,
+          "Nome": "Marcandalli",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.84
+        },
+        {
+          "player_id": 5820,
+          "Nome": "Bertola",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.84
+        },
+        {
+          "player_id": 5307,
+          "Nome": "Valenti",
+          "Squadra": "Parma",
+          "Fantamedia": 5.83
+        }
+      ],
+      [
+        {
+          "player_id": 5812,
+          "Nome": "Terracciano F.",
+          "Squadra": "Milan",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 5701,
+          "Nome": "Obert",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.82
+        },
+        {
+          "player_id": 7212,
+          "Nome": "Heggem",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.8
+        },
+        {
+          "player_id": 787,
+          "Nome": "Djimsiti",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.8
+        },
+        {
+          "player_id": 4378,
+          "Nome": "Ranieri L.",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.79
+        },
+        {
+          "player_id": 7240,
+          "Nome": "Siebert",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.76
+        }
+      ],
+      [
+        {
+          "player_id": 6495,
+          "Nome": "Comuzzo",
+          "Squadra": "Torino",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 7253,
+          "Nome": "Bella-Kotchap",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.75
+        },
+        {
+          "player_id": 4374,
+          "Nome": "Walukiewicz",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.74
+        },
+        {
+          "player_id": 7268,
+          "Nome": "Rodriguez Ju.",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.72
+        },
+        {
+          "player_id": 5994,
+          "Nome": "Ebosse",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.72
+        },
+        {
+          "player_id": 7235,
+          "Nome": "Troilo",
+          "Squadra": "Parma",
+          "Fantamedia": 5.71
+        }
+      ],
+      [
+        {
+          "player_id": 6916,
+          "Nome": "Ahanor",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.69
+        },
+        {
+          "player_id": 7274,
+          "Nome": "Zè Pedro",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.68
+        },
+        {
+          "player_id": 5840,
+          "Nome": "Olivera",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.68
+        },
+        {
+          "player_id": 5603,
+          "Nome": "Pongracic",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.67
+        },
+        {
+          "player_id": 6632,
+          "Nome": "Gaspar K.",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.64
+        },
+        {
+          "player_id": 256,
+          "Nome": "Juan Jesus",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.62
+        }
+      ]
+    ],
+    "E": [
+      [
+        {
+          "player_id": 254,
+          "Nome": "Dimarco",
+          "Squadra": "Inter",
+          "Fantamedia": 7.64
+        },
+        {
+          "player_id": 1852,
+          "Nome": "Spinazzola",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.55
+        },
+        {
+          "player_id": 6986,
+          "Nome": "Rensch",
+          "Squadra": "Roma",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 7181,
+          "Nome": "Wesley",
+          "Squadra": "Roma",
+          "Fantamedia": 6.47
+        },
+        {
+          "player_id": 5678,
+          "Nome": "Holm",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.44
+        }
+      ],
+      [
+        {
+          "player_id": 7329,
+          "Nome": "Obrador",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.41
+        },
+        {
+          "player_id": 4892,
+          "Nome": "Saelemaekers",
+          "Squadra": "Milan",
+          "Fantamedia": 6.41
+        },
+        {
+          "player_id": 2816,
+          "Nome": "Di Lorenzo",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.33
+        },
+        {
+          "player_id": 7211,
+          "Nome": "Athekame",
+          "Squadra": "Milan",
+          "Fantamedia": 6.32
+        },
+        {
+          "player_id": 554,
+          "Nome": "Zappacosta",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.3
+        }
+      ],
+      [
+        {
+          "player_id": 5527,
+          "Nome": "Zanoli",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.29
+        },
+        {
+          "player_id": 4657,
+          "Nome": "Celik",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.27
+        },
+        {
+          "player_id": 4994,
+          "Nome": "Vojvoda",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.24
+        },
+        {
+          "player_id": 6867,
+          "Nome": "Valle",
+          "Squadra": "Como",
+          "Fantamedia": 6.23
+        },
+        {
+          "player_id": 7220,
+          "Nome": "Belghali",
+          "Squadra": "Torino",
+          "Fantamedia": 6.21
+        }
+      ],
+      [
+        {
+          "player_id": 5427,
+          "Nome": "Gutierrez",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 5877,
+          "Nome": "Carlos Augusto",
+          "Squadra": "Inter",
+          "Fantamedia": 6.16
+        },
+        {
+          "player_id": 7219,
+          "Nome": "Bernasconi",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.16
+        },
+        {
+          "player_id": 4734,
+          "Nome": "Miranda J.",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.1
+        },
+        {
+          "player_id": 2593,
+          "Nome": "Martin",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.1
+        }
+      ],
+      [
+        {
+          "player_id": 5862,
+          "Nome": "Valeri",
+          "Squadra": "Parma",
+          "Fantamedia": 6.09
+        },
+        {
+          "player_id": 7125,
+          "Nome": "Idrissi R.",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.09
+        },
+        {
+          "player_id": 6814,
+          "Nome": "Norton-Cuffy",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.09
+        },
+        {
+          "player_id": 5301,
+          "Nome": "Luis Henrique",
+          "Squadra": "Inter",
+          "Fantamedia": 6.06
+        },
+        {
+          "player_id": 6496,
+          "Nome": "Bartesaghi",
+          "Squadra": "Milan",
+          "Fantamedia": 6.05
+        }
+      ],
+      [
+        {
+          "player_id": 5885,
+          "Nome": "Dodò",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.03
+        },
+        {
+          "player_id": 6664,
+          "Nome": "Delprato",
+          "Squadra": "Parma",
+          "Fantamedia": 6.01
+        },
+        {
+          "player_id": 5520,
+          "Nome": "Cambiaso",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.99
+        },
+        {
+          "player_id": 4502,
+          "Nome": "Gallo",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.99
+        },
+        {
+          "player_id": 5449,
+          "Nome": "Parisi",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 5.98
+        }
+      ],
+      [
+        {
+          "player_id": 4461,
+          "Nome": "Zappa",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.98
+        },
+        {
+          "player_id": 2188,
+          "Nome": "Marusic",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.97
+        },
+        {
+          "player_id": 6047,
+          "Nome": "Ehizibue",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.96
+        },
+        {
+          "player_id": 6426,
+          "Nome": "Pedersen",
+          "Squadra": "Torino",
+          "Fantamedia": 5.96
+        },
+        {
+          "player_id": 6020,
+          "Nome": "Ellertsson",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.91
+        }
+      ],
+      [
+        {
+          "player_id": 4433,
+          "Nome": "Zortea",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.89
+        },
+        {
+          "player_id": 5555,
+          "Nome": "Kamara H.",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.87
+        },
+        {
+          "player_id": 7014,
+          "Nome": "Smolcic I.",
+          "Squadra": "Como",
+          "Fantamedia": 5.84
+        },
+        {
+          "player_id": 5701,
+          "Nome": "Obert",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.82
+        },
+        {
+          "player_id": 4887,
+          "Nome": "Bellanova",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.82
+        }
+      ],
+      [
+        {
+          "player_id": 7146,
+          "Nome": "Tourè I.",
+          "Squadra": "Monza",
+          "Fantamedia": 5.82
+        },
+        {
+          "player_id": 2728,
+          "Nome": "Pellegrini Lu.",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.81
+        },
+        {
+          "player_id": 5620,
+          "Nome": "Tavares N.",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.8
+        },
+        {
+          "player_id": 5851,
+          "Nome": "Doig",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.76
+        },
+        {
+          "player_id": 2263,
+          "Nome": "Lazzari",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.74
+        }
+      ],
+      [
+        {
+          "player_id": 7131,
+          "Nome": "Floriani Mussolini",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.72
+        },
+        {
+          "player_id": 7255,
+          "Nome": "Britschgi",
+          "Squadra": "Parma",
+          "Fantamedia": 5.7
+        },
+        {
+          "player_id": 6990,
+          "Nome": "Veiga D.",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.69
+        },
+        {
+          "player_id": 6916,
+          "Nome": "Ahanor",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.69
+        },
+        {
+          "player_id": 5840,
+          "Nome": "Olivera",
+          "Squadra": "Napoli",
+          "Fantamedia": 5.68
+        }
+      ]
+    ],
+    "M": [
+      [
+        {
+          "player_id": 2194,
+          "Nome": "Calhanoglu",
+          "Squadra": "Inter",
+          "Fantamedia": 7.64
+        },
+        {
+          "player_id": 2606,
+          "Nome": "Modric",
+          "Squadra": "Milan",
+          "Fantamedia": 6.67
+        },
+        {
+          "player_id": 5589,
+          "Nome": "Konè M.",
+          "Squadra": "Roma",
+          "Fantamedia": 6.53
+        },
+        {
+          "player_id": 6151,
+          "Nome": "Perrone",
+          "Squadra": "Como",
+          "Fantamedia": 6.47
+        }
+      ],
+      [
+        {
+          "player_id": 5792,
+          "Nome": "Ederson D.S.",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.43
+        },
+        {
+          "player_id": 5674,
+          "Nome": "Basic",
+          "Squadra": "Venezia",
+          "Fantamedia": 6.43
+        },
+        {
+          "player_id": 333,
+          "Nome": "Cataldi",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.41
+        },
+        {
+          "player_id": 4364,
+          "Nome": "Gaetano",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.31
+        }
+      ],
+      [
+        {
+          "player_id": 5504,
+          "Nome": "Coulibaly L.",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.29
+        },
+        {
+          "player_id": 4465,
+          "Nome": "Fagioli",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.23
+        },
+        {
+          "player_id": 779,
+          "Nome": "Cristante",
+          "Squadra": "Roma",
+          "Fantamedia": 6.22
+        },
+        {
+          "player_id": 827,
+          "Nome": "Locatelli",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.19
+        }
+      ],
+      [
+        {
+          "player_id": 5453,
+          "Nome": "Ricci S.",
+          "Squadra": "Como",
+          "Fantamedia": 6.18
+        },
+        {
+          "player_id": 5298,
+          "Nome": "Pobega",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 6054,
+          "Nome": "Moro N.",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 4287,
+          "Nome": "Lobotka",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.1
+        }
+      ],
+      [
+        {
+          "player_id": 6271,
+          "Nome": "El Aynaoui",
+          "Squadra": "Roma",
+          "Fantamedia": 6.1
+        },
+        {
+          "player_id": 6898,
+          "Nome": "Keita M.",
+          "Squadra": "Parma",
+          "Fantamedia": 6.06
+        },
+        {
+          "player_id": 4686,
+          "Nome": "Fofana Y.",
+          "Squadra": "Milan",
+          "Fantamedia": 6.06
+        },
+        {
+          "player_id": 4349,
+          "Nome": "Nicolussi Caviglia",
+          "Squadra": "Parma",
+          "Fantamedia": 6.02
+        }
+      ],
+      [
+        {
+          "player_id": 6005,
+          "Nome": "Ilkhan",
+          "Squadra": "Torino",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 22,
+          "Nome": "De Roon",
+          "Squadra": "Roma",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5791,
+          "Nome": "Frendrup",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.97
+        },
+        {
+          "player_id": 6680,
+          "Nome": "Karlstrom",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.96
+        }
+      ],
+      [
+        {
+          "player_id": 2528,
+          "Nome": "Matic",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.96
+        },
+        {
+          "player_id": 7198,
+          "Nome": "Piotrowski",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.95
+        },
+        {
+          "player_id": 1871,
+          "Nome": "Deiola",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.95
+        },
+        {
+          "player_id": 7208,
+          "Nome": "Miller L.",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.95
+        }
+      ],
+      [
+        {
+          "player_id": 6917,
+          "Nome": "Masini",
+          "Squadra": "Frosinone",
+          "Fantamedia": 5.9
+        },
+        {
+          "player_id": 6246,
+          "Nome": "Lipani",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.9
+        },
+        {
+          "player_id": 4870,
+          "Nome": "Adopo",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 6424,
+          "Nome": "Prati",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.88
+        }
+      ],
+      [
+        {
+          "player_id": 801,
+          "Nome": "Gagliardini",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.84
+        },
+        {
+          "player_id": 7146,
+          "Nome": "Tourè I.",
+          "Squadra": "Monza",
+          "Fantamedia": 5.82
+        },
+        {
+          "player_id": 6170,
+          "Nome": "Gineitis",
+          "Squadra": "Torino",
+          "Fantamedia": 5.81
+        },
+        {
+          "player_id": 7138,
+          "Nome": "Ordonez C.",
+          "Squadra": "Parma",
+          "Fantamedia": 5.81
+        }
+      ],
+      [
+        {
+          "player_id": 5858,
+          "Nome": "Ferguson",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.78
+        },
+        {
+          "player_id": 6024,
+          "Nome": "Sulemana I.",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.78
+        },
+        {
+          "player_id": 5457,
+          "Nome": "Maleh",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.71
+        }
+      ]
+    ],
+    "C": [
+      [
+        {
+          "player_id": 2194,
+          "Nome": "Calhanoglu",
+          "Squadra": "Inter",
+          "Fantamedia": 7.64
+        },
+        {
+          "player_id": 4777,
+          "Nome": "McTominay",
+          "Squadra": "Napoli",
+          "Fantamedia": 7.26
+        },
+        {
+          "player_id": 2379,
+          "Nome": "Rabiot",
+          "Squadra": "Milan",
+          "Fantamedia": 6.98
+        },
+        {
+          "player_id": 5559,
+          "Nome": "Da Cunha",
+          "Squadra": "Como",
+          "Fantamedia": 6.91
+        },
+        {
+          "player_id": 6908,
+          "Nome": "Atta",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.88
+        },
+        {
+          "player_id": 4220,
+          "Nome": "Zambo Anguissa",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.86
+        },
+        {
+          "player_id": 152,
+          "Nome": "Zielinski",
+          "Squadra": "Inter",
+          "Fantamedia": 6.8
+        },
+        {
+          "player_id": 1870,
+          "Nome": "Barella",
+          "Squadra": "Inter",
+          "Fantamedia": 6.71
+        }
+      ],
+      [
+        {
+          "player_id": 4973,
+          "Nome": "McKennie",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.68
+        },
+        {
+          "player_id": 2606,
+          "Nome": "Modric",
+          "Squadra": "Milan",
+          "Fantamedia": 6.67
+        },
+        {
+          "player_id": 6717,
+          "Nome": "Konè I.",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.63
+        },
+        {
+          "player_id": 1933,
+          "Nome": "Mandragora",
+          "Squadra": "Torino",
+          "Fantamedia": 6.62
+        },
+        {
+          "player_id": 6684,
+          "Nome": "Ekkelenkamp",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.61
+        },
+        {
+          "player_id": 2529,
+          "Nome": "Mkhitaryan",
+          "Squadra": "Inter",
+          "Fantamedia": 6.59
+        },
+        {
+          "player_id": 530,
+          "Nome": "Pellegrini Lo.",
+          "Squadra": "Roma",
+          "Fantamedia": 6.58
+        },
+        {
+          "player_id": 7314,
+          "Nome": "Taylor K.",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.56
+        }
+      ],
+      [
+        {
+          "player_id": 5589,
+          "Nome": "Konè M.",
+          "Squadra": "Roma",
+          "Fantamedia": 6.53
+        },
+        {
+          "player_id": 4199,
+          "Nome": "Loftus-Cheek",
+          "Squadra": "Milan",
+          "Fantamedia": 6.52
+        },
+        {
+          "player_id": 5844,
+          "Nome": "Thorstvedt",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.48
+        },
+        {
+          "player_id": 6666,
+          "Nome": "Bernabè",
+          "Squadra": "Parma",
+          "Fantamedia": 6.48
+        },
+        {
+          "player_id": 6190,
+          "Nome": "Pisilli",
+          "Squadra": "Roma",
+          "Fantamedia": 6.48
+        },
+        {
+          "player_id": 6151,
+          "Nome": "Perrone",
+          "Squadra": "Como",
+          "Fantamedia": 6.47
+        },
+        {
+          "player_id": 5888,
+          "Nome": "Casadei",
+          "Squadra": "Torino",
+          "Fantamedia": 6.45
+        },
+        {
+          "player_id": 5792,
+          "Nome": "Ederson D.S.",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.43
+        }
+      ],
+      [
+        {
+          "player_id": 5674,
+          "Nome": "Basic",
+          "Squadra": "Venezia",
+          "Fantamedia": 6.43
+        },
+        {
+          "player_id": 5036,
+          "Nome": "Caqueret",
+          "Squadra": "Como",
+          "Fantamedia": 6.41
+        },
+        {
+          "player_id": 7318,
+          "Nome": "Gandelman",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.41
+        },
+        {
+          "player_id": 333,
+          "Nome": "Cataldi",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.41
+        },
+        {
+          "player_id": 5562,
+          "Nome": "Thuram K.",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.4
+        },
+        {
+          "player_id": 4364,
+          "Nome": "Gaetano",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.31
+        },
+        {
+          "player_id": 4947,
+          "Nome": "Brescianini",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.31
+        },
+        {
+          "player_id": 5119,
+          "Nome": "Samardzic",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.29
+        }
+      ],
+      [
+        {
+          "player_id": 5504,
+          "Nome": "Coulibaly L.",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.29
+        },
+        {
+          "player_id": 7070,
+          "Nome": "Sucic P.",
+          "Squadra": "Inter",
+          "Fantamedia": 6.27
+        },
+        {
+          "player_id": 2077,
+          "Nome": "Pasalic",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.27
+        },
+        {
+          "player_id": 4465,
+          "Nome": "Fagioli",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.23
+        },
+        {
+          "player_id": 779,
+          "Nome": "Cristante",
+          "Squadra": "Roma",
+          "Fantamedia": 6.22
+        },
+        {
+          "player_id": 6252,
+          "Nome": "Folorunsho",
+          "Squadra": "Monza",
+          "Fantamedia": 6.21
+        },
+        {
+          "player_id": 5813,
+          "Nome": "Miretti",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.2
+        },
+        {
+          "player_id": 827,
+          "Nome": "Locatelli",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.19
+        }
+      ],
+      [
+        {
+          "player_id": 5453,
+          "Nome": "Ricci S.",
+          "Squadra": "Como",
+          "Fantamedia": 6.18
+        },
+        {
+          "player_id": 5298,
+          "Nome": "Pobega",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.17
+        },
+        {
+          "player_id": 6054,
+          "Nome": "Moro N.",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 4287,
+          "Nome": "Lobotka",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.1
+        },
+        {
+          "player_id": 6271,
+          "Nome": "El Aynaoui",
+          "Squadra": "Roma",
+          "Fantamedia": 6.1
+        },
+        {
+          "player_id": 5295,
+          "Nome": "Musah",
+          "Squadra": "Milan",
+          "Fantamedia": 6.09
+        },
+        {
+          "player_id": 6294,
+          "Nome": "Ndour",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.07
+        }
+      ],
+      [
+        {
+          "player_id": 6898,
+          "Nome": "Keita M.",
+          "Squadra": "Parma",
+          "Fantamedia": 6.06
+        },
+        {
+          "player_id": 4686,
+          "Nome": "Fofana Y.",
+          "Squadra": "Milan",
+          "Fantamedia": 6.06
+        },
+        {
+          "player_id": 6206,
+          "Nome": "Fabbian",
+          "Squadra": "Parma",
+          "Fantamedia": 6.05
+        },
+        {
+          "player_id": 4349,
+          "Nome": "Nicolussi Caviglia",
+          "Squadra": "Parma",
+          "Fantamedia": 6.02
+        },
+        {
+          "player_id": 6005,
+          "Nome": "Ilkhan",
+          "Squadra": "Torino",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 22,
+          "Nome": "De Roon",
+          "Squadra": "Roma",
+          "Fantamedia": 6.0
+        },
+        {
+          "player_id": 5791,
+          "Nome": "Frendrup",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.97
+        }
+      ],
+      [
+        {
+          "player_id": 6680,
+          "Nome": "Karlstrom",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.96
+        },
+        {
+          "player_id": 2528,
+          "Nome": "Matic",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.96
+        },
+        {
+          "player_id": 7198,
+          "Nome": "Piotrowski",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.95
+        },
+        {
+          "player_id": 1871,
+          "Nome": "Deiola",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.95
+        },
+        {
+          "player_id": 7208,
+          "Nome": "Miller L.",
+          "Squadra": "Udinese",
+          "Fantamedia": 5.95
+        },
+        {
+          "player_id": 7209,
+          "Nome": "Sorensen O.",
+          "Squadra": "Parma",
+          "Fantamedia": 5.95
+        },
+        {
+          "player_id": 6020,
+          "Nome": "Ellertsson",
+          "Squadra": "Genoa",
+          "Fantamedia": 5.91
+        }
+      ],
+      [
+        {
+          "player_id": 6917,
+          "Nome": "Masini",
+          "Squadra": "Frosinone",
+          "Fantamedia": 5.9
+        },
+        {
+          "player_id": 6246,
+          "Nome": "Lipani",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.9
+        },
+        {
+          "player_id": 4870,
+          "Nome": "Adopo",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 6424,
+          "Nome": "Prati",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.88
+        },
+        {
+          "player_id": 801,
+          "Nome": "Gagliardini",
+          "Squadra": "Cagliari",
+          "Fantamedia": 5.84
+        },
+        {
+          "player_id": 6629,
+          "Nome": "Dele-Bashiru",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 6170,
+          "Nome": "Gineitis",
+          "Squadra": "Torino",
+          "Fantamedia": 5.81
+        }
+      ],
+      [
+        {
+          "player_id": 7138,
+          "Nome": "Ordonez C.",
+          "Squadra": "Parma",
+          "Fantamedia": 5.81
+        },
+        {
+          "player_id": 6593,
+          "Nome": "Akinsanmiro",
+          "Squadra": "Monza",
+          "Fantamedia": 5.8
+        },
+        {
+          "player_id": 5858,
+          "Nome": "Ferguson",
+          "Squadra": "Bologna",
+          "Fantamedia": 5.78
+        },
+        {
+          "player_id": 6024,
+          "Nome": "Sulemana I.",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 5.78
+        },
+        {
+          "player_id": 5457,
+          "Nome": "Maleh",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.71
+        },
+        {
+          "player_id": 5319,
+          "Nome": "Sohm",
+          "Squadra": "Venezia",
+          "Fantamedia": 5.62
+        },
+        {
+          "player_id": 5685,
+          "Nome": "Koopmeiners",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.55
+        }
+      ]
+    ],
+    "W": [
+      [
+        {
+          "player_id": 254,
+          "Nome": "Dimarco",
+          "Squadra": "Inter",
+          "Fantamedia": 7.64
+        },
+        {
+          "player_id": 6831,
+          "Nome": "Neres",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.84
+        },
+        {
+          "player_id": 2167,
+          "Nome": "Orsolini",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.76
+        }
+      ],
+      [
+        {
+          "player_id": 6884,
+          "Nome": "Conceicao",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.7
+        },
+        {
+          "player_id": 4970,
+          "Nome": "Messias",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.68
+        },
+        {
+          "player_id": 7129,
+          "Nome": "Rodriguez Je.",
+          "Squadra": "Como",
+          "Fantamedia": 6.66
+        }
+      ],
+      [
+        {
+          "player_id": 6398,
+          "Nome": "Isaksen",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.63
+        },
+        {
+          "player_id": 6844,
+          "Nome": "Rowe",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.59
+        },
+        {
+          "player_id": 184,
+          "Nome": "Bernardeschi",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.56
+        }
+      ],
+      [
+        {
+          "player_id": 5735,
+          "Nome": "Volpato",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.52
+        },
+        {
+          "player_id": 4436,
+          "Nome": "Cambiaghi",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.42
+        },
+        {
+          "player_id": 4892,
+          "Nome": "Saelemaekers",
+          "Squadra": "Milan",
+          "Fantamedia": 6.41
+        }
+      ],
+      [
+        {
+          "player_id": 5422,
+          "Nome": "Zalewski",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.4
+        },
+        {
+          "player_id": 6967,
+          "Nome": "Diao",
+          "Squadra": "Como",
+          "Fantamedia": 6.38
+        },
+        {
+          "player_id": 536,
+          "Nome": "Politano",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.36
+        }
+      ],
+      [
+        {
+          "player_id": 795,
+          "Nome": "El Shaarawy",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.33
+        },
+        {
+          "player_id": 5500,
+          "Nome": "Cancellieri",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.29
+        },
+        {
+          "player_id": 6815,
+          "Nome": "Fadera",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.15
+        }
+      ],
+      [
+        {
+          "player_id": 5295,
+          "Nome": "Musah",
+          "Squadra": "Milan",
+          "Fantamedia": 6.09
+        },
+        {
+          "player_id": 7001,
+          "Nome": "N'Dri",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.09
+        },
+        {
+          "player_id": 5301,
+          "Nome": "Luis Henrique",
+          "Squadra": "Inter",
+          "Fantamedia": 6.06
+        }
+      ],
+      [
+        {
+          "player_id": 632,
+          "Nome": "Zaccagni",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.96
+        },
+        {
+          "player_id": 4479,
+          "Nome": "Elmas",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.96
+        }
+      ],
+      [
+        {
+          "player_id": 6218,
+          "Nome": "Oristanio",
+          "Squadra": "Torino",
+          "Fantamedia": 5.92
+        },
+        {
+          "player_id": 6549,
+          "Nome": "Pierotti",
+          "Squadra": "Lecce",
+          "Fantamedia": 5.85
+        }
+      ],
+      [
+        {
+          "player_id": 5998,
+          "Nome": "Zerbin",
+          "Squadra": "Frosinone",
+          "Fantamedia": 5.79
+        },
+        {
+          "player_id": 6984,
+          "Nome": "Ondrejka",
+          "Squadra": "Parma",
+          "Fantamedia": 5.63
+        }
+      ]
+    ],
+    "T": [
+      [
+        {
+          "player_id": 6875,
+          "Nome": "Paz N.",
+          "Squadra": "Como",
+          "Fantamedia": 7.3
+        },
+        {
+          "player_id": 4777,
+          "Nome": "McTominay",
+          "Squadra": "Napoli",
+          "Fantamedia": 7.26
+        },
+        {
+          "player_id": 2517,
+          "Nome": "De Bruyne",
+          "Squadra": "Napoli",
+          "Fantamedia": 7.24
+        },
+        {
+          "player_id": 7126,
+          "Nome": "Baturina",
+          "Squadra": "Como",
+          "Fantamedia": 7.14
+        }
+      ],
+      [
+        {
+          "player_id": 2423,
+          "Nome": "Pulisic",
+          "Squadra": "Milan",
+          "Fantamedia": 7.07
+        },
+        {
+          "player_id": 2379,
+          "Nome": "Rabiot",
+          "Squadra": "Milan",
+          "Fantamedia": 6.98
+        },
+        {
+          "player_id": 5559,
+          "Nome": "Da Cunha",
+          "Squadra": "Como",
+          "Fantamedia": 6.91
+        },
+        {
+          "player_id": 6908,
+          "Nome": "Atta",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.88
+        }
+      ],
+      [
+        {
+          "player_id": 2766,
+          "Nome": "Zaniolo",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.77
+        },
+        {
+          "player_id": 4973,
+          "Nome": "McKennie",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.68
+        },
+        {
+          "player_id": 4970,
+          "Nome": "Messias",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.68
+        },
+        {
+          "player_id": 5687,
+          "Nome": "Vlasic",
+          "Squadra": "Torino",
+          "Fantamedia": 6.66
+        }
+      ],
+      [
+        {
+          "player_id": 6684,
+          "Nome": "Ekkelenkamp",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.61
+        },
+        {
+          "player_id": 2765,
+          "Nome": "Odgaard",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.61
+        },
+        {
+          "player_id": 6844,
+          "Nome": "Rowe",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.59
+        },
+        {
+          "player_id": 530,
+          "Nome": "Pellegrini Lo.",
+          "Squadra": "Roma",
+          "Fantamedia": 6.58
+        }
+      ],
+      [
+        {
+          "player_id": 7314,
+          "Nome": "Taylor K.",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.56
+        },
+        {
+          "player_id": 184,
+          "Nome": "Bernardeschi",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.56
+        },
+        {
+          "player_id": 5735,
+          "Nome": "Volpato",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.52
+        },
+        {
+          "player_id": 4199,
+          "Nome": "Loftus-Cheek",
+          "Squadra": "Milan",
+          "Fantamedia": 6.52
+        }
+      ],
+      [
+        {
+          "player_id": 5844,
+          "Nome": "Thorstvedt",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.48
+        },
+        {
+          "player_id": 5888,
+          "Nome": "Casadei",
+          "Squadra": "Torino",
+          "Fantamedia": 6.45
+        },
+        {
+          "player_id": 5036,
+          "Nome": "Caqueret",
+          "Squadra": "Como",
+          "Fantamedia": 6.41
+        },
+        {
+          "player_id": 7318,
+          "Nome": "Gandelman",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.41
+        }
+      ],
+      [
+        {
+          "player_id": 5823,
+          "Nome": "Baldanzi",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.38
+        },
+        {
+          "player_id": 5800,
+          "Nome": "Gudmundsson A.",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.34
+        },
+        {
+          "player_id": 4947,
+          "Nome": "Brescianini",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.31
+        },
+        {
+          "player_id": 4896,
+          "Nome": "Maldini",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.31
+        }
+      ],
+      [
+        {
+          "player_id": 5119,
+          "Nome": "Samardzic",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.29
+        },
+        {
+          "player_id": 2077,
+          "Nome": "Pasalic",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.27
+        },
+        {
+          "player_id": 6252,
+          "Nome": "Folorunsho",
+          "Squadra": "Monza",
+          "Fantamedia": 6.21
+        }
+      ],
+      [
+        {
+          "player_id": 5813,
+          "Nome": "Miretti",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.2
+        },
+        {
+          "player_id": 6206,
+          "Nome": "Fabbian",
+          "Squadra": "Parma",
+          "Fantamedia": 6.05
+        },
+        {
+          "player_id": 4479,
+          "Nome": "Elmas",
+          "Squadra": "Atalanta",
+          "Fantamedia": 5.96
+        }
+      ],
+      [
+        {
+          "player_id": 6218,
+          "Nome": "Oristanio",
+          "Squadra": "Torino",
+          "Fantamedia": 5.92
+        },
+        {
+          "player_id": 6629,
+          "Nome": "Dele-Bashiru",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.83
+        },
+        {
+          "player_id": 5685,
+          "Nome": "Koopmeiners",
+          "Squadra": "Juventus",
+          "Fantamedia": 5.55
+        }
+      ]
+    ],
+    "A": [
+      [
+        {
+          "player_id": 6875,
+          "Nome": "Paz N.",
+          "Squadra": "Como",
+          "Fantamedia": 7.3
+        },
+        {
+          "player_id": 6434,
+          "Nome": "Yildiz",
+          "Squadra": "Juventus",
+          "Fantamedia": 7.3
+        },
+        {
+          "player_id": 531,
+          "Nome": "Berardi",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 7.19
+        },
+        {
+          "player_id": 2423,
+          "Nome": "Pulisic",
+          "Squadra": "Milan",
+          "Fantamedia": 7.07
+        }
+      ],
+      [
+        {
+          "player_id": 6060,
+          "Nome": "Laurientè",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.99
+        },
+        {
+          "player_id": 4463,
+          "Nome": "Esposito Se.",
+          "Squadra": "Sassuolo",
+          "Fantamedia": 6.88
+        },
+        {
+          "player_id": 4728,
+          "Nome": "Nkunku",
+          "Squadra": "Milan",
+          "Fantamedia": 6.87
+        },
+        {
+          "player_id": 4510,
+          "Nome": "Leao",
+          "Squadra": "Milan",
+          "Fantamedia": 6.86
+        }
+      ],
+      [
+        {
+          "player_id": 6831,
+          "Nome": "Neres",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.84
+        },
+        {
+          "player_id": 5734,
+          "Nome": "Soulè",
+          "Squadra": "Roma",
+          "Fantamedia": 6.83
+        },
+        {
+          "player_id": 2766,
+          "Nome": "Zaniolo",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.77
+        },
+        {
+          "player_id": 2167,
+          "Nome": "Orsolini",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.76
+        }
+      ],
+      [
+        {
+          "player_id": 309,
+          "Nome": "Dybala",
+          "Squadra": "Roma",
+          "Fantamedia": 6.74
+        },
+        {
+          "player_id": 6884,
+          "Nome": "Conceicao",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.7
+        },
+        {
+          "player_id": 7129,
+          "Nome": "Rodriguez Je.",
+          "Squadra": "Como",
+          "Fantamedia": 6.66
+        }
+      ],
+      [
+        {
+          "player_id": 6646,
+          "Nome": "Adams C.",
+          "Squadra": "Torino",
+          "Fantamedia": 6.64
+        },
+        {
+          "player_id": 6398,
+          "Nome": "Isaksen",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.63
+        },
+        {
+          "player_id": 5995,
+          "Nome": "De Ketelaere",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.6
+        }
+      ],
+      [
+        {
+          "player_id": 6556,
+          "Nome": "Noslin",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.5
+        },
+        {
+          "player_id": 7162,
+          "Nome": "Giovane",
+          "Squadra": "Napoli",
+          "Fantamedia": 6.45
+        },
+        {
+          "player_id": 4436,
+          "Nome": "Cambiaghi",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.42
+        }
+      ],
+      [
+        {
+          "player_id": 6164,
+          "Nome": "Vitinha O.",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.39
+        },
+        {
+          "player_id": 6967,
+          "Nome": "Diao",
+          "Squadra": "Como",
+          "Fantamedia": 6.38
+        },
+        {
+          "player_id": 5800,
+          "Nome": "Gudmundsson A.",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.34
+        }
+      ],
+      [
+        {
+          "player_id": 4896,
+          "Nome": "Maldini",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.31
+        },
+        {
+          "player_id": 5500,
+          "Nome": "Cancellieri",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.29
+        },
+        {
+          "player_id": 6822,
+          "Nome": "Ekhator",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.28
+        }
+      ],
+      [
+        {
+          "player_id": 5918,
+          "Nome": "Sulemana K.",
+          "Squadra": "Atalanta",
+          "Fantamedia": 6.24
+        },
+        {
+          "player_id": 7001,
+          "Nome": "N'Dri",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.09
+        },
+        {
+          "player_id": 6145,
+          "Nome": "Ngonge",
+          "Squadra": "Monza",
+          "Fantamedia": 6.0
+        }
+      ],
+      [
+        {
+          "player_id": 632,
+          "Nome": "Zaccagni",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.96
+        },
+        {
+          "player_id": 5672,
+          "Nome": "Dia",
+          "Squadra": "Lazio",
+          "Fantamedia": 5.86
+        },
+        {
+          "player_id": 6984,
+          "Nome": "Ondrejka",
+          "Squadra": "Parma",
+          "Fantamedia": 5.63
+        }
+      ]
+    ],
+    "Pc": [
+      [
+        {
+          "player_id": 5585,
+          "Nome": "Malen",
+          "Squadra": "Roma",
+          "Fantamedia": 8.97
+        },
+        {
+          "player_id": 2764,
+          "Nome": "Martinez L.",
+          "Squadra": "Inter",
+          "Fantamedia": 8.25
+        },
+        {
+          "player_id": 4871,
+          "Nome": "Thuram",
+          "Squadra": "Inter",
+          "Fantamedia": 7.95
+        }
+      ],
+      [
+        {
+          "player_id": 2137,
+          "Nome": "Scamacca",
+          "Squadra": "Atalanta",
+          "Fantamedia": 7.55
+        },
+        {
+          "player_id": 6052,
+          "Nome": "Hojlund",
+          "Squadra": "Napoli",
+          "Fantamedia": 7.44
+        },
+        {
+          "player_id": 7017,
+          "Nome": "Douvikas",
+          "Squadra": "Como",
+          "Fantamedia": 7.38
+        }
+      ],
+      [
+        {
+          "player_id": 5637,
+          "Nome": "Davis K.",
+          "Squadra": "Udinese",
+          "Fantamedia": 7.37
+        },
+        {
+          "player_id": 6435,
+          "Nome": "Krstovic",
+          "Squadra": "Atalanta",
+          "Fantamedia": 7.19
+        },
+        {
+          "player_id": 2061,
+          "Nome": "Simeone",
+          "Squadra": "Torino",
+          "Fantamedia": 7.09
+        }
+      ],
+      [
+        {
+          "player_id": 7071,
+          "Nome": "Esposito F.P.",
+          "Squadra": "Inter",
+          "Fantamedia": 7.02
+        },
+        {
+          "player_id": 6669,
+          "Nome": "Bonny",
+          "Squadra": "Inter",
+          "Fantamedia": 6.83
+        },
+        {
+          "player_id": 2097,
+          "Nome": "Kean",
+          "Squadra": "Como",
+          "Fantamedia": 6.77
+        }
+      ],
+      [
+        {
+          "player_id": 7023,
+          "Nome": "Pellegrino M.",
+          "Squadra": "Fiorentina",
+          "Fantamedia": 6.65
+        },
+        {
+          "player_id": 2038,
+          "Nome": "Pinamonti",
+          "Squadra": "Lazio",
+          "Fantamedia": 6.62
+        },
+        {
+          "player_id": 6572,
+          "Nome": "Castro S.",
+          "Squadra": "Roma",
+          "Fantamedia": 6.51
+        }
+      ],
+      [
+        {
+          "player_id": 6243,
+          "Nome": "Borrelli",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.46
+        },
+        {
+          "player_id": 4923,
+          "Nome": "Colombo",
+          "Squadra": "Genoa",
+          "Fantamedia": 6.41
+        },
+        {
+          "player_id": 5544,
+          "Nome": "David",
+          "Squadra": "Juventus",
+          "Fantamedia": 6.33
+        }
+      ],
+      [
+        {
+          "player_id": 5336,
+          "Nome": "Nzola",
+          "Squadra": "Cagliari",
+          "Fantamedia": 6.26
+        },
+        {
+          "player_id": 4359,
+          "Nome": "Piccoli",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.24
+        },
+        {
+          "player_id": 7249,
+          "Nome": "Buksa",
+          "Squadra": "Udinese",
+          "Fantamedia": 6.24
+        }
+      ],
+      [
+        {
+          "player_id": 608,
+          "Nome": "Zapata D.",
+          "Squadra": "Torino",
+          "Fantamedia": 6.13
+        },
+        {
+          "player_id": 6643,
+          "Nome": "Dallinga",
+          "Squadra": "Bologna",
+          "Fantamedia": 6.13
+        }
+      ],
+      [
+        {
+          "player_id": 7252,
+          "Nome": "Stulic",
+          "Squadra": "Lecce",
+          "Fantamedia": 6.12
+        },
+        {
+          "player_id": 6519,
+          "Nome": "Camarda",
+          "Squadra": "Milan",
+          "Fantamedia": 5.64
+        }
+      ],
+      [
+        {
+          "player_id": 7008,
+          "Nome": "Gimenez",
+          "Squadra": "Milan",
+          "Fantamedia": 5.53
+        },
+        {
+          "player_id": 313,
+          "Nome": "Morata",
+          "Squadra": "Como",
+          "Fantamedia": 5.21
+        }
+      ]
+    ]
+  }
+}

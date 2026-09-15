@@ -92,10 +92,10 @@ npm run build
 
 ## 📊 Data Pipeline
 
-Mantravibe reads its player data from `public/data/final.json` and `public/data/roles.csv` (already
-committed and reusable as-is). To regenerate `final.json` for a new season, everything — CSV
-ingestion, fantacalcio.it stats, and Understat enrichment — lives in `data-pipeline/`, inside this
-repo.
+Mantravibe reads its player data from `public/data/final.json`, `public/data/roles.csv`, and
+`public/data/fantamedia_percentiles.json` (already committed and reusable as-is). To regenerate
+these for a new season, everything — CSV ingestion, fantacalcio.it stats, Understat enrichment,
+and the Fantamedia percentile computation — lives in `data-pipeline/`, inside this repo.
 
 ### Prerequisites (one-time)
 
@@ -133,7 +133,7 @@ a command.
 From the `mantravibe/` root:
 
 ```bash
-npm run data:build   # parses the Quotazioni export, applies fantacalcio.it stats, fetches/matches Understat stats, writes public/data/final.json
+npm run data:build   # parses the Quotazioni export, applies fantacalcio.it stats, fetches/matches Understat stats, writes public/data/final.json and public/data/fantamedia_percentiles.json
 ```
 
 The two fantacalcio.it stats exports are matched by their own internal player id (exact match,
@@ -211,8 +211,9 @@ src/
 
 public/
 ├── data/               # Data files
-│   ├── final.json      # Player database
-│   └── roles.csv       # Role definitions
+│   ├── final.json                    # Player database
+│   ├── roles.csv                     # Role definitions
+│   └── fantamedia_percentiles.json   # Fantamedia deciles by role/season (Percentili tab)
 └── assets/             # Static assets
     └── appetibilita.json  # Formation preferences
 
@@ -230,7 +231,8 @@ data-pipeline/           # Data ingestion & enrichment (see Data Pipeline sectio
 ├── understat_fetch.py         # Fetches Understat player stats
 ├── match_utils.py              # Name/team fuzzy-matching helpers
 ├── enrich.py                   # Matches players against Understat data (name-matched)
-└── build.py                    # Orchestrator: Quotazioni -> fantacalcio.it stats -> Understat -> public/data/final.json
+├── fantamedia_percentiles.py   # Fantamedia deciles by Mantra role/season, from the final list
+└── build.py                    # Orchestrator: Quotazioni -> fantacalcio.it stats -> Understat -> final.json -> fantamedia_percentiles.json
 ```
 
 ## 🎮 Usage Guide

@@ -7,6 +7,7 @@ import Settings from './components/Settings';
 import { loadBudget, loadPlayerStatus, saveBudget, savePlayerStatus, updatePlayerStatus, loadInterestedPlayers, saveInterestedPlayers } from './utils/storage';
 import { parseCsvRows, downloadCsv } from './utils/csv';
 import { theme, applyThemeMode, getStoredThemeMode } from './theme';
+import { buildFasciaLookup } from './utils/fasceColors';
 
 // Code-split the heavy per-tab/per-route components (RosaAcquistata and MantraGiocatoriTab alone
 // are ~2000-2400 lines each) so the initial bundle only pays for whichever one is actually shown,
@@ -15,6 +16,7 @@ import { theme, applyThemeMode, getStoredThemeMode } from './theme';
 const RosaAcquistata = lazy(() => import('./components/RosaAcquistata'));
 const MantraGiocatoriTab = lazy(() => import('./components/MantraGiocatoriTab'));
 const SquadreTab = lazy(() => import('./components/SquadreTab'));
+const PercentiliTab = lazy(() => import('./components/PercentiliTab'));
 const AboutPage = lazy(() => import('./components/AboutPage'));
 const PlayerPage = lazy(() => import('./components/PlayerPage'));
 
@@ -36,6 +38,12 @@ const App = () => {
   const [mantraData, setMantraData] = useState([]);
   const [rolesData, setRolesData] = useState([]);
   const [formations, setFormations] = useState({});
+  // Precomputed Fantamedia fasce by role/season (data-pipeline/fantamedia_percentiles.py) -
+  // fetched once here alongside the other data files and turned into a fast lookup (see
+  // fasceColors.js) shared by MantraGiocatoriTab, PlayerPage and PercentiliTab, instead of each
+  // of them fetching/parsing it separately.
+  const [fantamediaPercentiles, setFantamediaPercentiles] = useState(null);
+  const fasciaLookup = useMemo(() => buildFasciaLookup(fantamediaPercentiles), [fantamediaPercentiles]);
   
   // Debug effect to track rolesData changes
   useEffect(() => {
@@ -217,15 +225,16 @@ const App = () => {
     setError(null);
     
     try {
-      // Fire all four requests together instead of awaiting them one at a time - the total wait
-      // is now however long the slowest of the four takes, not their sum.
-      const [finalResponse, rolesResponse, appetibilitaResponse, formationsResponse] = await Promise.all([
+      // Fire all five requests together instead of awaiting them one at a time - the total wait
+      // is now however long the slowest of the five takes, not their sum.
+      const [finalResponse, rolesResponse, appetibilitaResponse, formationsResponse, percentilesResponse] = await Promise.all([
         fetch('/data/final.json'),
         // roles.csv only changes via a data-pipeline rebuild (a new deploy), not at runtime, so
         // it doesn't need a cache-busting query param defeating HTTP caching on every load.
         fetch('/data/roles.csv'),
         fetch('/assets/appetibilita.json'),
-        fetch('/assets/mantra_formations_positions.json')
+        fetch('/assets/mantra_formations_positions.json'),
+        fetch('/data/fantamedia_percentiles.json')
       ]);
 
       // Carica final.json
@@ -282,6 +291,14 @@ const App = () => {
       } else {
         setError('File mantra_formations_positions.json non trovato nella cartella public/assets/.');
         return;
+      }
+
+      // Carica i percentili Fantamedia - facoltativo: la sua assenza disabilita solo i badge
+      // fascia (Giocatori/Percentili/PlayerPage), non deve bloccare il resto dell'app.
+      if (percentilesResponse.ok) {
+        setFantamediaPercentiles(await percentilesResponse.json());
+      } else {
+        console.warn('File fantamedia_percentiles.json non trovato - i badge fascia non saranno mostrati.');
       }
     } catch (err) {
       setError('Errore nel caricamento dei dati Mantra.');
@@ -431,10 +448,15 @@ const App = () => {
       label: 'La Mia Rosa', 
       description: 'Visualizza i giocatori che hai acquistato e gestisci il budget'
     },
-    { 
-      id: 'squadre', 
-      label: 'Squadre', 
+    {
+      id: 'squadre',
+      label: 'Squadre',
       description: 'Gestisci e visualizza le informazioni delle squadre'
+    },
+    {
+      id: 'percentili',
+      label: 'Percentili',
+      description: 'Fantamedia dei giocatori divisa in 10 fasce per ruolo e stagione'
     }
   ];
 
@@ -695,6 +717,7 @@ const App = () => {
               players={mantraData}
               playerStatus={currentPlayerStatus}
               onPlayerStatusChange={handlePlayerStatusChange}
+              fasciaLookup={fasciaLookup}
             />
           </Suspense>
         } />
@@ -819,6 +842,7 @@ const App = () => {
                 roles={rolesData}
                 interestedPlayers={interestedPlayers}
                 onToggleInterested={handleToggleInterested}
+                fasciaLookup={fasciaLookup}
               />
             )}
 
@@ -839,6 +863,10 @@ const App = () => {
 
             {activeTab === 'squadre' && (
               <SquadreTab budget={currentBudget} teams={teams} onTeamsChange={handleTeamsChange} maxPlayers={maxPlayers} players={mantraData} />
+            )}
+
+            {activeTab === 'percentili' && (
+              <PercentiliTab data={fantamediaPercentiles} />
             )}
           </Suspense>
         )}

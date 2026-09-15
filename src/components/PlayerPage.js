@@ -2,9 +2,10 @@ import React, { useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { getSeasonLabels, seasonStatBasesForPlayer } from '../utils/dataUtils';
 import { theme } from '../theme';
+import { getFasciaEntries, fasciaColor, fasciaTextColor } from '../utils/fasceColors';
 import StatTrendTable from './StatTrendTable';
 
-const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) => {
+const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange, fasciaLookup = null }) => {
   const { id } = useParams();
   const navigate = useNavigate();
 
@@ -93,6 +94,23 @@ const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) =
       return [];
     }
   }, [player]);
+
+  // Precomputed Fantamedia fasce (see data-pipeline/fantamedia_percentiles.py), fetched once in
+  // App.js and turned into a fast player_id -> fascia lookup (fasceColors.js) shared with the
+  // Giocatori tab and the Percentili tab, so this always matches what those show.
+  // For each season, which fascia this player falls into per Mantra role they hold - a
+  // multi-role player (e.g. ["Dc", "B"]) can land in a different fascia per role since each
+  // role's fasce are computed independently. A season/role combo is omitted entirely when the
+  // player wasn't eligible that season (not enough Presenze, or no data at all).
+  const percentiliBySeason = useMemo(() => {
+    if (!fasciaLookup || !player) return null;
+    const result = {};
+    for (const season of [CUR_SEASON, PREV_SEASON]) {
+      const perRole = getFasciaEntries(fasciaLookup, player, season);
+      if (perRole.length > 0) result[season] = perRole;
+    }
+    return result;
+  }, [fasciaLookup, player, CUR_SEASON, PREV_SEASON]);
 
   if (!player) {
     return (
@@ -188,6 +206,45 @@ const PlayerPage = ({ players = [], playerStatus = {}, onPlayerStatusChange }) =
             </div>
           </div>
         </div>
+
+        {/* Fascia (decile) di merito per Fantamedia, per stagione e ruolo - see PercentiliTab
+            for the full ranking; this just surfaces where this one player lands in it. */}
+        {percentiliBySeason && Object.keys(percentiliBySeason).length > 0 && (
+          <div style={statsSectionStyle}>
+            <h3 style={sectionTitleStyle}>Percentili Fantamedia</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+              {[CUR_SEASON, PREV_SEASON].map(season => {
+                const rows = percentiliBySeason[season];
+                if (!rows || rows.length === 0) return null;
+                return (
+                  <div key={season}>
+                    <div style={compactStatHeaderStyle}>{shortSeason(season)}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.3rem', marginTop: '0.35rem' }}>
+                      {rows.map(({ role, fasciaIndex }) => {
+                        const bg = fasciaColor(fasciaIndex);
+                        return (
+                          <div key={role} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={compactStatLabelStyle}>{role}</span>
+                            <span style={{
+                              backgroundColor: bg,
+                              color: fasciaTextColor(bg),
+                              padding: '0.15rem 0.6rem',
+                              borderRadius: '0.375rem',
+                              fontSize: '0.75rem',
+                              fontWeight: '700'
+                            }}>
+                              Fascia {fasciaIndex + 1}
+                            </span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* Absolute (raw season total) values, both seasons side by side per stat - compact
             counterpart to Andamento below, which shows the same stats as per-match rates with

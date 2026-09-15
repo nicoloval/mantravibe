@@ -4,6 +4,7 @@ import { getCachedData, setCachedData, CACHE_CONFIG } from '../utils/cache';
 import { getSeasonLabels, SEASON_STAT_BASES } from '../utils/dataUtils';
 import { theme } from '../theme';
 import { TrendUpIcon, TrendDownIcon } from '../icons';
+import { getFasciaEntries, fasciaColor, bestFasciaIndex, fasciaTooltipText } from '../utils/fasceColors';
 import StatTrendTable from './StatTrendTable';
 
 // Pure helpers with no dependency on component state/props - kept at module scope (a stable
@@ -50,7 +51,7 @@ const formatPerMatchValue = (value, base) => {
   return base === 'Minuti Giocati' ? Math.round(value).toString() : value.toFixed(2);
 };
 
-const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusChange, onPlayerAcquire, roles = [], interestedPlayers = {}, onToggleInterested }) => {
+const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusChange, onPlayerAcquire, roles = [], interestedPlayers = {}, onToggleInterested, fasciaLookup = null }) => {
   const navigate = useNavigate();
   // Derived from the data itself (see data-pipeline/config.py) - never hardcode season strings below.
   const { current: CUR_SEASON, previous: PREV_SEASON } = useMemo(() => getSeasonLabels(players), [players]);
@@ -1798,7 +1799,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                 {/* Conditional Stats - Only show when details are enabled */}
                 {showCardDetails && (
                   <div style={{ marginBottom: '0.5rem' }}>
-                    <StatTrendTable player={player} curSeason={CUR_SEASON} prevSeason={PREV_SEASON} />
+                    <StatTrendTable player={player} curSeason={CUR_SEASON} prevSeason={PREV_SEASON} fasciaLookup={fasciaLookup} preferFantamedia />
                   </div>
                 )}
 
@@ -2059,9 +2060,29 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
                           ? formatPerMatchValue(value, parsed.base)
                           : formatValue(value, column);
 
+                    // Fantamedia columns (FM26/FM25) get the fascia number in parentheses,
+                    // colored - color alone doesn't say which of the 10 fasce it is, so the
+                    // number is shown too. This is the best fascia across the player's Mantra
+                    // roles when they hold more than one, with the full per-role breakdown as a
+                    // native tooltip. Cheap: only computed for the two Fantamedia columns, only
+                    // for the ~60-120 currently rendered rows.
+                    const fasciaEntries = parsed && parsed.base === 'Fantamedia'
+                      ? getFasciaEntries(fasciaLookup, player, parsed.season)
+                      : [];
+                    const fasciaBest = bestFasciaIndex(fasciaEntries);
+
                     return (
-                      <td key={column} style={isDiff ? { ...cellStyle, color: getDiffColor(value), fontWeight: '600' } : cellStyle}>
+                      <td
+                        key={column}
+                        style={isDiff ? { ...cellStyle, color: getDiffColor(value), fontWeight: '600' } : cellStyle}
+                        title={fasciaEntries.length ? fasciaTooltipText(fasciaEntries) : undefined}
+                      >
                         {displayText}
+                        {fasciaBest !== null && (
+                          <span style={{ color: fasciaColor(fasciaBest), fontWeight: '800', marginLeft: '0.3rem' }}>
+                            ({fasciaBest + 1})
+                          </span>
+                        )}
                       </td>
                     );
                   })}
