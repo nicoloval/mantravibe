@@ -97,15 +97,22 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   const [visibleColumns, setVisibleColumns] = useState(() => {
     // Try to load from localStorage first
     const savedColumns = localStorage.getItem('giocatoriVisibleColumns');
+    const savedSeason = localStorage.getItem('giocatoriVisibleColumnsSeason');
     if (savedColumns) {
       try {
         const saved = new Set(JSON.parse(savedColumns));
-        // Current-season columns (e.g. "Gol 2026-2027") are new field names that didn't
-        // exist under any previous season - a saved set predating them isn't a deliberate
-        // "hide this column" choice, just an outdated list. Show them by default so a
-        // season rollover (or a newly-added stat, like Media Voto) doesn't silently disappear
-        // from the table for existing users.
-        SEASON_STAT_BASES.forEach(base => saved.add(`${base} ${CUR_SEASON}`));
+        // Current-season columns (e.g. "Gol 2026-2027") are new field names that didn't exist
+        // under any previous season - a save from BEFORE that season existed predates them, so
+        // it isn't a deliberate "hide this column" choice, just an outdated list, and they're
+        // added so a season rollover doesn't silently disappear from the table for existing
+        // users. But a save already recorded as being FOR the current season reflects the
+        // user's own explicit choices (including hiding a current-season column on purpose) -
+        // forcing these back on every load, as this used to do unconditionally, meant
+        // current-season columns could never actually stay hidden. Only migrate once per
+        // season change, not on every load.
+        if (savedSeason !== CUR_SEASON) {
+          SEASON_STAT_BASES.forEach(base => saved.add(`${base} ${CUR_SEASON}`));
+        }
         return saved;
       } catch (error) {
         console.error('Error parsing saved columns:', error);
@@ -117,6 +124,15 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
     const defaultVisible = new Set(['Nome', 'Squadra', 'Ruolo Mantra', 'QtA', 'FVM']);
     return defaultVisible;
   });
+
+  // Persists alongside giocatoriVisibleColumns (see toggleColumn/toggleAllColumns/
+  // hideAllColumns) so the next load can tell "this save reflects deliberate choices for the
+  // season that's current right now" from "this save predates the current season and needs the
+  // one-time migration above".
+  const saveVisibleColumns = (columnsSet) => {
+    localStorage.setItem('giocatoriVisibleColumns', JSON.stringify(Array.from(columnsSet)));
+    localStorage.setItem('giocatoriVisibleColumnsSeason', CUR_SEASON);
+  };
   
   // Column controls visibility state
   const [showColumnControls, setShowColumnControls] = useState(false);
@@ -684,8 +700,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       } else {
         newSet.add(columnName);
       }
-      // Save to localStorage
-      localStorage.setItem('giocatoriVisibleColumns', JSON.stringify(Array.from(newSet)));
+      saveVisibleColumns(newSet);
       return newSet;
     });
   };
@@ -693,7 +708,7 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
   const toggleAllColumns = () => {
     const allColumns = getColumns();
     const allVisible = allColumns.every(col => visibleColumns.has(col));
-    
+
     let newColumns;
     if (allVisible) {
       // If all are visible, set to minimum configuration
@@ -703,16 +718,14 @@ const MantraGiocatoriTab = ({ players = [], playerStatus = {}, onPlayerStatusCha
       newColumns = new Set(allColumns);
     }
     setVisibleColumns(newColumns);
-    // Save to localStorage
-    localStorage.setItem('giocatoriVisibleColumns', JSON.stringify(Array.from(newColumns)));
+    saveVisibleColumns(newColumns);
   };
 
   const hideAllColumns = () => {
     // Hide all columns except the essential ones
     const essentialColumns = new Set(['Nome', 'Squadra', 'Ruolo Mantra']);
     setVisibleColumns(essentialColumns);
-    // Save to localStorage
-    localStorage.setItem('giocatoriVisibleColumns', JSON.stringify(Array.from(essentialColumns)));
+    saveVisibleColumns(essentialColumns);
   };
 
   // Get all possible columns from the first player
